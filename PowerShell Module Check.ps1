@@ -14,7 +14,6 @@ function Get-Differences
     #Write-Host "File Count:" $count
     #Write-Host "Current:" $latest.FullName[0] # Current Settings
     #Write-Host "Previous:" $latest.FullName[1] # Previous Settings
-    #Pause
 
     If ($count -eq 2) {
         # Read the files in
