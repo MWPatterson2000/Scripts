@@ -2,12 +2,16 @@
     Allows the user to check to PowerShell Module Changes on the Client
 #>
 
+# Variables
+$path = "C:\PowerShell\Installed" # Path to store report and JSON files for comparison
+
 # Function
 # Check for Differences Between Currrent & Previous Modules
 function Get-Differences
 {
     # Get the Files
-    $dir = "C:\PowerShell\Installed\*- Modules.json"
+    #$dir = "C:\PowerShell\Installed\*- Modules.json"
+    $dir = "$path\*- Modules.json"
     #Write-Host $dir
     $latest = @(Get-ChildItem -Path $dir | Sort-Object LastWriteTime -Descending | Select-Object -First 2)
     $count = @($latest).Count
@@ -49,8 +53,10 @@ function Get-Differences
 }
 
 # Get Currnet PowerShell Modules Installed
-$Script:ModuleReportJ = "C:\PowerShell\Installed\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.json"
-$Script:ModuleReportC = "C:\PowerShell\Installed\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
+#$Script:ModuleReportJ = "C:\PowerShell\Installed\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.json"
+#$Script:ModuleReportC = "C:\PowerShell\Installed\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
+$Script:ModuleReportJ = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.json"
+$Script:ModuleReportC = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
 $Script:objTemp = New-Object System.Object
 $tempAR = Get-InstalledModule
 @($tempAR) | Select-Object Version,Name,Repository | ConvertTo-Json | Out-File $Script:ModuleReportJ -Append
