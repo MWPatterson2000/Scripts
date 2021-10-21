@@ -33,6 +33,7 @@ function Get-Differences
             If (($modulesPrevious).Name -contains ($modulesCurrent[$numC]).Name) {
                 for ($numP = 0 ; $numP -le $countP ; $numP++) {
                     If (($modulesPrevious[$numP]).Name -contains ($modulesCurrent[$numC]).Name) {
+                        $tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                         If ((($modulesPrevious[$numP]).Version).Major -eq (($modulesCurrent[$numC]).Version).Major) {
                             If ((($modulesPrevious[$numP]).Version).Minor -eq (($modulesCurrent[$numC]).Version).Minor) {
                                 If ((($modulesPrevious[$numP]).Version).Build -eq (($modulesCurrent[$numC]).Version).Build) {
@@ -40,28 +41,28 @@ function Get-Differences
                                     else {
                                         Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
                                         #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
-                                        $tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
+                                        #$tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                                         $tempM | Out-File $outputCsv -Append
                                     }
                                 }
                                 else {
                                     Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
                                     #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
-                                    $tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
+                                    #$tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                                     $tempM | Out-File $outputCsv -Append
                                 }
                             }
                             else {
                                 Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
                                 #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
-                                $tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
+                                #$tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                                 $tempM | Out-File $outputCsv -Append
                             }
                         }
                         else {
                             Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
                             #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
-                            $tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
+                            #$tempM = "Update" + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                             $tempM | Out-File $outputCsv -Append
                         }
                     }
