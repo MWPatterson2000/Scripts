@@ -40,28 +40,24 @@ function Get-Differences
                                     If ((($modulesPrevious[$numP]).Version).Revision -eq (($modulesCurrent[$numC]).Version).Revision) {}
                                     else {
                                         Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
-                                        #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
                                         #$tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                                         $tempM | Out-File $outputCsv -Append
                                     }
                                 }
                                 else {
                                     Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
-                                    #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
                                     #$tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                                     $tempM | Out-File $outputCsv -Append
                                 }
                             }
                             else {
                                 Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
-                                #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
                                 #$tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                                 $tempM | Out-File $outputCsv -Append
                             }
                         }
                         else {
                             Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
-                            #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
                             #$tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                             $tempM | Out-File $outputCsv -Append
                         }
@@ -70,7 +66,6 @@ function Get-Differences
             }
             else {
                 Write-Host "`tNew PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
-                #($modulesCurrent[$numC]).Name, ($modulesCurrent[$numC]).Version | Out-File $outputCsv -Append
                 $tempM = "New," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
                 $tempM | Out-File $outputCsv -Append
             }
@@ -88,9 +83,7 @@ $tempAR = Get-InstalledModule
 @($tempAR) | Select-Object Version,Name,Repository | ConvertTo-Json | Out-File $Script:ModuleReportJ -Append
 @($tempAR) | Export-Csv -path $Script:ModuleReportC -NoTypeInformation -Encoding UTF8
 
-# Create Array
-#$Script:objTemp = New-Object System.Object
-#$tempModules = @()
+# Write Changes to File
 $outputCsv = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Update Modules.csv"
 
 # Compare Currrent & Previous Modules Installed
