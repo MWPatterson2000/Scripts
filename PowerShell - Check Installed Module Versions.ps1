@@ -11,14 +11,14 @@ $count = $count - 1
 for ($num = 0 ; $num -le $count ; $num++) {
     if (($tempAR[$num]).Version -gt ($tempAR[$num]).Online) {
         #Write-Host "`n" + ($tempAR[$num]).Name: + "Online" -ForegroundColor Red
-        $temp = ($tempAR[$num]).Name + " - Online"
-        Write-Host $temp
+        $temp = ($tempAR[$num]).Name + " - Online Newer"
+        Write-Host $temp -ForegroundColor Yellow
         $tempAR[$num]
     }
     if (($tempAR[$num]).Version -lt ($tempAR[$num]).Online) {
         #Write-Host "`n" + ($tempAR[$num]).Name: + "Local" #-ForegroundColor Yellow
-        $temp = ($tempAR[$num]).Name + " - Local"
-        Write-Host $temp
+        $temp = ($tempAR[$num]).Name + " - Local Newer"
+        Write-Host $temp -ForegroundColor Yellow
         $tempAR[$num]
      }
 }
