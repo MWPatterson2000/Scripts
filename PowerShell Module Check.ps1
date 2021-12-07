@@ -70,6 +70,13 @@ function Get-Differences
                 $tempM | Out-File $outputCsv -Append
             }
         }
+        for ($numP = 0 ; $numP -le $countP ; $numP++) {
+            If (($modulesCurrent).Name -NotContains ($modulesPrevious[$numP]).Name) {
+                Write-Host "`tRemoved PowerShell Module:" ($modulesCurrent[$numP]).Name -ForegroundColor Yellow
+                $tempM = "Removed," + ($modulesPrevious[$numP]).Name + "," + (($modulesPrevious[$numP]).Version).Major + "." + (($modulesPrevious[$numP]).Version).Minor + "." + (($modulesCurrent[$numP]).Version).Build + "." + (($modulesCurrent[$numP]).Version).Revision
+                $tempM | Out-File $outputCsv -Append
+            }
+        }
     }
 }
 
