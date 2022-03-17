@@ -98,12 +98,14 @@ function Get-Differences
 #$Script:ModuleReportC = "C:\PowerShell\Installed\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
 $Script:ModuleReportJ = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.json"
 $Script:ModuleReportC = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
+$Script:ModuleReportS = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules Names.csv"
 $Script:objTemp = New-Object System.Object
 #Get-InstalledModule | Select-Object Name,Repository,Version | Format-Table -AutoSize
 $tempAR = Get-InstalledModule | Sort-Object Name
 @($tempAR) | Export-Csv -path $Script:ModuleReportC -NoTypeInformation -Encoding UTF8
 #@($tempAR) | Select-Object Version,Name,Repository | ConvertTo-Json | Out-File $Script:ModuleReportJ -Append
 @($tempAR) | Select-Object Name,Repository,Version | ConvertTo-Json | Out-File $Script:ModuleReportJ -Append
+@($tempAR) | Select-Object Name,Repository,Version | Export-Csv -path $Script:ModuleReportS -NoTypeInformation -Encoding UTF8
 
 # Write Changes to File
 $outputCsv = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Update Modules.csv"
