@@ -11,8 +11,8 @@ Write-Host "Checking for Old Version(s) of Module(s)"
 foreach ($module in $Script:ModulesAR) {
     #Write-Host $module.Name
     $ModuleName = $module.Name
-    #$count = (Get-Module $ModuleName -ListAvailable).Count
-    $count = (Get-InstalledModule $ModuleName -AllVersions).Count
+    #$count = (Get-Module $ModuleName -ListAvailable).Count # Faster Option
+    $count = (Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
     if ($ModuleName -ne "Pester") {
         if ($count -gt 1) {
             $count--
