@@ -17,16 +17,16 @@ foreach ($module in $Script:ModulesAR) {
     $ModuleName = $module.Name
     #$count = (Get-Module $ModuleName -ListAvailable).Count
     $count = (Get-InstalledModule $ModuleName -AllVersions).Count
-    if ($count -gt 1) {
-        if ($ModuleName -ne "Pester") {
+    if ($ModuleName -ne "Pester") {
+        if ($count -gt 1) {
             $count--
             Write-Host "`tCleaning Up $count Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow
             $Latest = Get-InstalledModule $ModuleName
             #Get-InstalledModule $ModuleName -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module #-WhatIf
             Get-InstalledModule $ModuleName -AllVersions | Where-Object {$_.Version -ne $Latest.Version} | Uninstall-Module -Force -ErrorAction Stop
         }
-        else {Write-Host "`tSkipping Cleaning Up $count Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow}
     }
+    else {Write-Host "`tSkipping Cleaning Up  Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow}
 }
 
 # End
