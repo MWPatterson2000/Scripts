@@ -26,7 +26,7 @@ foreach ($module in $Script:ModulesAR) {
             Get-InstalledModule $ModuleName -AllVersions | Where-Object {$_.Version -ne $Latest.Version} | Uninstall-Module -Force -ErrorAction Stop
         }
     }
-    else {Write-Host "`tSkipping Cleaning Up  Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow}
+    else {Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow}
 }
 
 # End
