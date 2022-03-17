@@ -1,13 +1,17 @@
 <#
-    Allows the User to Cleanup Old Versions of PowerShell Module(s) on the Client
+    Allows the User to Update & Cleanup Old Versions of PowerShell Module(s) on the Client
 #>
+
+# Update Modules
+Write-Host "Updating All Versions of PowerShell Module(s) Installed"
+Update-Module
 
 # Get All Versions of PowerShell Modules Installed
 Write-Host "Getting All Versions of PowerShell Module(s) Installed"
 $Script:ModulesAR = Get-InstalledModule
 
 # Cleanup old versions of PowerShell Modules
-Write-Host "Checking for Old Version(s) of Module(s)"
+Write-Host "Checking for Old Version(s) of Modules"
 foreach ($module in $Script:ModulesAR) {
     #Write-Host $module.Name
     $ModuleName = $module.Name
