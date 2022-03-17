@@ -1,5 +1,5 @@
 <#
-    Allows the user to check to PowerShell Module Changes on the Client
+    Allows the User to Check for PowerShell Module Changes on the Client
 #>
 
 # Variables
