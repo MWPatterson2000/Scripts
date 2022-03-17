@@ -25,5 +25,5 @@ foreach ($module in $Script:ModulesAR) {
     else {Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow}
 }
 
-# End
+# End Cleanup
 Write-Host "Finished Checking for Old Version(s) of Modules"
