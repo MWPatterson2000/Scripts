@@ -1,7 +1,7 @@
 # Get the Install Module(s) list
 #Get-Installedmodule | Sort-Object Name | Select-Object Name, Version, @{n='Online';e={(Find-module -Name $_.Name).Version}} | Format-Table -Autosize
 
-$tempAR = Get-Installedmodule | Select-Object Name, Version, @{n='Online';e={(Find-module -Name $_.Name).Version}}
+$tempAR = Get-Installedmodule | Select-Object Name, Version, @{ n='Online';e={ (Find-module -Name $_.Name).Version } }
 #$tempAR = Get-Installedmodule | Sort-Object Name | Select-Object Name, Version, @{n='Online';e={(Find-module -Name $_.Name).Version}}
 #$tempAR
 
