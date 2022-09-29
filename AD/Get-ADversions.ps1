@@ -1,3 +1,5 @@
+# https://eightwone.com/references/schema-versions/
+
 # Exchange Schema Version
 $sc = (Get-ADRootDSE).SchemaNamingContext
 $ob = "CN=ms-Exch-Schema-Version-Pt," + $sc
