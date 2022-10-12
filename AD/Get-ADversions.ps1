@@ -1,4 +1,5 @@
 # https://eightwone.com/references/schema-versions/
+# https://www.alitajran.com/wp-content/uploads/scripts/Get-ADversions.ps1
 
 # Exchange Schema Version
 $sc = (Get-ADRootDSE).SchemaNamingContext
