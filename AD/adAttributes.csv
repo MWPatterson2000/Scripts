@@ -1,0 +1,5 @@
+Name,Description,oMSyntax,AttributeSyntax,isSingleValued,Indexable
+CampusName,Campus Name,64,2.5.5.12,TRUE,No
+CampusID,Campus ID,64,2.5.5.12,TRUE,Yes
+LanguagesSpoken,Languages Spoken,64,2.5.5.12,FALSE,No
+FavoriteFood,Favorite Food,64,2.5.5.12,FALSE,No
