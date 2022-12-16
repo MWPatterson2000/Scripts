@@ -18,7 +18,7 @@ for ($num = 0 ; $num -le $count ; $num++) {
     if (($tempAR[$num]).Version -lt ($tempAR[$num]).Online) {
         #Write-Host "`n" + ($tempAR[$num]).Name: + "Local" #-ForegroundColor Yellow
         $temp = ($tempAR[$num]).Name + " - Online Newer"
-        Write-Host $temp -ForegroundColor Yellow
+        #Write-Host $temp -ForegroundColor Yellow
         $tempAR[$num]
      }
 }
