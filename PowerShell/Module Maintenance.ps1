@@ -2,6 +2,10 @@
     Allows the User to Update & Cleanup Old Versions of PowerShell Module(s) on the Client
 #>
 
+# Copy Modules Folder
+Write-Host "Copy All Versions of PowerShell Module(s) Installed"
+robocopy 'C:\Program Files\WindowsPowerShell\Modules' 'C:\PowerShell\Modules'  /S /R:1 /W:1 /NP /XO /XC /MT:24 /ZB /XF
+
 # Update Modules
 Write-Host "Updating All Versions of PowerShell Module(s) Installed"
 Update-Module
