@@ -30,7 +30,7 @@ $zenscalerType = "cenr"
 $url = "https://api.config.zscaler.com/$zenscalerHost/$zenscalerType/json"
 
 # Download JSON File
-$ipAddressList = Invoke-WebRequest -Uri $url | ConvertFrom-Json
+$ipList = Invoke-WebRequest -Uri $url | ConvertFrom-Json
 
 # Create User Table(s)
 $ipAddressList = [System.Collections.ArrayList]::new()
