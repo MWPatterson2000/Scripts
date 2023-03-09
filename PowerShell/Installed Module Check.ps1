@@ -3,7 +3,8 @@
 #>
 
 # Variables
-$path = "C:\PowerShell\Installed" # Path to store report and JSON files for comparison
+#$path = "C:\PowerShell\Installed" # Path to store report and JSON files for comparison
+$path = "D:\PowerShell\Installed" # Path to store report and JSON files for comparison
 
 # Function
 # Check for Differences Between Currrent & Previous Modules
