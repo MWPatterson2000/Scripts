@@ -13,7 +13,7 @@ $backupFileName = $date +"-" +$domain
 import-module grouppolicy
 
 function IsNotLinked($xmldata){
-    If ($xmldata.GPO.LinksTo -eq $null) {
+    If ($null -eq $xmldata.GPO.LinksTo) {
         Return $true
     }
     
@@ -22,11 +22,11 @@ function IsNotLinked($xmldata){
 
 $unlinkedGPOs = @()
 
-Get-GPO -All | ForEach { $gpo = $_ ; $_ | Get-GPOReport -ReportType xml | ForEach { If(IsNotLinked([xml]$_)){$unlinkedGPOs += $gpo} }}
+Get-GPO -All | ForEach-Object { $gpo = $_ ; $_ | Get-GPOReport -ReportType xml | ForEach-Object { If(IsNotLinked([xml]$_)){$unlinkedGPOs += $gpo} }}
 
 If ($unlinkedGPOs.Count -eq 0) {
     "No Unlinked GPO's Found"
 }
 Else{
-    $unlinkedGPOs | sort GpoStatus,DisplayName | Select DisplayName,ID,GpoStatus,CreationTime,ModificationTime | Export-Csv -Delimiter ',' -Path $backupFolderPath$backupFileName-UnlinkedGPOReport.csv -NoTypeInformation
+    $unlinkedGPOs | Sort-Object GpoStatus,DisplayName | Select-Object DisplayName,ID,GpoStatus,CreationTime,ModificationTime | Export-Csv -Delimiter ',' -Path $backupFolderPath$backupFileName-UnlinkedGPOReport.csv -NoTypeInformation
 }

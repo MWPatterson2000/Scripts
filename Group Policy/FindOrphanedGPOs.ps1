@@ -34,7 +34,7 @@ $Domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
 # Get AD Domain Name
 $DomainDNS = $Domain.Name
 # Get AD Distinguished Name
-$DomainDistinguishedName = $Domain.GetDirectoryEntry() | select -ExpandProperty DistinguishedName  
+$DomainDistinguishedName = $Domain.GetDirectoryEntry() | Select-Object -ExpandProperty DistinguishedName  
 
 $GPOPoliciesDN = "CN=Policies,CN=System,$DomainDistinguishedName"
 $GPOPoliciesSYSVOLUNC = "\\$DomainDNS\SYSVOL\$DomainDNS\Policies"

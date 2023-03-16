@@ -44,7 +44,7 @@
 param(
 	[string]$OUName
 )
-$OUs = @(Get-ADOrganizationalUnit -Filter * -Properties gPlink | ? {$_.Name -eq "$OUName"})
+$OUs = @(Get-ADOrganizationalUnit -Filter * -Properties gPlink | Where-Object {$_.Name -eq "$OUName"})
 #Return if no OUs found with given name
 if(!$OU) { Write-Warning "No such OU found"; return }
 
@@ -54,10 +54,10 @@ foreach($OU in $OUs) {
 	#Hackey way to get LDAP strings. Regex might be best option here
 	$OUGPLinks = $OU.gPlink.split("][")
 	#Get rid of all empty entries the array
-	$OUGPLinks =  @($OUGPLinks | ? {$_})
+	$OUGPLinks =  @($OUGPLinks | Where-Object {$_})
 	$order = $OUGPLinks.count;
 	foreach($GpLink in $OUGPLinks) {
-			$GpName = [adsi]$GPlink.split(";")[0] | select -ExpandProperty displayName
+			$GpName = [adsi]$GPlink.split(";")[0] | Select-Object -ExpandProperty displayName
 			$GpStatus = $GPlink.split(";")[1]
 			$EnableStatus = $EnforceStatus = 0
 			switch($GPStatus) {

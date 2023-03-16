@@ -206,7 +206,7 @@ ForEach ($GPC in $DomainGPOList) {
                 If ($VerboseConsoleOutput) {
                   Write-Host -ForegroundColor green "- Retrieving contents of $GPTPath"
                 }
-                $TotalTime = measure-command {$colItems = Get-ChildItem "$GPTPath" –force -recurse}
+                $TotalTime = measure-command {$colItems = Get-ChildItem "$GPTPath" ï¿½force -recurse}
                 $TotalSeconds = $TotalTime.TotalSeconds
                 If ($VerboseConsoleOutput) {
                   Write-Host -ForegroundColor green "  - completed in $TotalSeconds seconds."
@@ -331,7 +331,7 @@ ForEach ($GPC in $DomainGPOList) {
           If ($VerboseConsoleOutput) {
             Write-Host -ForegroundColor green "- Retrieving contents of $GPTPath"
           }
-          $TotalTime = measure-command {$colItems = Get-ChildItem "$GPTPath" –force -recurse}
+          $TotalTime = measure-command {$colItems = Get-ChildItem "$GPTPath" ï¿½force -recurse}
           $TotalSeconds = $TotalTime.TotalSeconds
           If ($VerboseConsoleOutput) {
             Write-Host -ForegroundColor green "  - completed in $TotalSeconds seconds."

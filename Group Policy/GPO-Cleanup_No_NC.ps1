@@ -66,7 +66,7 @@ Begin
     #adding Whatif and confirmation
     $commonParams = @{}
     if($WhatIfPreference.IsPresent) {$commonParams.Add('WhatIf', $true)}
-    $GPOlist = Get-GPO -All | where {($_.Id -notlike "6AC1786C-016F-11D2-945F-00C04fB984F9") -or ($_.id -notlike "31B2F340-016D-11D2-945F-00C04FB984F9")}
+    $GPOlist = Get-GPO -All | Where-Object {($_.Id -notlike "6AC1786C-016F-11D2-945F-00C04fB984F9") -or ($_.id -notlike "31B2F340-016D-11D2-945F-00C04FB984F9")}
 }
 Process
 {
@@ -78,7 +78,7 @@ Process
                 'DisplayName' = $PerGPO.DisplayName
                 'GPOStatus' = $PerGPO.GpoStatus
                 'GUID' = $PerGPO.Id
-                'sitelinks' = if (Get-ADObject -Filter {(objectClass -eq "site")} -SearchBase (Get-ADRootDSE).ConfigurationNamingContext -Properties gPLink | where {$_.gplink -match $PerGPO.Id}) {$true} else{$false}
+                'sitelinks' = if (Get-ADObject -Filter {(objectClass -eq "site")} -SearchBase (Get-ADRootDSE).ConfigurationNamingContext -Properties gPLink | Where-Object {$_.gplink -match $PerGPO.Id}) {$true} else{$false}
                 'WMIFilterFilter' = if ($PerGpo.WmiFilter) {$true} else {$false} 
                 'GPOLinks' = if ($GPOReport.gpo.linksto) {$true} else {$false} 
                 'UserExtensions' = if ($GPOReport.GPO.User.extensiondata) {$true} else {$false}
