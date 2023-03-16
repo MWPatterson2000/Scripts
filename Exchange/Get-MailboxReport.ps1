@@ -92,37 +92,37 @@ V1.05, 10/06/2015 - Fixed bug with date in email subject line
 #requires -version 2
 
 param(
-	[Parameter(ParameterSetName='database')]
+    [Parameter(ParameterSetName = 'database')]
     [string]$Database,
 
-	[Parameter(ParameterSetName='file')]
+    [Parameter(ParameterSetName = 'file')]
     [string]$File,
 
-	[Parameter(ParameterSetName='server')]
+    [Parameter(ParameterSetName = 'server')]
     [string]$Server,
 
-	[Parameter(ParameterSetName='mailbox')]
+    [Parameter(ParameterSetName = 'mailbox')]
     [string]$Mailbox,
 
-	[Parameter(ParameterSetName='all')]
+    [Parameter(ParameterSetName = 'all')]
     [switch]$All,
 
-    [Parameter( Mandatory=$false)]	
+    [Parameter( Mandatory = $false)]	
     [string]$Filename,
 
-    [Parameter( Mandatory=$false)]
-	[switch]$SendEmail,
+    [Parameter( Mandatory = $false)]
+    [switch]$SendEmail,
 
-	[Parameter( Mandatory=$false)]
-	[string]$MailFrom,
+    [Parameter( Mandatory = $false)]
+    [string]$MailFrom,
 
-	[Parameter( Mandatory=$false)]
-	[string]$MailTo,
+    [Parameter( Mandatory = $false)]
+    [string]$MailTo,
 
-	[Parameter( Mandatory=$false)]
-	[string]$MailServer,
+    [Parameter( Mandatory = $false)]
+    [string]$MailServer,
 
-    [Parameter( Mandatory=$false)]
+    [Parameter( Mandatory = $false)]
     [int]$Top = 10
 
 )
@@ -147,11 +147,11 @@ $report = @()
 #...................................
 
 $smtpsettings = @{
-	To =  $MailTo
-	From = $MailFrom
-    Subject = $reportemailsubject
-	SmtpServer = $MailServer
-	}
+    To         = $MailTo
+    From       = $MailFrom
+    Subject    = $reportemailsubject
+    SmtpServer = $MailServer
+}
 
 
 #...................................
@@ -163,16 +163,16 @@ $smtpsettings = @{
 $2007snapin = Get-PSSnapin -Name Microsoft.Exchange.Management.PowerShell.Admin -Registered
 if ($2007snapin) {
     if (!(Get-PSSnapin -Name Microsoft.Exchange.Management.PowerShell.Admin -ErrorAction SilentlyContinue)) {
-		Add-PSSnapin Microsoft.Exchange.Management.PowerShell.Admin
-	}
+        Add-PSSnapin Microsoft.Exchange.Management.PowerShell.Admin
+    }
 
-	$AdminSessionADSettings.ViewEntireForest = 1
+    $AdminSessionADSettings.ViewEntireForest = 1
 }
 else {
     #Add Exchange 2010 snapin if not already loaded in the PowerShell session
     if (Test-Path $env:ExchangeInstallPath\bin\RemoteExchange.ps1) {
-	    . $env:ExchangeInstallPath\bin\RemoteExchange.ps1
-	    Connect-ExchangeServer -auto -AllowClobber
+        . $env:ExchangeInstallPath\bin\RemoteExchange.ps1
+        Connect-ExchangeServer -auto -AllowClobber
     }
     else {
         Write-Warning "Exchange Server management tools are not installed on this computer."
@@ -187,12 +187,12 @@ else {
 #Thanks to @proxb and @chrisbrownie for the help with random string generation
 
 if ($filename) {
-	$reportfile = $filename
+    $reportfile = $filename
 }
 else {
-	$timestamp = Get-Date -UFormat %Y%m%d-%H%M
-	$random = -join(48..57+65..90+97..122 | ForEach-Object {[char]$_} | Get-Random -Count 6)
-	#$reportfile = "$mydir\MailboxReport-$timestamp-$random.csv"
+    $timestamp = Get-Date -UFormat %Y%m%d-%H%M
+    $random = -join (48..57 + 65..90 + 97..122 | ForEach-Object { [char]$_ } | Get-Random -Count 6)
+    #$reportfile = "$mydir\MailboxReport-$timestamp-$random.csv"
     #$reportfile = "C:\Scripts\MailboxReport-$timestamp-$random.csv"	
     $date = get-date -Format "yyyy-MM-dd-HH-mm"
     #$reportfile = "C:\Scripts\$date-MailboxReport-$random.csv"
@@ -212,18 +212,18 @@ Import-Module ActiveDirectory -ErrorAction STOP
 
 Write-Host -ForegroundColor White "Collecting mailbox list"
 
-if($all) { $mailboxes = @(Get-Mailbox -resultsize unlimited -IgnoreDefaultScope) }
+if ($all) { $mailboxes = @(Get-Mailbox -resultsize unlimited -IgnoreDefaultScope) }
 
-if($server) {
+if ($server) {
     $databases = @(Get-MailboxDatabase -Server $server)
     $mailboxes = @($databases | Get-Mailbox -resultsize unlimited -IgnoreDefaultScope)
 }
 
-if($database){ $mailboxes = @(Get-Mailbox -database $database -resultsize unlimited -IgnoreDefaultScope) }
+if ($database) { $mailboxes = @(Get-Mailbox -database $database -resultsize unlimited -IgnoreDefaultScope) }
 
-if($file) {	$mailboxes = @(Get-Content $file | Get-Mailbox -resultsize unlimited) }
+if ($file) {	$mailboxes = @(Get-Content $file | Get-Mailbox -resultsize unlimited) }
 
-if($mailbox) { $mailboxes = @(Get-Mailbox $mailbox) }
+if ($mailbox) { $mailboxes = @(Get-Mailbox $mailbox) }
 
 #Get the report
 
@@ -236,14 +236,14 @@ $mailboxdatabases = @(Get-MailboxDatabase)
 
 #Loop through mailbox list and collect the mailbox statistics
 foreach ($mb in $mailboxes) {
-	$i = $i + 1
-	$pct = $i/$mailboxcount * 100
-	Write-Progress -Activity "Collecting mailbox details" -Status "Processing mailbox $i of $mailboxcount - $mb" -PercentComplete $pct
+    $i = $i + 1
+    $pct = $i / $mailboxcount * 100
+    Write-Progress -Activity "Collecting mailbox details" -Status "Processing mailbox $i of $mailboxcount - $mb" -PercentComplete $pct
 
-	$stats = $mb | Get-MailboxStatistics | Select-Object TotalItemSize,TotalDeletedItemSize,ItemCount,LastLogonTime,LastLoggedOnUserAccount,Retentionpolicy
+    $stats = $mb | Get-MailboxStatistics | Select-Object TotalItemSize, TotalDeletedItemSize, ItemCount, LastLogonTime, LastLoggedOnUserAccount, Retentionpolicy
     
     if ($mb.ArchiveDatabase) {
-        $archivestats = $mb | Get-MailboxStatistics -Archive | Select-Object TotalItemSize,TotalDeletedItemSize,ItemCount
+        $archivestats = $mb | Get-MailboxStatistics -Archive | Select-Object TotalItemSize, TotalDeletedItemSize, ItemCount
     }
     else {
         $archivestats = "n/a"
@@ -251,33 +251,33 @@ foreach ($mb in $mailboxes) {
 
     $LitigationHold = Get-Recipient -identity $mb.SamAccountName | Select-Object LitigationHoldEnabled
 
-    $inboxstats = Get-MailboxFolderStatistics $mb -FolderScope Inbox | Where {$_.FolderPath -eq "/Inbox"}
-    $sentitemsstats = Get-MailboxFolderStatistics $mb -FolderScope SentItems | Where {$_.FolderPath -eq "/Sent Items"}
-    $deleteditemsstats = Get-MailboxFolderStatistics $mb -FolderScope DeletedItems | Where {$_.FolderPath -eq "/Deleted Items"}
+    $inboxstats = Get-MailboxFolderStatistics $mb -FolderScope Inbox | Where-Object { $_.FolderPath -eq "/Inbox" }
+    $sentitemsstats = Get-MailboxFolderStatistics $mb -FolderScope SentItems | Where-Object { $_.FolderPath -eq "/Sent Items" }
+    $deleteditemsstats = Get-MailboxFolderStatistics $mb -FolderScope DeletedItems | Where-Object { $_.FolderPath -eq "/Deleted Items" }
     #FolderandSubFolderSize.ToMB()
 
-	$lastlogon = $stats.LastLogonTime
+    $lastlogon = $stats.LastLogonTime
 
-	$user = Get-User $mb
-	$aduser = Get-ADUser $mb.samaccountname -Properties Enabled,AccountExpirationDate
+    $user = Get-User $mb
+    $aduser = Get-ADUser $mb.samaccountname -Properties Enabled, AccountExpirationDate
     
-    $primarydb = $mailboxdatabases | where {$_.Name -eq $mb.Database.Name}
-    $archivedb = $mailboxdatabases | where {$_.Name -eq $mb.ArchiveDatabase.Name}
+    $primarydb = $mailboxdatabases | Where-Object { $_.Name -eq $mb.Database.Name }
+    $archivedb = $mailboxdatabases | Where-Object { $_.Name -eq $mb.ArchiveDatabase.Name }
 
-	#Create a custom PS object to aggregate the data we're interested in
+    #Create a custom PS object to aggregate the data we're interested in
 	
-	$userObj = New-Object PSObject
-	$userObj | Add-Member NoteProperty -Name "DisplayName" -Value $mb.DisplayName
-	$userObj | Add-Member NoteProperty -Name "Mailbox Type" -Value $mb.RecipientTypeDetails
+    $userObj = New-Object PSObject
+    $userObj | Add-Member NoteProperty -Name "DisplayName" -Value $mb.DisplayName
+    $userObj | Add-Member NoteProperty -Name "Mailbox Type" -Value $mb.RecipientTypeDetails
     $userObj | Add-Member NoteProperty -Name "Company" -Value $user.Company
-	$userObj | Add-Member NoteProperty -Name "Title" -Value $user.Title
+    $userObj | Add-Member NoteProperty -Name "Title" -Value $user.Title
     $userObj | Add-Member NoteProperty -Name "Department" -Value $user.Department
     $userObj | Add-Member NoteProperty -Name "Office" -Value $user.Office
     $userObj | Add-Member NoteProperty -Name "User" -Value $mb.SamAccountName
 
     $userObj | Add-Member NoteProperty -Name "Total Mailbox Size (Mb)" -Value ($stats.TotalItemSize.Value.ToMB() + $stats.TotalDeletedItemSize.Value.ToMB())
-	$userObj | Add-Member NoteProperty -Name "Mailbox Size (Mb)" -Value $stats.TotalItemSize.Value.ToMB()
-	$userObj | Add-Member NoteProperty -Name "Mailbox Items" -Value $stats.ItemCount
+    $userObj | Add-Member NoteProperty -Name "Mailbox Size (Mb)" -Value $stats.TotalItemSize.Value.ToMB()
+    $userObj | Add-Member NoteProperty -Name "Mailbox Items" -Value $stats.ItemCount
 
     $userObj | Add-Member NoteProperty -Name "Inbox Folder Size (Mb)" -Value $inboxstats.FolderandSubFolderSize.ToMB()
     $userObj | Add-Member NoteProperty -Name "Sent Items Folder Size (Mb)" -Value $sentitemsstats.FolderandSubFolderSize.ToMB()
@@ -298,46 +298,46 @@ foreach ($mb in $mailboxes) {
         $userObj | Add-Member NoteProperty -Name "Prohibit Send Receive Quota" -Value $mb.ProhibitSendReceiveQuota
     }
 
-	$userObj | Add-Member NoteProperty -Name "Last Mailbox Logon" -Value $lastlogon
-	$userObj | Add-Member NoteProperty -Name "Last Logon By" -Value $stats.LastLoggedOnUserAccount
+    $userObj | Add-Member NoteProperty -Name "Last Mailbox Logon" -Value $lastlogon
+    $userObj | Add-Member NoteProperty -Name "Last Logon By" -Value $stats.LastLoggedOnUserAccount
     
 
-	$userObj | Add-Member NoteProperty -Name "Primary Mailbox Database" -Value $mb.Database
+    $userObj | Add-Member NoteProperty -Name "Primary Mailbox Database" -Value $mb.Database
 
     $userObj | Add-Member NoteProperty -Name "Primary Email Address" -Value $mb.PrimarySMTPAddress
     $userObj | Add-Member NoteProperty -Name "Organizational Unit" -Value $user.OrganizationalUnit
 
 	
-	#Add the object to the report
-	$report = $report += $userObj
+    #Add the object to the report
+    $report = $report += $userObj
 }
 
 #Catch zero item results
 $reportcount = $report.count
 
 if ($reportcount -eq 0) {
-	Write-Host -ForegroundColor Yellow "No mailboxes were found matching that criteria."
+    Write-Host -ForegroundColor Yellow "No mailboxes were found matching that criteria."
 }
 else {
-	#Output single mailbox report to console, otherwise output to CSV file
-	if ($mailbox) {
-		$report | Format-List
-	}
-	else {
-		$report | Export-Csv -Path $reportfile -NoTypeInformation -Encoding UTF8
-		Write-Host -ForegroundColor White "Report written to $reportfile in current path."
-		Get-Item $reportfile
-	}
+    #Output single mailbox report to console, otherwise output to CSV file
+    if ($mailbox) {
+        $report | Format-List
+    }
+    else {
+        $report | Export-Csv -Path $reportfile -NoTypeInformation -Encoding UTF8
+        Write-Host -ForegroundColor White "Report written to $reportfile in current path."
+        Get-Item $reportfile
+    }
 }
 
 
 if ($SendEmail) {
 
-    $topmailboxeshtml = $report | Sort "Total Mailbox Size (Mb)" -Desc | Select -First $top | Select DisplayName,Title,Department,Office,"Total Mailbox Size (Mb)" | ConvertTo-Html -Fragment
+    $topmailboxeshtml = $report | Sort-Object "Total Mailbox Size (Mb)" -Desc | Select-Object -First $top | Select-Object DisplayName, Title, Department, Office, "Total Mailbox Size (Mb)" | ConvertTo-Html -Fragment
 
     $reporthtml = $report | ConvertTo-Html -Fragment
 
-	$htmlhead="<html>
+    $htmlhead = "<html>
 		<style>
 		BODY{font-family: Arial; font-size: 8pt;}
 		H1{font-size: 22px; font-family: 'Segoe UI Light','Segoe UI','Lucida Grande',Verdana,Arial,Helvetica,sans-serif;}
@@ -358,11 +358,11 @@ if ($SendEmail) {
     
     $spacer = "<br />"
 
-	$htmltail = "</body></html>"
+    $htmltail = "</body></html>"
 
-	$htmlreport = $htmlhead + $topmailboxeshtml + $htmltail
+    $htmlreport = $htmlhead + $topmailboxeshtml + $htmltail
 
-	try {
+    try {
         Write-Host "Sending email report..."
         Send-MailMessage @smtpsettings -Body $htmlreport -BodyAsHtml -Encoding ([System.Text.Encoding]::UTF8) -Attachments $reportfile -ErrorAction STOP
         Write-Host "Finished."

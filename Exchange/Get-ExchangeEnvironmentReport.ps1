@@ -81,7 +81,7 @@
     
 	.PARAMETER ViewEntireForest
 	By default, true. Set the option in Exchange 2007 or 2010 to view all Exchange servers and recipients in the forest.
-   
+
     .PARAMETER ServerFilter
 	Use a text based string to filter Exchange Servers by, e.g. NL-* -  Note the use of the wildcard (*) character to allow for multiple matches.
     
@@ -109,22 +109,22 @@ param(
 $date = get-date -Format "yyyy-MM-dd-HH-mm"
 $logRoot = "C:\"
 $logFolder = "Scripts\"
-$logFolderPath = $logRoot +$logFolder
+$logFolderPath = $logRoot + $logFolder
 $logFile = "ExchangeReport.html"
-$logFileName = $date +"-" +$logFile 
-$logPath = $logRoot +$logFolder +$date +"-" +$logFile
+$logFileName = $date + "-" + $logFile 
+$logPath = $logRoot + $logFolder + $date + "-" + $logFile
 #>
 
 #<#
 # Get Mail Server Info
-[string]$HTMLReport=$logPath
-[bool]$SendMail=$true
-[string]$MailFrom=""
-[string]$MailTo=""
-[string]$MailTo2=""
-[string]$MailServer=""
-[bool]$ViewEntireForest=$true
-[string]$ServerFilter="*"
+[string]$HTMLReport = $logPath
+[bool]$SendMail = $true
+[string]$MailFrom = ""
+[string]$MailTo = ""
+[string]$MailTo2 = ""
+[string]$MailServer = ""
+[bool]$ViewEntireForest = $true
+[string]$ServerFilter = "*"
 #>
 
 # Call Exchange PowerShell SnapIn
@@ -134,29 +134,29 @@ Write-Host "`n`nPlease Wait Loading Exchange PowerShell SnapIn `n" -Fore Yellow
 # Sub-Function to Get Database Information. Shorter than expected..
 function _GetDAG {
 	param($DAG)
-	@{Name			= $DAG.Name.ToUpper()
-	  MemberCount	= $DAG.Servers.Count
-	  Members		= [array]($DAG.Servers | ForEach-Object { $_.Name })
-	  Databases		= @()
-	  }
+	@{Name       = $DAG.Name.ToUpper()
+		MemberCount	= $DAG.Servers.Count
+		Members     = [array]($DAG.Servers | ForEach-Object { $_.Name })
+		Databases   = @()
+	}
 }
 
 # Sub-Function to Get Database Information
 function _GetDB {
-	param($Database,$ExchangeEnvironment,$Mailboxes,$ArchiveMailboxes,$E2010)
+	param($Database, $ExchangeEnvironment, $Mailboxes, $ArchiveMailboxes, $E2010)
 	
 	# Circular Logging, Last Full Backup
-	if ($Database.CircularLoggingEnabled) { $CircularLoggingEnabled="Yes" } 
+	if ($Database.CircularLoggingEnabled) { $CircularLoggingEnabled = "Yes" } 
 	else { $CircularLoggingEnabled = "No" }
 	
-	if ($Database.LastFullBackup) { $LastFullBackup=$Database.LastFullBackup.ToString() } 
+	if ($Database.LastFullBackup) { $LastFullBackup = $Database.LastFullBackup.ToString() } 
 	else { $LastFullBackup = "Not Available" }
 	
 	# Mailbox Average Sizes
-	$MailboxStatistics = [array]($ExchangeEnvironment.Servers[$Database.Server.Name].MailboxStatistics | Where-Object {$_.Database -eq $Database.Identity})
+	$MailboxStatistics = [array]($ExchangeEnvironment.Servers[$Database.Server.Name].MailboxStatistics | Where-Object { $_.Database -eq $Database.Identity })
 	if ($MailboxStatistics) {
 		[long]$MailboxItemSizeB = 0
-		$MailboxStatistics | ForEach-Object { $MailboxItemSizeB+=$_.TotalItemSizeB }
+		$MailboxStatistics | ForEach-Object { $MailboxItemSizeB += $_.TotalItemSizeB }
 		[long]$MailboxAverageSize = $MailboxItemSizeB / $MailboxStatistics.Count
 	} 
 	else { $MailboxAverageSize = 0 }
@@ -166,30 +166,30 @@ function _GetDB {
 		foreach ($Disk in $ExchangeEnvironment.Servers[$Database.Server.Name].Disks) {
 			if ($Database.EdbFilePath.PathName -like "$($Disk.Name)*") {
 				$FreeDatabaseDiskSpace = $Disk.FreeSpace / $Disk.Capacity * 100
-                $DatabaseDiskFreeSpace = $Disk.FreeSpace
-                $DatabaseDiskCapacity = $Disk.Capacity
+				$DatabaseDiskFreeSpace = $Disk.FreeSpace
+				$DatabaseDiskCapacity = $Disk.Capacity
 			}
 			if ($Database.ExchangeVersion.ExchangeBuild.Major -ge 14) {
 				if ($Database.LogFolderPath.PathName -like "$($Disk.Name)*") {
 					$FreeLogDiskSpace = $Disk.FreeSpace / $Disk.Capacity * 100
-                    $LogDiskFreeSpace = $Disk.FreeSpace
-                    $LogDiskCapacity = $Disk.Capacity
-                }
+					$LogDiskFreeSpace = $Disk.FreeSpace
+					$LogDiskCapacity = $Disk.Capacity
+				}
 			} 
 			else {
-				$StorageGroupDN = $Database.DistinguishedName.Replace("CN=$($Database.Name),","")
-				$Adsi=[adsi]"LDAP://$($Database.OriginatingServer)/$($StorageGroupDN)"
+				$StorageGroupDN = $Database.DistinguishedName.Replace("CN=$($Database.Name),", "")
+				$Adsi = [adsi]"LDAP://$($Database.OriginatingServer)/$($StorageGroupDN)"
 				if ($Adsi.msExchESEParamLogFilePath -like "$($Disk.Name)*") {
 					$FreeLogDiskSpace = $Disk.FreeSpace / $Disk.Capacity * 100
-                    $LogDiskFreeSpace = $Disk.FreeSpace
-                    $LogDiskCapacity = $Disk.Capacity
+					$LogDiskFreeSpace = $Disk.FreeSpace
+					$LogDiskCapacity = $Disk.Capacity
 				}
 			}
 		}
 	} 
 	else {
-		$FreeLogDiskSpace=$null
-		$FreeDatabaseDiskSpace=$null
+		$FreeLogDiskSpace = $null
+		$FreeDatabaseDiskSpace = $null
 	}
 	
 	if ($Database.ExchangeVersion.ExchangeBuild.Major -ge 14 -and $E2010) {
@@ -200,18 +200,18 @@ function _GetDB {
 		} 
 		else { $Copies = @() }
 		# Archive Info
-		$ArchiveMailboxCount = [int]([array]($ArchiveMailboxes | Where-Object {$_.ArchiveDatabase -eq $Database.Name})).Count
-		$ArchiveStatistics = [array]($ArchiveMailboxes | Where-Object {$_.ArchiveDatabase -eq $Database.Name} | Get-MailboxStatistics -Archive )
+		$ArchiveMailboxCount = [int]([array]($ArchiveMailboxes | Where-Object { $_.ArchiveDatabase -eq $Database.Name })).Count
+		$ArchiveStatistics = [array]($ArchiveMailboxes | Where-Object { $_.ArchiveDatabase -eq $Database.Name } | Get-MailboxStatistics -Archive )
 		if ($ArchiveStatistics) {
 			[long]$ArchiveItemSizeB = 0
-			$ArchiveStatistics | ForEach-Object { $ArchiveItemSizeB+=$_.TotalItemSize.Value.ToBytes() }
+			$ArchiveStatistics | ForEach-Object { $ArchiveItemSizeB += $_.TotalItemSize.Value.ToBytes() }
 			[long]$ArchiveAverageSize = $ArchiveItemSizeB / $ArchiveStatistics.Count
 		} 
 		else { $ArchiveAverageSize = 0 }
 		# DB Size / Whitespace Info
 		[long]$Size = $Database.DatabaseSize.ToBytes()
 		[long]$Whitespace = $Database.AvailableNewMailboxSpace.ToBytes()
-        [long]$WhitespacePCT = $Whitespace / $Size * 100
+		[long]$WhitespacePCT = $Whitespace / $Size * 100
 		$StorageGroup = $null
 	} 
 	else {
@@ -219,7 +219,7 @@ function _GetDB {
 		$CopyCount = 0
 		$Copies = @()
 		# 2003 & 2007, Use WMI (Based on code by Gary Siepser, http://bit.ly/kWWMb3)
-		$Size = [long](get-wmiobject cim_datafile -computername $Database.Server.Name -filter ('name=''' + $Database.edbfilepath.pathname.replace("\","\\") + '''')).filesize
+		$Size = [long](get-wmiobject cim_datafile -computername $Database.Server.Name -filter ('name=''' + $Database.edbfilepath.pathname.replace("\", "\\") + '''')).filesize
 		if (!$Size) {
 			Write-Warning "Cannot detect database size via WMI for $($Database.Server.Name)"
 			[long]$Size = 0
@@ -228,42 +228,42 @@ function _GetDB {
 		else {
 			[long]$MailboxDeletedItemSizeB = 0
 			if ($MailboxStatistics) {
-				$MailboxStatistics | ForEach-Object { $MailboxDeletedItemSizeB+=$_.TotalDeletedItemSizeB }
+				$MailboxStatistics | ForEach-Object { $MailboxDeletedItemSizeB += $_.TotalDeletedItemSizeB }
 			}
 			$Whitespace = $Size - $MailboxItemSizeB - $MailboxDeletedItemSizeB
 			if ($Whitespace -lt 0) { $Whitespace = 0 }
 		}
-		$StorageGroup =$Database.DistinguishedName.Split(",")[1].Replace("CN=","")
+		$StorageGroup = $Database.DistinguishedName.Split(",")[1].Replace("CN=", "")
 	}
 	
-	@{Name						= $Database.Name
-	  StorageGroup				= $StorageGroup
-	  ActiveOwner				= $Database.Server.Name.ToUpper()
-	  MailboxCount				= [long]([array]($Mailboxes | Where-Object {$_.Database -eq $Database.Identity})).Count
-	  MailboxAverageSize		= $MailboxAverageSize
-	  DisabledMailboxes			= [long]([array](Get-MailboxStatistics -database $Database.Name | Where-Object {$null -ne $_.DisconnectReason})).count
-	  ArchiveMailboxCount		= $ArchiveMailboxCount
-	  ArchiveAverageSize		= $ArchiveAverageSize
-	  CircularLoggingEnabled 	= $CircularLoggingEnabled
-	  LastFullBackup			= $LastFullBackup
-	  Size						= $Size
-	  Whitespace				= $Whitespace
-	  WhitespacePCT				= $WhitespacePCT
-	  Copies					= $Copies
-	  CopyCount					= $CopyCount
-	  FreeLogDiskSpace			= $FreeLogDiskSpace
-	  FreeDatabaseDiskSpace		= $FreeDatabaseDiskSpace
-      DatabaseDiskFreeSpace     = $DatabaseDiskFreeSpace
-      DatabaseDiskCapacity      = $DatabaseDiskCapacity
-      LogDiskFreeSpace          = $LogDiskFreeSpace
-      LogDiskCapacity           = $LogDiskCapacity
-	  }
+	@{Name                  = $Database.Name
+		StorageGroup           = $StorageGroup
+		ActiveOwner            = $Database.Server.Name.ToUpper()
+		MailboxCount           = [long]([array]($Mailboxes | Where-Object { $_.Database -eq $Database.Identity })).Count
+		MailboxAverageSize     = $MailboxAverageSize
+		DisabledMailboxes      = [long]([array](Get-MailboxStatistics -database $Database.Name | Where-Object { $null -ne $_.DisconnectReason })).count
+		ArchiveMailboxCount    = $ArchiveMailboxCount
+		ArchiveAverageSize     = $ArchiveAverageSize
+		CircularLoggingEnabled = $CircularLoggingEnabled
+		LastFullBackup         = $LastFullBackup
+		Size                   = $Size
+		Whitespace             = $Whitespace
+		WhitespacePCT          = $WhitespacePCT
+		Copies                 = $Copies
+		CopyCount              = $CopyCount
+		FreeLogDiskSpace       = $FreeLogDiskSpace
+		FreeDatabaseDiskSpace  = $FreeDatabaseDiskSpace
+		DatabaseDiskFreeSpace  = $DatabaseDiskFreeSpace
+		DatabaseDiskCapacity   = $DatabaseDiskCapacity
+		LogDiskFreeSpace       = $LogDiskFreeSpace
+		LogDiskCapacity        = $LogDiskCapacity
+	}
 }
 
 # Sub-Function to get mailbox count per server.
 # New in 1.5.2
 function _GetExSvrMailboxCount {
-	param($Mailboxes,$ExchangeServer,$Databases)
+	param($Mailboxes, $ExchangeServer, $Databases)
 	# The following *should* work, but it doesn't. Apparently, ServerName is not always returned correctly which may be the cause of
 	# reports of counts being incorrect
 	#([array]($Mailboxes | Where {$_.ServerName -eq $ExchangeServer.Name})).Count
@@ -272,28 +272,28 @@ function _GetExSvrMailboxCount {
 	# database basis and return the resulting total. As we already have this information resident in memory it should be cheap, just
 	# not as quick.
 	$MailboxCount = 0
-	foreach ($Database in [array]($Databases | Where-Object {$_.Server -eq $ExchangeServer.Name})) {
-		$MailboxCount+=([array]($Mailboxes | Where-Object {$_.Database -eq $Database.Identity})).Count
+	foreach ($Database in [array]($Databases | Where-Object { $_.Server -eq $ExchangeServer.Name })) {
+		$MailboxCount += ([array]($Mailboxes | Where-Object { $_.Database -eq $Database.Identity })).Count
 	}
 	$MailboxCount
 }
 
 # Sub-Function to Get Exchange Server information
 function _GetExSvr {
-	param($E2010,$ExchangeServer,$Mailboxes,$Databases,$Hybrids)
+	param($E2010, $ExchangeServer, $Mailboxes, $Databases, $Hybrids)
 	
 	# Set Basic Variables
 	$MailboxCount = 0
 	$RollupLevel = 0
 	$RollupVersion = ""
-    $ExtNames = @()
-    $IntNames = @()
-    $CASArrayName = ""
+	$ExtNames = @()
+	$IntNames = @()
+	$CASArrayName = ""
 	
 	# Get WMI Information
 	$tWMI = Get-WmiObject Win32_OperatingSystem -ComputerName $ExchangeServer.Name -ErrorAction SilentlyContinue
 	if ($tWMI) {
-		$OSVersion = $tWMI.Caption.Replace("(R)","").Replace("Microsoft ","").Replace("Enterprise","Ent").Replace("Standard","Std").Replace(" Edition","")
+		$OSVersion = $tWMI.Caption.Replace("(R)", "").Replace("Microsoft ", "").Replace("Enterprise", "Ent").Replace("Standard", "Std").Replace(" Edition", "")
 		$OSServicePack = $tWMI.CSDVersion
 		$RealName = $tWMI.CSName.ToUpper()
 	} 
@@ -303,28 +303,28 @@ function _GetExSvr {
 		$OSServicePack = "N/A"
 		$RealName = $ExchangeServer.Name.ToUpper()
 	}
-	$tWMI=Get-WmiObject -query "Select * from Win32_Volume" -ComputerName $ExchangeServer.Name -ErrorAction SilentlyContinue
+	$tWMI = Get-WmiObject -query "Select * from Win32_Volume" -ComputerName $ExchangeServer.Name -ErrorAction SilentlyContinue
 	if ($tWMI) {
-		$Disks=$tWMI | Select-Object Name,Capacity,FreeSpace | Sort-Object -Property Name
+		$Disks = $tWMI | Select-Object Name, Capacity, FreeSpace | Sort-Object -Property Name
 	} 
 	else {
 		Write-Warning "Cannot detect OS information via WMI for $($ExchangeServer.Name)"
-		$Disks=$null
+		$Disks = $null
 	}
 	
 	# Get Exchange Version
 	if ($ExchangeServer.AdminDisplayVersion.Major -eq 6) {
 		$ExchangeMajorVersion = "$($ExchangeServer.AdminDisplayVersion.Major).$($ExchangeServer.AdminDisplayVersion.Minor)"
-		$ExchangeSPLevel = $ExchangeServer.AdminDisplayVersion.FilePatchLevelDescription.Replace("Service Pack ","")
+		$ExchangeSPLevel = $ExchangeServer.AdminDisplayVersion.FilePatchLevelDescription.Replace("Service Pack ", "")
 	} 
 	elseif ($ExchangeServer.AdminDisplayVersion.Major -eq 15 -and $ExchangeServer.AdminDisplayVersion.Minor -eq 1) {
-        $ExchangeMajorVersion = [double]"$($ExchangeServer.AdminDisplayVersion.Major).$($ExchangeServer.AdminDisplayVersion.Minor)"
-        $ExchangeSPLevel = 0
-    } 
+		$ExchangeMajorVersion = [double]"$($ExchangeServer.AdminDisplayVersion.Major).$($ExchangeServer.AdminDisplayVersion.Minor)"
+		$ExchangeSPLevel = 0
+	} 
 	elseif ($ExchangeServer.AdminDisplayVersion.Major -eq 15 -and $ExchangeServer.AdminDisplayVersion.Minor -eq 2) {
-        $ExchangeMajorVersion = [double]"$($ExchangeServer.AdminDisplayVersion.Major).$($ExchangeServer.AdminDisplayVersion.Minor)"
-        $ExchangeSPLevel = 0
-    } 
+		$ExchangeMajorVersion = [double]"$($ExchangeServer.AdminDisplayVersion.Major).$($ExchangeServer.AdminDisplayVersion.Minor)"
+		$ExchangeSPLevel = 0
+	} 
 	else {
 		$ExchangeMajorVersion = $ExchangeServer.AdminDisplayVersion.Major
 		$ExchangeSPLevel = $ExchangeServer.AdminDisplayVersion.Minor
@@ -332,147 +332,147 @@ function _GetExSvr {
 	# Exchange 2007+
 	if ($ExchangeMajorVersion -ge 8) {
 		# Get Roles
-		$MailboxStatistics=$null
-	    [array]$Roles = $ExchangeServer.ServerRole.ToString().Replace(" ","").Split(",");
-        # Add Hybrid "Role" for report
-        if ($Hybrids -contains $ExchangeServer.Name) {
-            $Roles+="Hybrid"
-        }
+		$MailboxStatistics = $null
+		[array]$Roles = $ExchangeServer.ServerRole.ToString().Replace(" ", "").Split(",");
+		# Add Hybrid "Role" for report
+		if ($Hybrids -contains $ExchangeServer.Name) {
+			$Roles += "Hybrid"
+		}
 		if ($Roles -contains "Mailbox") {
 			$MailboxCount = _GetExSvrMailboxCount -Mailboxes $Mailboxes -ExchangeServer $ExchangeServer -Databases $Databases
 			if ($ExchangeServer.Name.ToUpper() -ne $RealName) {
-				$Roles = [array]($Roles | Where-Object {$_ -ne "Mailbox"})
+				$Roles = [array]($Roles | Where-Object { $_ -ne "Mailbox" })
 				$Roles += "ClusteredMailbox"
 			}
 			# Get Mailbox Statistics the normal way, return in a consitent format
-			$MailboxStatistics = Get-MailboxStatistics -Server $ExchangeServer | Select-Object DisplayName,@{Name="TotalItemSizeB";Expression={$_.TotalItemSize.Value.ToBytes()}},@{Name="TotalDeletedItemSizeB";Expression={$_.TotalDeletedItemSize.Value.ToBytes()}},Database
-	    }
-        # Get HTTPS Names (Exchange 2010 & Up only due to time taken to retrieve data)
-        if ($Roles -contains "ClientAccess" -and $E2010){
-            Get-OWAVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            Get-WebServicesVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            Get-OABVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            Get-ActiveSyncVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            if (Get-Command Get-MAPIVirtualDirectory -ErrorAction SilentlyContinue) {
-                Get-MAPIVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            }
-            if (Get-Command Get-ClientAccessService -ErrorAction SilentlyContinue) {
-                $IntNames+=(Get-ClientAccessService -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
-            } 
+			$MailboxStatistics = Get-MailboxStatistics -Server $ExchangeServer | Select-Object DisplayName, @{Name = "TotalItemSizeB"; Expression = { $_.TotalItemSize.Value.ToBytes() } }, @{Name = "TotalDeletedItemSizeB"; Expression = { $_.TotalDeletedItemSize.Value.ToBytes() } }, Database
+		}
+		# Get HTTPS Names (Exchange 2010 & Up only due to time taken to retrieve data)
+		if ($Roles -contains "ClientAccess" -and $E2010) {
+			Get-OWAVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			Get-WebServicesVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			Get-OABVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			Get-ActiveSyncVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			if (Get-Command Get-MAPIVirtualDirectory -ErrorAction SilentlyContinue) {
+				Get-MAPIVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			}
+			if (Get-Command Get-ClientAccessService -ErrorAction SilentlyContinue) {
+				$IntNames += (Get-ClientAccessService -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
+			} 
 			else {
-                $IntNames+=(Get-ClientAccessServer -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
-            }
+				$IntNames += (Get-ClientAccessServer -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
+			}
             
-            if ($ExchangeMajorVersion -ge 14) {
-                Get-ECPVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            }
-            $IntNames = $IntNames|Sort-Object -Unique
-            $ExtNames = $ExtNames|Sort-Object -Unique
-            $CASArray = Get-ClientAccessArray -Site $ExchangeServer.Site.Name
-            if ($CASArray) {
-                $CASArrayName = $CASArray.Fqdn
-            }
-        }
-        if ($Roles -contains "None" -and ($E2016 -or $E2019)) {
-            Get-OWAVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            Get-WebServicesVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            Get-OABVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            Get-ActiveSyncVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            if (Get-Command Get-MAPIVirtualDirectory -ErrorAction SilentlyContinue) {
-                Get-MAPIVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            }
-            if (Get-Command Get-ClientAccessService -ErrorAction SilentlyContinue) {
-                $IntNames+=(Get-ClientAccessService -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
-            } 
+			if ($ExchangeMajorVersion -ge 14) {
+				Get-ECPVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			}
+			$IntNames = $IntNames | Sort-Object -Unique
+			$ExtNames = $ExtNames | Sort-Object -Unique
+			$CASArray = Get-ClientAccessArray -Site $ExchangeServer.Site.Name
+			if ($CASArray) {
+				$CASArrayName = $CASArray.Fqdn
+			}
+		}
+		if ($Roles -contains "None" -and ($E2016 -or $E2019)) {
+			Get-OWAVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			Get-WebServicesVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			Get-OABVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			Get-ActiveSyncVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			if (Get-Command Get-MAPIVirtualDirectory -ErrorAction SilentlyContinue) {
+				Get-MAPIVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			}
+			if (Get-Command Get-ClientAccessService -ErrorAction SilentlyContinue) {
+				$IntNames += (Get-ClientAccessService -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
+			} 
 			else {
-                $IntNames+=(Get-ClientAccessServer -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
-            }
+				$IntNames += (Get-ClientAccessServer -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
+			}
             
-            if ($ExchangeMajorVersion -ge 14) {
-                Get-ECPVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-            }
-            $IntNames = $IntNames|Sort-Object -Unique
-            $ExtNames = $ExtNames|Sort-Object -Unique
-            $CASArray = Get-ClientAccessArray -Site $ExchangeServer.Site.Name
-            if ($CASArray) {
-                $CASArrayName = $CASArray.Fqdn
-            }
-        }
-        if ($Roles -contains "Mailbox" -and ($E2016 -or $E2019)) {
+			if ($ExchangeMajorVersion -ge 14) {
+				Get-ECPVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+			}
+			$IntNames = $IntNames | Sort-Object -Unique
+			$ExtNames = $ExtNames | Sort-Object -Unique
+			$CASArray = Get-ClientAccessArray -Site $ExchangeServer.Site.Name
+			if ($CASArray) {
+				$CASArrayName = $CASArray.Fqdn
+			}
+		}
+		if ($Roles -contains "Mailbox" -and ($E2016 -or $E2019)) {
 			#Write-Host $ExchangeServer $ExchangeMajorVersion
 			$exchversion = Get-ExchangeServer $ExchangeServer
 			if (($exchversion.admindisplayversion.minor -eq "1") -or ($exchversion.admindisplayversion.minor -eq "1")) {
-				Get-OWAVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-				Get-WebServicesVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-				Get-OABVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
-				Get-ActiveSyncVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object{ $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
+				Get-OWAVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+				Get-WebServicesVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+				Get-OABVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
+				Get-ActiveSyncVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
 				if (Get-Command Get-MAPIVirtualDirectory -ErrorAction SilentlyContinue) {
-					Get-MAPIVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
+					Get-MAPIVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
 				}
 				if (Get-Command Get-ClientAccessService -ErrorAction SilentlyContinue) {
-					$IntNames+=(Get-ClientAccessService -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
+					$IntNames += (Get-ClientAccessService -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
 				} 
 				else {
-					$IntNames+=(Get-ClientAccessServer -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
+					$IntNames += (Get-ClientAccessServer -Identity $ExchangeServer.Name).AutoDiscoverServiceInternalURI.Host
 				}
 				
 				if ($ExchangeMajorVersion -ge 14) {
-					Get-ECPVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames+=$_.ExternalURL.Host; $IntNames+=$_.InternalURL.Host; }
+					Get-ECPVirtualDirectory -Server $ExchangeServer -ADPropertiesOnly | ForEach-Object { $ExtNames += $_.ExternalURL.Host; $IntNames += $_.InternalURL.Host; }
 				}
-				$IntNames = $IntNames|Sort-Object -Unique
-				$ExtNames = $ExtNames|Sort-Object -Unique
+				$IntNames = $IntNames | Sort-Object -Unique
+				$ExtNames = $ExtNames | Sort-Object -Unique
 				$CASArray = Get-ClientAccessArray -Site $ExchangeServer.Site.Name
 				if ($CASArray) {
 					$CASArrayName = $CASArray.Fqdn
 				}
 			}
-        }
+		}
 
 		# Rollup Level / Versions (Thanks to Bhargav Shukla http://bit.ly/msxGIJ)
 		if ($ExchangeMajorVersion -ge 14) {
-            $RegKey="SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\AE1D439464EB1B8488741FFA028E291C\\Patches"
-        } 
+			$RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\AE1D439464EB1B8488741FFA028E291C\\Patches"
+		} 
 		else {
-			$RegKey="SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\461C2B4266EDEF444B864AD6D9E5B613\\Patches"
+			$RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\461C2B4266EDEF444B864AD6D9E5B613\\Patches"
 		}
 		$RemoteRegistry = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $ExchangeServer.Name);
 		if ($RemoteRegistry) {
-			$RUKeys = $RemoteRegistry.OpenSubKey($RegKey).GetSubKeyNames() | ForEach-Object {"$RegKey\\$_"}
+			$RUKeys = $RemoteRegistry.OpenSubKey($RegKey).GetSubKeyNames() | ForEach-Object { "$RegKey\\$_" }
 			if ($RUKeys) {
-				[array]($RUKeys | ForEach-Object {$RemoteRegistry.OpenSubKey($_).getvalue("DisplayName")}) | ForEach-Object {
+				[array]($RUKeys | ForEach-Object { $RemoteRegistry.OpenSubKey($_).getvalue("DisplayName") }) | ForEach-Object {
 					if ($_ -like "Update Rollup *") {
 						$tRU = $_.Split(" ")[2]
-						if ($tRU -like "*-*") { $tRUV=$tRU.Split("-")[1]; $tRU=$tRU.Split("-")[0] } 
-						else { $tRUV="" }
-						if ([int]$tRU -ge [int]$RollupLevel) { $RollupLevel=$tRU; $RollupVersion=$tRUV }
+						if ($tRU -like "*-*") { $tRUV = $tRU.Split("-")[1]; $tRU = $tRU.Split("-")[0] } 
+						else { $tRUV = "" }
+						if ([int]$tRU -ge [int]$RollupLevel) { $RollupLevel = $tRU; $RollupVersion = $tRUV }
 					}
 				}
 			}
-        } 
+		} 
 		else {
 			Write-Warning "Cannot detect Rollup Version via Remote Registry for $($ExchangeServer.Name)"
 		}
-        # Exchange 2013 CU or SP Level
-        if ($ExchangeMajorVersion -ge 15) {
-			$RegKey="SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Microsoft Exchange v15"
-		    $RemoteRegistry = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $ExchangeServer.Name);
-		    if ($RemoteRegistry) {
-			    $ExchangeSPLevel = $RemoteRegistry.OpenSubKey($RegKey).getvalue("DisplayName")
-                if ($ExchangeSPLevel -like "*Service Pack*" -or $ExchangeSPLevel -like "*Cumulative Update*") {
-			        $ExchangeSPLevel = $ExchangeSPLevel.Replace("Microsoft Exchange Server 2013 ","");
-                    $ExchangeSPLevel = $ExchangeSPLevel.Replace("Microsoft Exchange Server 2016 ","");
-                    $ExchangeSPLevel = $ExchangeSPLevel.Replace("Microsoft Exchange Server 2019 ","");
-                    $ExchangeSPLevel = $ExchangeSPLevel.Replace("Service Pack ","SP");
-                    $ExchangeSPLevel = $ExchangeSPLevel.Replace("Cumulative Update ","CU"); 
-                } 
+		# Exchange 2013 CU or SP Level
+		if ($ExchangeMajorVersion -ge 15) {
+			$RegKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Microsoft Exchange v15"
+			$RemoteRegistry = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $ExchangeServer.Name);
+			if ($RemoteRegistry) {
+				$ExchangeSPLevel = $RemoteRegistry.OpenSubKey($RegKey).getvalue("DisplayName")
+				if ($ExchangeSPLevel -like "*Service Pack*" -or $ExchangeSPLevel -like "*Cumulative Update*") {
+					$ExchangeSPLevel = $ExchangeSPLevel.Replace("Microsoft Exchange Server 2013 ", "");
+					$ExchangeSPLevel = $ExchangeSPLevel.Replace("Microsoft Exchange Server 2016 ", "");
+					$ExchangeSPLevel = $ExchangeSPLevel.Replace("Microsoft Exchange Server 2019 ", "");
+					$ExchangeSPLevel = $ExchangeSPLevel.Replace("Service Pack ", "SP");
+					$ExchangeSPLevel = $ExchangeSPLevel.Replace("Cumulative Update ", "CU"); 
+				} 
 				else {
-                    $ExchangeSPLevel = 0;
-                }
-            } 
+					$ExchangeSPLevel = 0;
+				}
+			} 
 			else {
-			    Write-Warning "Cannot detect CU/SP via Remote Registry for $($ExchangeServer.Name)"
-		    }
-        }
+				Write-Warning "Cannot detect CU/SP via Remote Registry for $($ExchangeServer.Name)"
+			}
+		}
 	}
 	# Exchange 2003
 	if ($ExchangeMajorVersion -eq 6.5) {
@@ -481,17 +481,18 @@ function _GetExSvr {
 		# Get Role via WMI
 		$tWMI = Get-WMIObject Exchange_Server -Namespace "root\microsoftexchangev2" -Computername $ExchangeServer.Name -Filter "Name='$($ExchangeServer.Name)'"
 		if ($tWMI) {
-			if ($tWMI.IsFrontEndServer) { $Roles=@("FE") } else { $Roles=@("BE") }
+			if ($tWMI.IsFrontEndServer) { $Roles = @("FE") } else { $Roles = @("BE") }
 		} 
 		else {
 			Write-Warning "Cannot detect Front End/Back End Server information via WMI for $($ExchangeServer.Name)"
-			$Roles+="Unknown"
+			$Roles += "Unknown"
 		}
 		# Get Mailbox Statistics using WMI, return in a consistent format
 		$tWMI = Get-WMIObject -class Exchange_Mailbox -Namespace ROOT\MicrosoftExchangev2 -ComputerName $ExchangeServer.Name -Filter ("ServerName='$($ExchangeServer.Name)'")
 		if ($tWMI) {
-			$MailboxStatistics = $tWMI | Select-Object @{Name="DisplayName";Expression={$_.MailboxDisplayName}},@{Name="TotalItemSizeB";Expression={$_.Size}},@{Name="TotalDeletedItemSizeB";Expression={$_.DeletedMessageSizeExtended }},@{Name="Database";Expression={((get-mailboxdatabase -Identity "$($_.ServerName)\$($_.StorageGroupName)\$($_.StoreName)").identity)}}
-		} else {
+			$MailboxStatistics = $tWMI | Select-Object @{Name = "DisplayName"; Expression = { $_.MailboxDisplayName } }, @{Name = "TotalItemSizeB"; Expression = { $_.Size } }, @{Name = "TotalDeletedItemSizeB"; Expression = { $_.DeletedMessageSizeExtended } }, @{Name = "Database"; Expression = { ((get-mailboxdatabase -Identity "$($_.ServerName)\$($_.StorageGroupName)\$($_.StoreName)").identity) } }
+		}
+		else {
 			Write-Warning "Cannot retrieve Mailbox Statistics via WMI for $($ExchangeServer.Name)"
 			$MailboxStatistics = $null
 		}
@@ -501,51 +502,51 @@ function _GetExSvr {
 		# Mailbox Count
 		$MailboxCount = _GetExSvrMailboxCount -Mailboxes $Mailboxes -ExchangeServer $ExchangeServer -Databases $Databases
 		# Get Role via ADSI
-		$tADSI=[ADSI]"LDAP://$($ExchangeServer.OriginatingServer)/$($ExchangeServer.DistinguishedName)"
+		$tADSI = [ADSI]"LDAP://$($ExchangeServer.OriginatingServer)/$($ExchangeServer.DistinguishedName)"
 		if ($tADSI) {
-			if ($tADSI.ServerRole -eq 1) { $Roles=@("FE") } else { $Roles=@("BE") }
+			if ($tADSI.ServerRole -eq 1) { $Roles = @("FE") } else { $Roles = @("BE") }
 		} 
 		else {
 			Write-Warning "Cannot detect Front End/Back End Server information via ADSI for $($ExchangeServer.Name)"
-			$Roles+="Unknown"
+			$Roles += "Unknown"
 		}
 		$MailboxStatistics = $null
 	}
 	
 	# Return Hashtable
-	@{Name					= $ExchangeServer.Name.ToUpper()
-	 RealName				= $RealName
-	 ExchangeMajorVersion 	= $ExchangeMajorVersion
-	 ExchangeSPLevel		= $ExchangeSPLevel
-	 Edition				= $ExchangeServer.Edition
-	 Mailboxes				= $MailboxCount
-	 OSVersion				= $OSVersion;
-	 OSServicePack			= $OSServicePack
-	 Roles					= $Roles
-	 RollupLevel			= $RollupLevel
-	 RollupVersion			= $RollupVersion
-	 Site					= $ExchangeServer.Site.Name
-	 MailboxStatistics		= $MailboxStatistics
-	 Disks					= $Disks
-     IntNames				= $IntNames
-     ExtNames				= $ExtNames
-     CASArrayName			= $CASArrayName
+	@{Name                = $ExchangeServer.Name.ToUpper()
+		RealName             = $RealName
+		ExchangeMajorVersion = $ExchangeMajorVersion
+		ExchangeSPLevel      = $ExchangeSPLevel
+		Edition              = $ExchangeServer.Edition
+		Mailboxes            = $MailboxCount
+		OSVersion            = $OSVersion;
+		OSServicePack        = $OSServicePack
+		Roles                = $Roles
+		RollupLevel          = $RollupLevel
+		RollupVersion        = $RollupVersion
+		Site                 = $ExchangeServer.Site.Name
+		MailboxStatistics    = $MailboxStatistics
+		Disks                = $Disks
+		IntNames             = $IntNames
+		ExtNames             = $ExtNames
+		CASArrayName         = $CASArrayName
 	}	
 }
 
 # Sub Function to Get Totals by Version
 function _TotalsByVersion {
 	param($ExchangeEnvironment)
-	$TotalMailboxesByVersion=@{}
+	$TotalMailboxesByVersion = @{}
 	if ($ExchangeEnvironment.Sites) {
 		foreach ($Site in $ExchangeEnvironment.Sites.GetEnumerator()) {
 			foreach ($Server in $Site.Value) {
 				if (!$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"]) {
-					$TotalMailboxesByVersion.Add("$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)",@{ServerCount=1;MailboxCount=$Server.Mailboxes})
+					$TotalMailboxesByVersion.Add("$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)", @{ServerCount = 1; MailboxCount = $Server.Mailboxes })
 				} 
 				else {
 					$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].ServerCount++
-					$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].MailboxCount+=$Server.Mailboxes
+					$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].MailboxCount += $Server.Mailboxes
 				}
 			}
 		}
@@ -554,11 +555,11 @@ function _TotalsByVersion {
 		foreach ($FakeSite in $ExchangeEnvironment.Pre2007.GetEnumerator()) {
 			foreach ($Server in $FakeSite.Value) {
 				if (!$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"]) {
-					$TotalMailboxesByVersion.Add("$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)",@{ServerCount=1;MailboxCount=$Server.Mailboxes})
+					$TotalMailboxesByVersion.Add("$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)", @{ServerCount = 1; MailboxCount = $Server.Mailboxes })
 				} 
 				else {
 					$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].ServerCount++
-					$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].MailboxCount+=$Server.Mailboxes
+					$TotalMailboxesByVersion["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].MailboxCount += $Server.Mailboxes
 				}
 			}
 		}
@@ -570,18 +571,18 @@ function _TotalsByVersion {
 function _TotalsByRole {
 	param($ExchangeEnvironment)
 	# Add Roles We Always Show
-	$TotalServersByRole=@{"ClientAccess" 	 = 0
-						  "HubTransport" 	 = 0
-						  "UnifiedMessaging" = 0
-						  "Mailbox"			 = 0
-						  "Edge" 			 = 0
-						  }
+	$TotalServersByRole = @{"ClientAccess" = 0
+		"HubTransport"                        = 0
+		"UnifiedMessaging"                    = 0
+		"Mailbox"                             = 0
+		"Edge"                                = 0
+	}
 	if ($ExchangeEnvironment.Sites) {
 		foreach ($Site in $ExchangeEnvironment.Sites.GetEnumerator()) {
 			foreach ($Server in $Site.Value) {
 				foreach ($Role in $Server.Roles) {
 					if ($null -eq $TotalServersByRole[$Role]) {
-						$TotalServersByRole.Add($Role,1)
+						$TotalServersByRole.Add($Role, 1)
 					} 
 					else {
 						$TotalServersByRole[$Role]++
@@ -594,7 +595,7 @@ function _TotalsByRole {
 		foreach ($Server in $ExchangeEnvironment.Pre2007["Pre 2007 Servers"]) {
 			foreach ($Role in $Server.Roles) {
 				if ($null -eq $TotalServersByRole[$Role]) {
-					$TotalServersByRole.Add($Role,1)
+					$TotalServersByRole.Add($Role, 1)
 				} 
 				else {
 					$TotalServersByRole[$Role]++
@@ -607,94 +608,94 @@ function _TotalsByRole {
 
 # Sub Function to return HTML Table for Sites/Pre 2007
 function _GetOverview {
-	param($Servers,$ExchangeEnvironment,$ExRoleStrings,$Pre2007=$False)
+	param($Servers, $ExchangeEnvironment, $ExRoleStrings, $Pre2007 = $False)
 	if ($Pre2007) {
-		$BGColHeader="#880099"
-		$BGColSubHeader="#8800CC"
-		$Prefix=""
-        $IntNamesText=""
-        $ExtNamesText=""
-        $CASArrayText=""
+		$BGColHeader = "#880099"
+		$BGColSubHeader = "#8800CC"
+		$Prefix = ""
+		$IntNamesText = ""
+		$ExtNamesText = ""
+		$CASArrayText = ""
 	} 
 	else {
-		$BGColHeader="#000099"
-		$BGColSubHeader="#0000FF"
-		$Prefix="Site:"
-        $IntNamesText=""
-        $ExtNamesText=""
-        $CASArrayText=""
-        $IntNames=@()
-        $ExtNames=@()
-        $CASArrayName=""
-        foreach ($Server in $Servers.Value) {
-            $IntNames+=$Server.IntNames
-            $ExtNames+=$Server.ExtNames
-            $CASArrayName=$Server.CASArrayName
-        }
-        $IntNames = $IntNames|Sort-Object -Unique
-        $ExtNames = $ExtNames|Sort-Object -Unique
-        $IntNames = [system.String]::Join(",",$IntNames)
-        $ExtNames = [system.String]::Join(",",$ExtNames)
-        if ($IntNames) {
-            $IntNamesText="Internal Names: $($IntNames)"
-            $ExtNamesText="External Names: $($ExtNames)<br >"
-        }
-        if ($CASArrayName) {
-            $CASArrayText="CAS Array: $($CASArrayName)"
-        }
+		$BGColHeader = "#000099"
+		$BGColSubHeader = "#0000FF"
+		$Prefix = "Site:"
+		$IntNamesText = ""
+		$ExtNamesText = ""
+		$CASArrayText = ""
+		$IntNames = @()
+		$ExtNames = @()
+		$CASArrayName = ""
+		foreach ($Server in $Servers.Value) {
+			$IntNames += $Server.IntNames
+			$ExtNames += $Server.ExtNames
+			$CASArrayName = $Server.CASArrayName
+		}
+		$IntNames = $IntNames | Sort-Object -Unique
+		$ExtNames = $ExtNames | Sort-Object -Unique
+		$IntNames = [system.String]::Join(",", $IntNames)
+		$ExtNames = [system.String]::Join(",", $ExtNames)
+		if ($IntNames) {
+			$IntNamesText = "Internal Names: $($IntNames)"
+			$ExtNamesText = "External Names: $($ExtNames)<br >"
+		}
+		if ($CASArrayName) {
+			$CASArrayText = "CAS Array: $($CASArrayName)"
+		}
 	}
-	$Output="<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
+	$Output = "<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
 	<col width=""20%""><col width=""20%"">
 	<colgroup width=""25%"">";
 	
-	$ExchangeEnvironment.TotalServersByRole.GetEnumerator() | Sort-Object Name| ForEach-Object {$Output+="<col width=""3%"">"}
-	$Output+="</colgroup><col width=""20%""><col  width=""20%"">
+	$ExchangeEnvironment.TotalServersByRole.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<col width=""3%"">" }
+	$Output += "</colgroup><col width=""20%""><col  width=""20%"">
 	<tr bgcolor=""$($BGColHeader)""><th><font color=""#ffffff"">$($Prefix) $($Servers.Key)</font></th>
 	<th colspan=""$(($ExchangeEnvironment.TotalServersByRole.Count)+2)"" align=""left""><font color=""#ffffff"">$($ExtNamesText)$($IntNamesText)</font></th>
 	<th align=""center""><font color=""#ffffff"">$($CASArrayText)</font></th></tr>"
-	$TotalMailboxes=0
-	$Servers.Value | ForEach-Object {$TotalMailboxes += $_.Mailboxes}
-	$Output+="<tr bgcolor=""$($BGColSubHeader)""><th><font color=""#ffffff"">Mailboxes: $($TotalMailboxes)</font></th><th>"
-    $Output+="<font color=""#ffffff"">Exchange Version</font></th>"
-	$ExchangeEnvironment.TotalServersByRole.GetEnumerator() | Sort-Object Name| ForEach-Object {$Output+="<th><font color=""#ffffff"">$($ExRoleStrings[$_.Key].Short)</font></th>"}
-	$Output+="<th><font color=""#ffffff"">OS Version</font></th><th><font color=""#ffffff"">OS Service Pack</font></th></tr>"
-	$AlternateRow=0
+	$TotalMailboxes = 0
+	$Servers.Value | ForEach-Object { $TotalMailboxes += $_.Mailboxes }
+	$Output += "<tr bgcolor=""$($BGColSubHeader)""><th><font color=""#ffffff"">Mailboxes: $($TotalMailboxes)</font></th><th>"
+	$Output += "<font color=""#ffffff"">Exchange Version</font></th>"
+	$ExchangeEnvironment.TotalServersByRole.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<th><font color=""#ffffff"">$($ExRoleStrings[$_.Key].Short)</font></th>" }
+	$Output += "<th><font color=""#ffffff"">OS Version</font></th><th><font color=""#ffffff"">OS Service Pack</font></th></tr>"
+	$AlternateRow = 0
 	
 	foreach ($Server in $Servers.Value) {
-		$Output+="<tr "
+		$Output += "<tr "
 		if ($AlternateRow) {
-			$Output+=" style=""background-color:#dddddd"""
-			$AlternateRow=0
+			$Output += " style=""background-color:#dddddd"""
+			$AlternateRow = 0
 		} 
 		else {
-			$AlternateRow=1
+			$AlternateRow = 1
 		}
-		$Output+="><td>$($Server.Name)"
+		$Output += "><td>$($Server.Name)"
 		if ($Server.RealName -ne $Server.Name) {
-			$Output+=" ($($Server.RealName))"
+			$Output += " ($($Server.RealName))"
 		}
-		$Output+="</td><td>$($ExVersionStrings["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].Long)"
+		$Output += "</td><td>$($ExVersionStrings["$($Server.ExchangeMajorVersion).$($Server.ExchangeSPLevel)"].Long)"
 		if ($Server.RollupLevel -gt 0) {
-			$Output+=" UR$($Server.RollupLevel)"
+			$Output += " UR$($Server.RollupLevel)"
 			if ($Server.RollupVersion) {
-				$Output+=" $($Server.RollupVersion)"
+				$Output += " $($Server.RollupVersion)"
 			}
 		}
-		$Output+="</td>"
-		$ExchangeEnvironment.TotalServersByRole.GetEnumerator()| Sort-Object Name| ForEach-Object{ 
-			$Output+="<td"
+		$Output += "</td>"
+		$ExchangeEnvironment.TotalServersByRole.GetEnumerator() | Sort-Object Name | ForEach-Object { 
+			$Output += "<td"
 			if ($Server.Roles -contains $_.Key) {
-				$Output+=" align=""center"" style=""background-color:#00FF00"""
+				$Output += " align=""center"" style=""background-color:#00FF00"""
 			}
-			$Output+=">"
+			$Output += ">"
 			if (($_.Key -eq "ClusteredMailbox" -or $_.Key -eq "Mailbox" -or $_.Key -eq "BE") -and $Server.Roles -contains $_.Key) {
-				$Output+=$Server.Mailboxes
+				$Output += $Server.Mailboxes
 			} 
 		}
 
-		$Output+="<td>$($Server.OSVersion)</td><td>$($Server.OSServicePack)</td></tr>";	
+		$Output += "<td>$($Server.OSVersion)</td><td>$($Server.OSServicePack)</td></tr>";	
 	}
-	$Output+="<tr></tr>
+	$Output += "<tr></tr>
 	</table><br />"
 	$Output
 }
@@ -703,184 +704,184 @@ function _GetOverview {
 function _GetDBTable {
 	param($Databases)
 	# Only Show Archive Mailbox Columns, Backup Columns and Circ Logging if at least one DB has an Archive mailbox, backed up or Cir Log enabled.
-	$ShowArchiveDBs=$False
-	$ShowLastFullBackup=$False
-	$ShowCircularLogging=$False
-	$ShowStorageGroups=$False
-	$ShowCopies=$False
-	$ShowFreeDatabaseSpace=$False
-	$ShowFreeLogDiskSpace=$False
+	$ShowArchiveDBs = $False
+	$ShowLastFullBackup = $False
+	$ShowCircularLogging = $False
+	$ShowStorageGroups = $False
+	$ShowCopies = $False
+	$ShowFreeDatabaseSpace = $False
+	$ShowFreeLogDiskSpace = $False
 	foreach ($Database in $Databases) {
 		if ($Database.ArchiveMailboxCount -gt 0) {
-			$ShowArchiveDBs=$True
+			$ShowArchiveDBs = $True
 		}
 		if ($Database.LastFullBackup -ne "Not Available") {
-			$ShowLastFullBackup=$True
+			$ShowLastFullBackup = $True
 		}
 		if ($Database.CircularLoggingEnabled -eq "Yes") {
-			$ShowCircularLogging=$True
+			$ShowCircularLogging = $True
 		}
 		if ($Database.StorageGroup) {
-			$ShowStorageGroups=$True
+			$ShowStorageGroups = $True
 		}
 		if ($Database.CopyCount -gt 0) {
-			$ShowCopies=$True
+			$ShowCopies = $True
 		}
-		if ($null -ne $Database.FreeDatabaseDiskSpace){
-			$ShowFreeDatabaseSpace=$true
+		if ($null -ne $Database.FreeDatabaseDiskSpace) {
+			$ShowFreeDatabaseSpace = $true
 		}
-		if ($null -ne $Database.FreeLogDiskSpace){
-			$ShowFreeLogDiskSpace=$true
+		if ($null -ne $Database.FreeLogDiskSpace) {
+			$ShowFreeLogDiskSpace = $true
 		}
-		if ($null -ne $Database.WhitespacePCT){
-			$ShowWhitespacePCT=$true
+		if ($null -ne $Database.WhitespacePCT) {
+			$ShowWhitespacePCT = $true
 		}
 	}
 	
-	$Output="<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
+	$Output = "<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
 	
 	<tr align=""center"" bgcolor=""#FFD700"">
 	<th>Server</th>"
 	if ($ShowStorageGroups) {
-		$Output+="<th>Storage Group</th>"
+		$Output += "<th>Storage Group</th>"
 	}
-	$Output+="<th>Database Name</th>
+	$Output += "<th>Database Name</th>
 	<th>Mailboxes</th>
 	<th>Disconnected<br>Mailboxes</th>
     <th>Av. Mailbox Size</th>"
 	if ($ShowArchiveDBs) {
-		$Output+="<th>Archive MBs</th><th>Av. Archive Size</th>"
+		$Output += "<th>Archive MBs</th><th>Av. Archive Size</th>"
 	}
-	$Output+="<th>DB Size</th>
+	$Output += "<th>DB Size</th>
     <th>DB Whitespace</th>"
 	if ($ShowWhitespacePCT) {
-		$Output+="<th>DB Whitespace<br>% Free</th>"
+		$Output += "<th>DB Whitespace<br>% Free</th>"
 	}
 	if ($ShowFreeDatabaseSpace) {
-		$Output+="<th>Database Disk<br>Free</th>"
-        $Output+="<th>Database Disk<br>Free Space</th><th>Database Disk<br>Capacity</th>"
+		$Output += "<th>Database Disk<br>Free</th>"
+		$Output += "<th>Database Disk<br>Free Space</th><th>Database Disk<br>Capacity</th>"
 	}
 	if ($ShowFreeLogDiskSpace) {
-		$Output+="<th>Log Disk<br>Free</th>"
-        $Output+="<th>Log Disk<br>Free Space</th><th>Log Disk<br>Capacity</th>"
+		$Output += "<th>Log Disk<br>Free</th>"
+		$Output += "<th>Log Disk<br>Free Space</th><th>Log Disk<br>Capacity</th>"
 	}
 	if ($ShowLastFullBackup) {
-		$Output+="<th>Last Full Backup</th>"
+		$Output += "<th>Last Full Backup</th>"
 	}
 	if ($ShowCircularLogging) {
-		$Output+="<th>Circular<br>Logging</th>"
+		$Output += "<th>Circular<br>Logging</th>"
 	}
 	if ($ShowCopies) {
-		$Output+="<th>Copies (n)</th>"
+		$Output += "<th>Copies (n)</th>"
 	}
 	
-	$Output+="</tr>"
-	$AlternateRow=0;
+	$Output += "</tr>"
+	$AlternateRow = 0;
 	foreach ($Database in $Databases) {
-		$Output+="<tr"
+		$Output += "<tr"
 		if ($AlternateRow) {
-			$Output+=" style=""background-color:#dddddd"""
-			$AlternateRow=0
+			$Output += " style=""background-color:#dddddd"""
+			$AlternateRow = 0
 		} 
 		else {
-			$AlternateRow=1
+			$AlternateRow = 1
 		}
 		
-		$Output+="><td>$($Database.ActiveOwner)</td>"
+		$Output += "><td>$($Database.ActiveOwner)</td>"
 		if ($ShowStorageGroups) {
-			$Output+="<td>$($Database.StorageGroup)</td>"
+			$Output += "<td>$($Database.StorageGroup)</td>"
 		}
-		$Output+="<td>$($Database.Name)</td>
+		$Output += "<td>$($Database.Name)</td>
 		<td align=""center"">$($Database.MailboxCount)</td>
 		<td align=""center"">$($Database.DisabledMailboxes)</td>
 		<td align=""center"">$("{0:N2}" -f ($Database.MailboxAverageSize/1MB)) MB</td>"
 		if ($ShowArchiveDBs) {
-			$Output+="<td align=""center"">$($Database.ArchiveMailboxCount)</td> 
+			$Output += "<td align=""center"">$($Database.ArchiveMailboxCount)</td> 
 			<td align=""center"">$("{0:N2}" -f ($Database.ArchiveAverageSize/1MB)) MB</td>";
 		}
-		$Output+="<td align=""center"">$("{0:N2}" -f ($Database.Size/1GB)) GB </td>
+		$Output += "<td align=""center"">$("{0:N2}" -f ($Database.Size/1GB)) GB </td>
 		<td align=""center"">$("{0:N2}" -f ($Database.Whitespace/1GB)) GB</td>";
 		if ($ShowWhitespacePCT) {
-            If ($Database.WhitespacePCT -lt [Double]20.001) {
-            	$Output+="<td align=""center"">$("{0:N1}" -f $Database.WhitespacePCT)%</td>"
-            }
-            If (($Database.WhitespacePCT -gt [Double]20) -and ($Database.WhitespacePCT -lt [Double]40)) {
-            	$Output+="<td align=""center"" bgcolor=""#F7BE81"">$("{0:N1}" -f $Database.WhitespacePCT)%</td>" # Light Orange
-            }
-            If ($Database.WhitespacePCT -gt [Double]40) {
-            	$Output+="<td align=""center"" bgcolor=""#F78181"">$("{0:N1}" -f $Database.WhitespacePCT)%</td>" # Light Red
-            }
-        }
+			If ($Database.WhitespacePCT -lt [Double]20.001) {
+				$Output += "<td align=""center"">$("{0:N1}" -f $Database.WhitespacePCT)%</td>"
+			}
+			If (($Database.WhitespacePCT -gt [Double]20) -and ($Database.WhitespacePCT -lt [Double]40)) {
+				$Output += "<td align=""center"" bgcolor=""#F7BE81"">$("{0:N1}" -f $Database.WhitespacePCT)%</td>" # Light Orange
+			}
+			If ($Database.WhitespacePCT -gt [Double]40) {
+				$Output += "<td align=""center"" bgcolor=""#F78181"">$("{0:N1}" -f $Database.WhitespacePCT)%</td>" # Light Red
+			}
+		}
 		if ($ShowFreeDatabaseSpace) {
-            If ($Database.FreeDatabaseDiskSpace -gt [Double]40) {
-            	$Output+="<td align=""center"">$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>"
-            }
-            If (($Database.FreeDatabaseDiskSpace -gt [Double]30) -and ($Database.FreeDatabaseDiskSpace -lt [Double]40)) {
-            	$Output+="<td align=""center"" bgcolor=""#F7BE81"">$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>" # Light Orange
-            }
-            If ($Database.FreeDatabaseDiskSpace -lt [Double]30.001) {
-            	$Output+="<td align=""center"" bgcolor=""#F78181"">$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>" # Light Red
-            }
-        $Output+="<td align=""center"">$("{0:N2}" -f ($Database.DatabaseDiskFreeSpace/1GB)) GB </td>"
-        $Output+="<td align=""center"">$("{0:N0}" -f ($Database.DatabaseDiskCapacity/1GB)) GB </td>"
+			If ($Database.FreeDatabaseDiskSpace -gt [Double]40) {
+				$Output += "<td align=""center"">$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>"
+			}
+			If (($Database.FreeDatabaseDiskSpace -gt [Double]30) -and ($Database.FreeDatabaseDiskSpace -lt [Double]40)) {
+				$Output += "<td align=""center"" bgcolor=""#F7BE81"">$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>" # Light Orange
+			}
+			If ($Database.FreeDatabaseDiskSpace -lt [Double]30.001) {
+				$Output += "<td align=""center"" bgcolor=""#F78181"">$("{0:N1}" -f $Database.FreeDatabaseDiskSpace)%</td>" # Light Red
+			}
+			$Output += "<td align=""center"">$("{0:N2}" -f ($Database.DatabaseDiskFreeSpace/1GB)) GB </td>"
+			$Output += "<td align=""center"">$("{0:N0}" -f ($Database.DatabaseDiskCapacity/1GB)) GB </td>"
 		}
 
 		if ($ShowFreeLogDiskSpace) {
 			#$Output+="<td align=""center"">$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>"
-            If ($Database.FreeLogDiskSpace -gt [Double]40) {
-            	$Output+="<td align=""center"">$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>"
-            }
-            If (($Database.FreeLogDiskSpace -gt [Double]30) -and ($Database.FreeLogDiskSpace -lt [Double]40)) {
-            	$Output+="<td align=""center"" bgcolor=""#F7BE81"">$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>" # Light Orange
-            }
-            If ($Database.FreeLogDiskSpace -lt [Double]30.001) {
-            	$Output+="<td align=""center"" bgcolor=""#F78181"">$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>" # Light Red
-            }
-        $Output+="<td align=""center"">$("{0:N2}" -f ($Database.LogDiskFreeSpace/1GB)) GB </td>"
-        $Output+="<td align=""center"">$("{0:N0}" -f ($Database.LogDiskCapacity/1GB)) GB </td>"
-        }
+			If ($Database.FreeLogDiskSpace -gt [Double]40) {
+				$Output += "<td align=""center"">$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>"
+			}
+			If (($Database.FreeLogDiskSpace -gt [Double]30) -and ($Database.FreeLogDiskSpace -lt [Double]40)) {
+				$Output += "<td align=""center"" bgcolor=""#F7BE81"">$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>" # Light Orange
+			}
+			If ($Database.FreeLogDiskSpace -lt [Double]30.001) {
+				$Output += "<td align=""center"" bgcolor=""#F78181"">$("{0:N1}" -f $Database.FreeLogDiskSpace)%</td>" # Light Red
+			}
+			$Output += "<td align=""center"">$("{0:N2}" -f ($Database.LogDiskFreeSpace/1GB)) GB </td>"
+			$Output += "<td align=""center"">$("{0:N0}" -f ($Database.LogDiskCapacity/1GB)) GB </td>"
+		}
 
 		if ($ShowLastFullBackup) {
 			#$Output+="<td align=""center"">$($Database.LastFullBackup)</td>";
-            If ($Database.LastFullBackup -eq "Not Available") {
-                #$Output+="<td align=""center"">$($Database.LastFullBackup)</td>";
-                $Output+="<td align=""center"" bgcolor=""#F7BE81"">$($Database.LastFullBackup)</td>"; # Light Orange
-            }
-            Else {
-                $dateDiff = (get-date).AddDays(-7)
-                $dateBackup = [DateTime] $Database.LastFullBackup
-                If ($dateBackup -le $dateDiff) {
-                    $Output+="<td align=""center"" bgcolor=""#F78181"">$($Database.LastFullBackup)</td>"; # Light Red
-                }
-                Else {
-                    $Output+="<td align=""center"">$($Database.LastFullBackup)</td>";
-                }
-            }
+			If ($Database.LastFullBackup -eq "Not Available") {
+				#$Output+="<td align=""center"">$($Database.LastFullBackup)</td>";
+				$Output += "<td align=""center"" bgcolor=""#F7BE81"">$($Database.LastFullBackup)</td>"; # Light Orange
+			}
+			Else {
+				$dateDiff = (get-date).AddDays(-7)
+				$dateBackup = [DateTime] $Database.LastFullBackup
+				If ($dateBackup -le $dateDiff) {
+					$Output += "<td align=""center"" bgcolor=""#F78181"">$($Database.LastFullBackup)</td>"; # Light Red
+				}
+				Else {
+					$Output += "<td align=""center"">$($Database.LastFullBackup)</td>";
+				}
+			}
 		}
 		if ($ShowCircularLogging) {
 			#$Output+="<td align=""center"">$($Database.CircularLoggingEnabled)</td>";
-            If ($Database.CircularLoggingEnabled -eq "Yes") {
-                $Output+="<td align=""center"" bgcolor=""#F3F781"">$($Database.CircularLoggingEnabled)</td>"; # Light Yellow
-            }
-            Else {
-                $Output+="<td align=""center"">$($Database.CircularLoggingEnabled)</td>";
-            }
+			If ($Database.CircularLoggingEnabled -eq "Yes") {
+				$Output += "<td align=""center"" bgcolor=""#F3F781"">$($Database.CircularLoggingEnabled)</td>"; # Light Yellow
+			}
+			Else {
+				$Output += "<td align=""center"">$($Database.CircularLoggingEnabled)</td>";
+			}
 		}
 		if ($ShowCopies) {
-			$Output+="<td>$($Database.Copies | ForEach-Object{$_}) ($($Database.CopyCount))</td>"
+			$Output += "<td>$($Database.Copies | ForEach-Object{$_}) ($($Database.CopyCount))</td>"
 		}
-		$Output+="</tr>";
+		$Output += "</tr>";
 	}
-	$Output+="</table><br />"
+	$Output += "</table><br />"
 	$Output
 }
 
 
 # Sub Function to neatly update progress
 function _UpProg1 {
-	param($PercentComplete,$Status,$Stage)
-	$TotalStages=5
-	Write-Progress -id 1 -activity "Get-ExchangeEnvironmentReport" -status $Status -percentComplete (($PercentComplete/$TotalStages)+(1/$TotalStages*$Stage*100))
+	param($PercentComplete, $Status, $Stage)
+	$TotalStages = 5
+	Write-Progress -id 1 -activity "Get-ExchangeEnvironmentReport" -status $Status -percentComplete (($PercentComplete / $TotalStages) + (1 / $TotalStages * $Stage * 100))
 }
 
 # 1. Initial Startup
@@ -915,24 +916,24 @@ if ($SendMail) {
 # 1.3 Check Exchange Management Shell Version
 if ((Get-PSSnapin -Name Microsoft.Exchange.Management.PowerShell.Admin -ErrorAction SilentlyContinue)) {
 	$E2010 = $false;
-	if (Get-ExchangeServer | Where-Object {$_.AdminDisplayVersion.Major -gt 14}) {
+	if (Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion.Major -gt 14 }) {
 		Write-Warning "Exchange 2010 or higher detected. You'll get better results if you run this script from the latest management shell"
 	}
 } 
 else {
-    $E2010 = $true
-    $localserver = Get-ExchangeServer $Env:computername
-    $localversion = $localserver.admindisplayversion.major
-    if ($localversion -eq 15) { 
-        $E2013 = $true
-        If ($localserver.admindisplayversion.minor -eq "1" ) {
-            $E2016 = $true
-            }
-        If ($localserver.admindisplayversion.minor -eq "2" ) {
-            $E2019 = $true
-            }
-        }
-    }
+	$E2010 = $true
+	$localserver = Get-ExchangeServer $Env:computername
+	$localversion = $localserver.admindisplayversion.major
+	if ($localversion -eq 15) { 
+		$E2013 = $true
+		If ($localserver.admindisplayversion.minor -eq "1" ) {
+			$E2016 = $true
+		}
+		If ($localserver.admindisplayversion.minor -eq "2" ) {
+			$E2019 = $true
+		}
+	}
+}
 
 # 1.4 Check view entire forest if set (by default, true)
 if ($E2010) {
@@ -945,52 +946,54 @@ else {
 # 1.5 Initial Variables
 
 # 1.5.1 Hashtable to update with environment data
-$ExchangeEnvironment = @{Sites					= @{}
-						 Pre2007				= @{}
-						 Servers				= @{}
-						 DAGs					= @()
-						 NonDAGDatabases		= @()
-						}
+$ExchangeEnvironment = @{Sites = @{}
+	Pre2007                       = @{}
+	Servers                       = @{}
+	DAGs                          = @()
+	NonDAGDatabases               = @()
+}
 # 1.5.7 Exchange Major Version String Mapping
-$ExMajorVersionStrings = @{"6.0" = @{Long="Exchange 2000";Short="E2000"}
-				   		   "6.5" = @{Long="Exchange 2003";Short="E2003"}
-				   		   "8"   = @{Long="Exchange 2007";Short="E2007"}
-                           "14"  = @{Long="Exchange 2010";Short="E2010"}
-						   "15"  = @{Long="Exchange 2013";Short="E2013"}
-                           "15.1"  = @{Long="Exchange 2016";Short="E2016"}
-						   "15.2"  = @{Long="Exchange 2019";Short="E2019"}}
+$ExMajorVersionStrings = @{"6.0" = @{Long = "Exchange 2000"; Short = "E2000" }
+	"6.5"                           = @{Long = "Exchange 2003"; Short = "E2003" }
+	"8"                             = @{Long = "Exchange 2007"; Short = "E2007" }
+	"14"                            = @{Long = "Exchange 2010"; Short = "E2010" }
+	"15"                            = @{Long = "Exchange 2013"; Short = "E2013" }
+	"15.1"                          = @{Long = "Exchange 2016"; Short = "E2016" }
+	"15.2"                          = @{Long = "Exchange 2019"; Short = "E2019" }
+}
 # 1.5.8 Exchange Service Pack String Mapping
 $ExSPLevelStrings = @{"0" = "RTM"
-					  "1" = "SP1"
-				      "2" = "SP2"
-			          "3" = "SP3"
-				      "4" = "SP4"
-                      "SP1" = "SP1"
-                      "SP2" = "SP2"}
-    # Add many CUs               
-    for ($i = 1; $i -le 20; $i++) {
-        $ExSPLevelStrings.Add("CU$($i)","CU$($i)");
-    }
+	"1"                      = "SP1"
+	"2"                      = "SP2"
+	"3"                      = "SP3"
+	"4"                      = "SP4"
+	"SP1"                    = "SP1"
+	"SP2"                    = "SP2"
+}
+# Add many CUs               
+for ($i = 1; $i -le 20; $i++) {
+	$ExSPLevelStrings.Add("CU$($i)", "CU$($i)");
+}
 # 1.5.9 Populate Full Mapping using above info
 $ExVersionStrings = @{}
 foreach ($Major in $ExMajorVersionStrings.GetEnumerator()) {
 	foreach ($Minor in $ExSPLevelStrings.GetEnumerator()) {
-		$ExVersionStrings.Add("$($Major.Key).$($Minor.Key)",@{Long="$($Major.Value.Long) $($Minor.Value)";Short="$($Major.Value.Short)$($Minor.Value)"})
+		$ExVersionStrings.Add("$($Major.Key).$($Minor.Key)", @{Long = "$($Major.Value.Long) $($Minor.Value)"; Short = "$($Major.Value.Short)$($Minor.Value)" })
 	}
 }
 # 1.5.10 Exchange Role String Mapping
-$ExRoleStrings = @{"ClusteredMailbox" = @{Short="ClusMBX";Long="CCR/SCC Clustered Mailbox"}
-				   "Mailbox"		  = @{Short="MBX";Long="Mailbox"}
-				   "ClientAccess"	  = @{Short="CAS";Long="Client Access"}
-				   "HubTransport"	  = @{Short="HUB";Long="Hub Transport"}
-				   "UnifiedMessaging" = @{Short="UM";Long="Unified Messaging"}
-				   "Edge"			  = @{Short="EDGE";Long="Edge Transport"}
-				   "FE"			  = @{Short="FE";Long="Front End"}
-				   "BE"			  = @{Short="BE";Long="Back End"}
-                   "Hybrid"       = @{Short="HYB"; Long="Hybrid"}
-				   "Unknown"	  = @{Short="Unknown";Long="Unknown"}
-				   "None"		  = @{Short="CAS";Long="Client Access"} # for Reporting on Exch 2013 and Prior from Exch 2016 and Up
-				   }
+$ExRoleStrings = @{"ClusteredMailbox" = @{Short = "ClusMBX"; Long = "CCR/SCC Clustered Mailbox" }
+	"Mailbox"                            = @{Short = "MBX"; Long = "Mailbox" }
+	"ClientAccess"                       = @{Short = "CAS"; Long = "Client Access" }
+	"HubTransport"                       = @{Short = "HUB"; Long = "Hub Transport" }
+	"UnifiedMessaging"                   = @{Short = "UM"; Long = "Unified Messaging" }
+	"Edge"                               = @{Short = "EDGE"; Long = "Edge Transport" }
+	"FE"                                 = @{Short = "FE"; Long = "Front End" }
+	"BE"                                 = @{Short = "BE"; Long = "Back End" }
+	"Hybrid"                             = @{Short = "HYB"; Long = "Hybrid" }
+	"Unknown"                            = @{Short = "Unknown"; Long = "Unknown" }
+	"None"                               = @{Short = "CAS"; Long = "Client Access" } # for Reporting on Exch 2013 and Prior from Exch 2016 and Up
+}
 
 # 2 Get Relevant Exchange Information Up-Front
 
@@ -1000,94 +1003,94 @@ $ExchangeServers = [array](Get-ExchangeServer $ServerFilter | Sort-Object -Prope
 if (!$ExchangeServers) {
 	throw "No Exchange Servers matched by -ServerFilter ""$($ServerFilter)"""
 }
-$HybridServers=@()
+$HybridServers = @()
 if (Get-Command Get-HybridConfiguration -ErrorAction SilentlyContinue) {
-    $HybridConfig = Get-HybridConfiguration
-    $HybridConfig.ReceivingTransportServers | ForEach-Object{ $HybridServers+=$_.Name  }
-    $HybridConfig.SendingTransportServers | ForEach-Object{ $HybridServers+=$_.Name  }
-    $HybridServers =  $HybridServers | Sort-Object -Unique
+	$HybridConfig = Get-HybridConfiguration
+	$HybridConfig.ReceivingTransportServers | ForEach-Object { $HybridServers += $_.Name }
+	$HybridConfig.SendingTransportServers | ForEach-Object { $HybridServers += $_.Name }
+	$HybridServers = $HybridServers | Sort-Object -Unique
 }
 
 _UpProg1 10 "Getting Mailboxes" 1
-$Mailboxes = [array](Get-Mailbox -ResultSize Unlimited) | Where-Object {$_.Server -like $ServerFilter}
+$Mailboxes = [array](Get-Mailbox -ResultSize Unlimited) | Where-Object { $_.Server -like $ServerFilter }
 if ($E2010) { 
 	_UpProg1 60 "Getting Archive Mailboxes" 1
-	$ArchiveMailboxes = [array](Get-Mailbox -Archive -ResultSize Unlimited) | Where-Object {$_.Server -like $ServerFilter}
-    _UpProg1 70 "Getting Remote Mailboxes" 1
-    $RemoteMailboxes = [array](Get-RemoteMailbox  -ResultSize Unlimited)
-    $ExchangeEnvironment.Add("RemoteMailboxes",$RemoteMailboxes.Count)
+	$ArchiveMailboxes = [array](Get-Mailbox -Archive -ResultSize Unlimited) | Where-Object { $_.Server -like $ServerFilter }
+	_UpProg1 70 "Getting Remote Mailboxes" 1
+	$RemoteMailboxes = [array](Get-RemoteMailbox  -ResultSize Unlimited)
+	$ExchangeEnvironment.Add("RemoteMailboxes", $RemoteMailboxes.Count)
 	_UpProg1 90 "Getting Databases" 1
-    if ($E2013) {	
-        $Databases = [array](Get-MailboxDatabase -IncludePreExchange2013 -Status | Sort-Object -Property Name) | Where-Object {$_.Server -like $ServerFilter} 
-    }
-    elseif ($E2010) {	
-        $Databases = [array](Get-MailboxDatabase -IncludePreExchange2010 -Status| Sort-Object -Property Name) | Where-Object {$_.Server -like $ServerFilter} 
-    }
-	$DAGs = [array](Get-DatabaseAvailabilityGroup) | Where-Object {$_.Servers -like $ServerFilter}
+	if ($E2013) {	
+		$Databases = [array](Get-MailboxDatabase -IncludePreExchange2013 -Status | Sort-Object -Property Name) | Where-Object { $_.Server -like $ServerFilter } 
+	}
+	elseif ($E2010) {	
+		$Databases = [array](Get-MailboxDatabase -IncludePreExchange2010 -Status | Sort-Object -Property Name) | Where-Object { $_.Server -like $ServerFilter } 
+	}
+	$DAGs = [array](Get-DatabaseAvailabilityGroup) | Where-Object { $_.Servers -like $ServerFilter }
 } 
 else {
 	$ArchiveMailboxes = $null
 	$ArchiveMailboxStats = $null	
 	$DAGs = $null
 	_UpProg1 90 "Getting Databases" 1
-	$Databases = [array](Get-MailboxDatabase -IncludePreExchange2007 -Status| Sort-Object -Property Name) | Where-Object {$_.Server -like $ServerFilter}
-    $ExchangeEnvironment.Add("RemoteMailboxes",0)
+	$Databases = [array](Get-MailboxDatabase -IncludePreExchange2007 -Status | Sort-Object -Property Name) | Where-Object { $_.Server -like $ServerFilter }
+	$ExchangeEnvironment.Add("RemoteMailboxes", 0)
 }
 
 # 2.3 Populate Information we know
-$ExchangeEnvironment.Add("TotalMailboxes",$Mailboxes.Count + $ExchangeEnvironment.RemoteMailboxes);
+$ExchangeEnvironment.Add("TotalMailboxes", $Mailboxes.Count + $ExchangeEnvironment.RemoteMailboxes);
 
 # 3 Process High-Level Exchange Information
 
 # 3.1 Collect Exchange Server Information
-for ($i=0; $i -lt $ExchangeServers.Count; $i++) {
-	_UpProg1 ($i/$ExchangeServers.Count*100) "Getting Exchange Server Information" 2
+for ($i = 0; $i -lt $ExchangeServers.Count; $i++) {
+	_UpProg1 ($i / $ExchangeServers.Count * 100) "Getting Exchange Server Information" 2
 	# Get Exchange Info
 	$ExSvr = _GetExSvr -E2010 $E2010 -ExchangeServer $ExchangeServers[$i] -Mailboxes $Mailboxes -Databases $Databases -Hybrids $HybridServers
 	# Add to site or pre-Exchange 2007 list
 	if ($ExSvr.Site) {
 		# Exchange 2007 or higher
 		if (!$ExchangeEnvironment.Sites[$ExSvr.Site]) {
-			$ExchangeEnvironment.Sites.Add($ExSvr.Site,@($ExSvr))
+			$ExchangeEnvironment.Sites.Add($ExSvr.Site, @($ExSvr))
 		} 
 		else {
-			$ExchangeEnvironment.Sites[$ExSvr.Site]+=$ExSvr
+			$ExchangeEnvironment.Sites[$ExSvr.Site] += $ExSvr
 		}
 	} 
 	else {
 		# Exchange 2003 or lower
 		if (!$ExchangeEnvironment.Pre2007["Pre 2007 Servers"]) {
-			$ExchangeEnvironment.Pre2007.Add("Pre 2007 Servers",@($ExSvr))
+			$ExchangeEnvironment.Pre2007.Add("Pre 2007 Servers", @($ExSvr))
 		} 
 		else {
-			$ExchangeEnvironment.Pre2007["Pre 2007 Servers"]+=$ExSvr
+			$ExchangeEnvironment.Pre2007["Pre 2007 Servers"] += $ExSvr
 		}
 	}
 	# Add to Servers List
-	$ExchangeEnvironment.Servers.Add($ExSvr.Name,$ExSvr)
+	$ExchangeEnvironment.Servers.Add($ExSvr.Name, $ExSvr)
 }
 
 # 3.2 Calculate Environment Totals for Version/Role using collected data
 _UpProg1 1 "Getting Totals" 3
-$ExchangeEnvironment.Add("TotalMailboxesByVersion",(_TotalsByVersion -ExchangeEnvironment $ExchangeEnvironment))
-$ExchangeEnvironment.Add("TotalServersByRole",(_TotalsByRole -ExchangeEnvironment $ExchangeEnvironment))
+$ExchangeEnvironment.Add("TotalMailboxesByVersion", (_TotalsByVersion -ExchangeEnvironment $ExchangeEnvironment))
+$ExchangeEnvironment.Add("TotalServersByRole", (_TotalsByRole -ExchangeEnvironment $ExchangeEnvironment))
 
 # 3.4 Populate Environment DAGs
 _UpProg1 5 "Getting DAG Info" 3
 if ($DAGs) {
-	foreach($DAG in $DAGs) {
-		$ExchangeEnvironment.DAGs+=(_GetDAG -DAG $DAG)
+	foreach ($DAG in $DAGs) {
+		$ExchangeEnvironment.DAGs += (_GetDAG -DAG $DAG)
 	}
 }
 
 # 3.5 Get Database information
 _UpProg1 60 "Getting Database Info" 3
-for ($i=0; $i -lt $Databases.Count; $i++) {
+for ($i = 0; $i -lt $Databases.Count; $i++) {
 	$Database = _GetDB -Database $Databases[$i] -ExchangeEnvironment $ExchangeEnvironment -Mailboxes $Mailboxes -ArchiveMailboxes $ArchiveMailboxes -E2010 $E2010
 	$DAGDB = $false
-	for ($j=0; $j -lt $ExchangeEnvironment.DAGs.Count; $j++) {
+	for ($j = 0; $j -lt $ExchangeEnvironment.DAGs.Count; $j++) {
 		if ($ExchangeEnvironment.DAGs[$j].Members -contains $Database.ActiveOwner) {
-			$DAGDB=$true
+			$DAGDB = $true
 			$ExchangeEnvironment.DAGs[$j].Databases += $Database
 		}
 	}
@@ -1099,7 +1102,7 @@ for ($i=0; $i -lt $Databases.Count; $i++) {
 # 4 Write Information
 _UpProg1 5 "Writing HTML Report Header" 4
 # Header
-$Output="<html>
+$Output = "<html>
 <body>
 <font size=""1"" face=""Segoe UI,Arial,sans-serif"">
 <h2 align=""center"">Exchange Environment Report</h3>
@@ -1109,73 +1112,73 @@ $Output="<html>
 <tr bgcolor=""#009900"">
 <th colspan=""$($ExchangeEnvironment.TotalMailboxesByVersion.Count)""><font color=""#ffffff"">Total Servers:</font></th>"
 if ($ExchangeEnvironment.RemoteMailboxes) {
-    $Output+="<th colspan=""$($ExchangeEnvironment.TotalMailboxesByVersion.Count+3)""><font color=""#ffffff"">Total Mailboxes:</font></th>"
-    } 
+	$Output += "<th colspan=""$($ExchangeEnvironment.TotalMailboxesByVersion.Count+3)""><font color=""#ffffff"">Total Mailboxes:</font></th>"
+} 
 else {
-    $Output+="<th colspan=""$($ExchangeEnvironment.TotalMailboxesByVersion.Count+2)""><font color=""#ffffff"">Total Mailboxes:</font></th>"
-    }
-$Output+="<th colspan=""$($ExchangeEnvironment.TotalServersByRole.Count)""><font color=""#ffffff"">Total Roles:</font></th></tr>
+	$Output += "<th colspan=""$($ExchangeEnvironment.TotalMailboxesByVersion.Count+2)""><font color=""#ffffff"">Total Mailboxes:</font></th>"
+}
+$Output += "<th colspan=""$($ExchangeEnvironment.TotalServersByRole.Count)""><font color=""#ffffff"">Total Roles:</font></th></tr>
 <tr bgcolor=""#00CC00"">"
 # Show Column Headings based on the Exchange versions we have
-$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator()|Sort-Object Name| ForEach-Object{$Output+="<th>$($ExVersionStrings[$_.Key].Short)</th>"}
-$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator()|Sort-Object Name| ForEach-Object{$Output+="<th>$($ExVersionStrings[$_.Key].Short)</th>"}
-$Output+="<th>Disonnected</th>"
+$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<th>$($ExVersionStrings[$_.Key].Short)</th>" }
+$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<th>$($ExVersionStrings[$_.Key].Short)</th>" }
+$Output += "<th>Disonnected</th>"
 if ($ExchangeEnvironment.RemoteMailboxes) {
-    $Output+="<th>Office 365</th>"
+	$Output += "<th>Office 365</th>"
 }
-$Output+="<th>Org</th>"
-$ExchangeEnvironment.TotalServersByRole.GetEnumerator()|Sort-Object Name| ForEach-Object{$Output+="<th>$($ExRoleStrings[$_.Key].Short)</th>"}
-$Output+="<tr>"
-$Output+="<tr align=""center"" bgcolor=""#dddddd"">"
-$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator()|Sort-Object Name| ForEach-Object{$Output+="<td>$($_.Value.ServerCount)</td>" }
-$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator()|Sort-Object Name| ForEach-Object{$Output+="<td>$($_.Value.MailboxCount)</td>" }
-$Output+="<th>$((Get-MailboxDatabase | Get-MailboxStatistics | Where-Object { $_.DisconnectReason -eq "Disabled" }).count)</th>"
+$Output += "<th>Org</th>"
+$ExchangeEnvironment.TotalServersByRole.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<th>$($ExRoleStrings[$_.Key].Short)</th>" }
+$Output += "<tr>"
+$Output += "<tr align=""center"" bgcolor=""#dddddd"">"
+$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<td>$($_.Value.ServerCount)</td>" }
+$ExchangeEnvironment.TotalMailboxesByVersion.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<td>$($_.Value.MailboxCount)</td>" }
+$Output += "<th>$((Get-MailboxDatabase | Get-MailboxStatistics | Where-Object { $_.DisconnectReason -eq "Disabled" }).count)</th>"
 if ($RemoteMailboxes) {
-    $Output+="<th>$($ExchangeEnvironment.RemoteMailboxes)</th>"
+	$Output += "<th>$($ExchangeEnvironment.RemoteMailboxes)</th>"
 }
-$Output+="<td>$($ExchangeEnvironment.TotalMailboxes)</td>"
-$ExchangeEnvironment.TotalServersByRole.GetEnumerator()|Sort-Object Name| ForEach-Object{$Output+="<td>$($_.Value)</td>"}
-$Output+="</tr><tr><tr></table><br>"
+$Output += "<td>$($ExchangeEnvironment.TotalMailboxes)</td>"
+$ExchangeEnvironment.TotalServersByRole.GetEnumerator() | Sort-Object Name | ForEach-Object { $Output += "<td>$($_.Value)</td>" }
+$Output += "</tr><tr><tr></table><br>"
 
 # Sites and Servers
 _UpProg1 20 "Writing HTML Site Information" 4
 foreach ($Site in $ExchangeEnvironment.Sites.GetEnumerator()) {
-	$Output+=_GetOverview -Servers $Site -ExchangeEnvironment $ExchangeEnvironment -ExRoleStrings $ExRoleStrings
+	$Output += _GetOverview -Servers $Site -ExchangeEnvironment $ExchangeEnvironment -ExRoleStrings $ExRoleStrings
 }
 _UpProg1 40 "Writing HTML Pre-2007 Information" 4
 foreach ($FakeSite in $ExchangeEnvironment.Pre2007.GetEnumerator()) {
-	$Output+=_GetOverview -Servers $FakeSite -ExchangeEnvironment $ExchangeEnvironment -ExRoleStrings $ExRoleStrings -Pre2007:$true
+	$Output += _GetOverview -Servers $FakeSite -ExchangeEnvironment $ExchangeEnvironment -ExRoleStrings $ExRoleStrings -Pre2007:$true
 }
 
 _UpProg1 60 "Writing HTML DAG Information" 4
 foreach ($DAG in $ExchangeEnvironment.DAGs) {
 	if ($DAG.MemberCount -gt 0) {
 		# Database Availability Group Header
-		$Output+="<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
+		$Output += "<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
 		<col width=""20%""><col width=""10%""><col width=""70%"">
 		<tr align=""center"" bgcolor=""#FF8000 ""><th>Database Availability Group Name</th><th>Member Count</th>
 		<th>Database Availability Group Members</th></tr>
 		<tr><td>$($DAG.Name)</td><td align=""center"">
 		$($DAG.MemberCount)</td><td>"
-		$DAG.Members | ForEach-Object { $Output+="$($_) " }
-		$Output+="</td></tr></table>"
+		$DAG.Members | ForEach-Object { $Output += "$($_) " }
+		$Output += "</td></tr></table>"
 		
 		# Get Table HTML
-		$Output+=_GetDBTable -Databases $DAG.Databases
+		$Output += _GetDBTable -Databases $DAG.Databases
 	}
 }
 
 if ($ExchangeEnvironment.NonDAGDatabases.Count) {
 	_UpProg1 80 "Writing HTML Non-DAG Database Information" 4
-	$Output+="<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
+	$Output += "<table border=""0"" cellpadding=""3"" width=""100%"" style=""font-size:8pt;font-family:Segoe UI,Arial,sans-serif"">
     	  <tr bgcolor=""#FF8000""><th>Mailbox Databases (Non-DAG)</th></table>"
-	$Output+=_GetDBTable -Databases $ExchangeEnvironment.NonDAGDatabases
+	$Output += _GetDBTable -Databases $ExchangeEnvironment.NonDAGDatabases
 }
 
 
 # End
 _UpProg1 90 "Finishing off.." 4
-$Output+="</body></html>";
+$Output += "</body></html>";
 $Output | Out-File $HTMLReport
 
 if ($SendMail) {

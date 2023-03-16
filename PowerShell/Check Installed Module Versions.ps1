@@ -20,7 +20,7 @@ for ($num = 0 ; $num -le $count ; $num++) {
         $temp = ($tempAR[$num]).Name + " - Online Newer"
         #Write-Host $temp -ForegroundColor Yellow
         $tempAR[$num]
-     }
+    }
 }
 
 

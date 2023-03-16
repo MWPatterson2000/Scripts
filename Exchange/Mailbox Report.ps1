@@ -15,8 +15,8 @@ Notes:
     File Output / Logging
         *> $logPath
         *>> $logPath
-         | Out-File $logPath
-         | Out-File $logPath -Append
+        | Out-File $logPath
+        | Out-File $logPath -Append
 
 #>
 
@@ -25,10 +25,10 @@ Notes:
 $date = get-date -Format "yyyy-MM-dd-HH-mm"
 $logRoot = "<Drive>:\"
 $logFolder = "<Folder>\"
-$logFolderPath = $logRoot +$logFolder
+$logFolderPath = $logRoot + $logFolder
 $logFile = "<File>"
-$logFileName = $date +"-" +$logFile 
-$logPath = $logRoot +$logFolder +$date +"-" +$logFile
+$logFileName = $date + "-" + $logFile 
+$logPath = $logRoot + $logFolder + $date + "-" + $logFile
 #>
 
 #<#
@@ -58,7 +58,7 @@ Import-PSSession $Session
 # Get Users with Mailbox in O365
 Write-Host "`n`nPlease Wait - Getting O365 Mailbox Users" -Fore Yellow
 #Get-Mailbox -ResultSize Unlimited | Select-Object DisplayName,UserPrincipalName,PrimarySmtpAddress | Export-Csv "C:\Temp\$(get-date -f yyyy-MM-dd-HH-mm) - O365 Users Email.csv" -Encoding UTF8 -NoTypeInformation
-Get-Mailbox -ResultSize Unlimited | Select-Object DisplayName,UserPrincipalName,PrimarySmtpAddress | Export-Csv "C:\Temp\$date - O365 Users Email.csv" -Encoding UTF8 -NoTypeInformation
+Get-Mailbox -ResultSize Unlimited | Select-Object DisplayName, UserPrincipalName, PrimarySmtpAddress | Export-Csv "C:\Temp\$date - O365 Users Email.csv" -Encoding UTF8 -NoTypeInformation
 #Get-EXOMailbox -ResultSize Unlimited | Select-Object DisplayName,UserPrincipalName,PrimarySmtpAddress | Export-Csv "C:\Temp\$(get-date -f yyyy-MM-dd-HH-mm) - O365 Users Email.csv" -Encoding UTF8 -NoTypeInformation
 #>
 
@@ -70,7 +70,7 @@ Write-Host "`nPlease Wait Loading Exchange PowerShell SnapIn" -Fore Yellow
 
 Write-Host "`nPlease Wait - Getting Hybrid Mailbox Users" -Fore Yellow
 #Get-RemoteMailbox -ResultSize Unlimited | Select-Object DisplayName,UserPrincipalName,PrimarySmtpAddress | Export-Csv "C:\Temp\$(get-date -f yyyy-MM-dd-HH-mm) - Hybrid Users Email.csv" -Encoding UTF8 -NoTypeInformation
-Get-RemoteMailbox -ResultSize Unlimited | Select-Object DisplayName,UserPrincipalName,PrimarySmtpAddress | Export-Csv "C:\Temp\$date - Hybrid Users Email.csv" -Encoding UTF8 -NoTypeInformation
+Get-RemoteMailbox -ResultSize Unlimited | Select-Object DisplayName, UserPrincipalName, PrimarySmtpAddress | Export-Csv "C:\Temp\$date - Hybrid Users Email.csv" -Encoding UTF8 -NoTypeInformation
 #>
 
 #<#

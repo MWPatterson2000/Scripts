@@ -41,7 +41,7 @@ if ((Test-Path $exportFolderPath) -eq $false) {
     }
 
  # Pulls an environment variable to find the server name, queries it for a list of zones, filters only the primary ones, removes the quotes from the exported .csv file, and saves it to the specified folder.
-Get-DNSServerZone -ComputerName $env:computername | Where-Object{$_.ZoneType -eq "Primary"} | Select ZoneName | ConvertTo-CSV -NoTypeInformation | ForEach-Object {$_ -replace ‘"‘, ""} | Out-File "$exportFolderPath\$date-ZoneTemp.csv"
+Get-DNSServerZone -ComputerName $env:computername | Where-Object{$_.ZoneType -eq "Primary"} | Select-Object ZoneName | ConvertTo-CSV -NoTypeInformation | ForEach-Object {$_ -replace '"', ""} | Out-File "$exportFolderPath\$date-ZoneTemp.csv"
 
 # Imports the zone list
 $ZoneList = Get-Content "$exportFolderPath\$date-ZoneTemp.csv"
