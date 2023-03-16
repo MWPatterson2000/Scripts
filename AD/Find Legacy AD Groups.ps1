@@ -34,7 +34,7 @@ $logFile = "Legacy AD Groups.csv"
 $logPath = $logRoot +$logFolder +$date +"-" +$logFile
 #>
 
-Get-ADGroup -Filter * -Server mfadomain.mfa.net | `
+Get-ADGroup -Filter * -Server <Domain Controller> | `
     Get-ADReplicationAttributeMetadata -Server <Domain Controller> -Properties Member -ShowAllLinkedValues | `
     #Where-Object {$_.Version -eq 0} | Select-Object @{n="Group";e={$_.Object}} -Unique | `
     Where-Object {$_.Version -eq 0} | Select-Object @{n="LEGACY";e={$_.AttributeValue}},@{n="Group";e={$_.Object}} | `
