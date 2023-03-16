@@ -35,7 +35,7 @@ $logPath = $logRoot +$logFolder +$date +"-" +$logFile
 #>
 
 Get-ADGroup -Filter * -Server mfadomain.mfa.net | `
-    Get-ADReplicationAttributeMetadata -Server mfa-dc01.mfadomain.mfa.net -Properties Member -ShowAllLinkedValues | `
+    Get-ADReplicationAttributeMetadata -Server <Domain Controller> -Properties Member -ShowAllLinkedValues | `
     #Where-Object {$_.Version -eq 0} | Select-Object @{n="Group";e={$_.Object}} -Unique | `
     Where-Object {$_.Version -eq 0} | Select-Object @{n="LEGACY";e={$_.AttributeValue}},@{n="Group";e={$_.Object}} | `
     Export-Csv "$logPath" -NoTypeInformation -Encoding UTF8
