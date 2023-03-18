@@ -12,7 +12,7 @@ Revision History
 #>
 
 # Clear Screen
-cls
+Clear-Host
 
 <#
 # Check For Admin Mode
@@ -59,7 +59,7 @@ foreach ($DC in $DCs) {
             }
             # Within the timeframe, let's save the IP and Date attempted in a hashtable. Only keep the first hit, which is the latest failed site attempt
             $ip = $Content[$counter] -Replace ".* (.*)$", '$1'
-            If ($MissingEntry[$ip] -eq $null) {
+            If ($null -eq $MissingEntry[$ip]) {
                 $MissingEntry[$ip] = $EntryDate
             }
         }
@@ -67,7 +67,7 @@ foreach ($DC in $DCs) {
 
     # Sort the missing IPs
     $MissingEntry = $MissingEntry.GetEnumerator() | Sort-Object -Property Name
- 
+
     # Output the missing IPs and failed date attempt
     $MissingEntryT = $MissingEntry | Select-Object @{name="DC"; expression={$DomainController}}, @{name="IP"; expression={$_.Name}}, @{name="Last Failed Site Attempt"; expression={$_.Value}}
     If ($count -eq 1) {
