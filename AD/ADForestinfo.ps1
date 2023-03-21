@@ -3,9 +3,9 @@
 Forestinfo.ps1
 
 .VERSION
- 1.0
- 1.1 Added Updated Servers & Update Report File Name
- 1.1 Added Change Schema Info
+    1.0
+    1.1 Added Updated Servers & Update Report File Name
+    1.1 Added Change Schema Info
 #>
 
 #Set Domain
@@ -71,7 +71,7 @@ switch ($SchemaVersion.objectVersion) {
     69 { $Sc_os_name = "Windows Server 2012 R2" }
     72 { $Sc_os_name = "Windows Server Technical Preview" }
     87 { $Sc_os_name = "Windows Server 2016" }
-    88 { $Sc_os_name = "Windows Server 2019" }
+    88 { $Sc_os_name = "Windows Server 2019/2022" }
     #89 { $Sc_os_name = "Windows Server 2022 }
     default { $Sc_os_name = "Unknow" + "-" + $SchemaVersion.objectVersion }
 }
