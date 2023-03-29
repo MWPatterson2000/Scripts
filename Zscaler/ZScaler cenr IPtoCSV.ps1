@@ -65,8 +65,8 @@ foreach ($dnsHost in $ipList.psobject.properties.name) {
 }
 
 # CSV File
-$zscaler = "$dataRoot\$dataFolder\ZScaler - $zenscalerType - $zenscalerHost.csv"
-#$zscaler = "$dataRoot\$dataFolder\ZScaler - $zenscalerType - $zenscalerHost - $date.csv"
+#$zscaler = "$dataRoot\$dataFolder\ZScaler - $zenscalerType - $zenscalerHost.csv"
+$zscaler = "$dataRoot\$dataFolder\ZScaler - $zenscalerType - $zenscalerHost - $date.csv"
 
 # Export Combined User List
 $ipAddressList | Select-Object 'DNS Host', Continent, City, range, vpn, gre, hostname, latitude, longitude | `
