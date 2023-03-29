@@ -12,7 +12,7 @@ Revision History
 #>
 
 # Clear Screen
-cls
+Clear-Host
 
 <#
 # Self-elevate the script if required

@@ -8,19 +8,20 @@ scripts@mwpatterson.com
 
 Revision History
     2020-08-26 - Initial Release
+    2023-03-29 - Cleanup
 
 #>
 $Computers = (Get-ADComputer -Filter *).count
 $Workstations = (Get-ADComputer -LDAPFilter "(&(objectClass=Computer)(!operatingSystem=*server*))" -Searchbase (Get-ADDomain).distinguishedName).count
 $Servers = (Get-ADComputer -LDAPFilter "(&(objectClass=Computer)(operatingSystem=*server*))" -Searchbase (Get-ADDomain).distinguishedName).count
 $Users = (get-aduser -filter *).count
-$domain = Get-ADDomain |FT Forest
+$domain = Get-ADDomain | Format-Table Forest
 $FSMO = netdom query FSMO
 $ADForest = (Get-ADForest).ForestMode
 $ADDomain = (Get-ADDomain).DomainMode
-$ADVer = Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select objectVersion
+$ADVer = Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object objectVersion
 $ADNUM = $ADVer -replace "@{objectVersion=","" -replace "}",""
-If ($ADNum -eq '88') {$srv = 'Windows Server 2019'}
+If ($ADNum -eq '88') {$srv = 'Windows Server 2019/2022'}
 ElseIf ($ADNum -eq '87') {$srv = 'Windows Server 2016'}
 ElseIf ($ADNum -eq '69') {$srv = 'Windows Server 2012 R2'}
 ElseIf ($ADNum -eq '56') {$srv = 'Windows Server 2012'}
