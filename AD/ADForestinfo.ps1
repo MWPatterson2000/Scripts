@@ -43,7 +43,7 @@ $FSMOSchema = $ForestInfo.SchemaMaster
 $ADRecBinSupport = "feature not supported"
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 #AD RecycleBin
-if ($ffl -like "Windows2008R2Forest" -or $ffl -like "Windows2012Forest" -or $ffl -like "Windows2012R2Forest" -or $ffl -like "Windows2016Forest" -or $ffl -like "Windows2019Forest") {
+if ($ffl -like "Windows2008R2Forest" -or $ffl -like "Windows2012Forest" -or $ffl -like "Windows2012R2Forest" -or $ffl -like "Windows2016Forest" -or $ffl -like "Windows2019Forest" -or $ffl -like "Windows2022Forest") {
     $ADRecBin = (Get-ADOptionalFeature -Server $forest -Identity 766ddcd8-acd0-445e-f3b9-a7f9b6744f2a).EnabledScopes | Measure-Object
     if ($ADRecBin.Count -ne 0 ) {
         $ADRecBinSupport = "Enabled"
@@ -193,8 +193,8 @@ ForEach ($Subnet in $Subnets) {
     $AllSubnet += $member
 }
 
-<#
-<foreach ($site in $allsites) {
+#<#
+foreach ($site in $allsites) {
     $Sitename = $Site.name
     [Array]$subnets = $Site.siteObjectBL
     if ($subnets.length -gt 0) {
