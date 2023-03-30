@@ -193,14 +193,14 @@ ForEach ($Subnet in $Subnets) {
     $AllSubnet += $member
 }
 
-#<#
+<#
 foreach ($site in $allsites) {
     $Sitename = $Site.name
     [Array]$subnets = $Site.siteObjectBL
     if ($subnets.length -gt 0) {
         foreach ($subnet in $subnets) {
-            #$DcInSite = $False
-            #If ($DcList.Site -Contains $SiteName) { $DcInSite = $True }
+            $DcInSite = $False
+            If ($DcList.Site -Contains $SiteName) { $DcInSite = $True }
             $SubnetSplit = $Subnet.Split(",")
             $Subnetname = $SubnetSplit[0].Replace("CN=","")
             $member = New-Object PSObject
