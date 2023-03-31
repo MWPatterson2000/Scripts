@@ -6,6 +6,8 @@ Forestinfo.ps1
     1.0
     1.1 Added Updated Servers & Update Report File Name
     1.1 Added Change Schema Info
+    1.2 Added Sort for Output
+
 #>
 
 #Set Domain
@@ -166,6 +168,7 @@ $props = @{'AD RecycleBin'         = $ADRecBinSupport
     'Number of Enterprise Admins'  = $enterpriseAdminsNo.count
 }
 $obj = New-Object -TypeName PSObject -Property $props
+$allsites = $allsites | Sort-Object name
 $frag1 = $obj | ConvertTo-Html -As LIST -Fragment -PreContent '<center><h1>FOREST LEVEL INFORMATION </h1></center>' | Out-String
 $frag3 = $allsites | Select-Object name | ConvertTo-Html -property Name -head $a -PreContent '<h2>Sites information</h2>' | Out-String
 #---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -192,6 +195,9 @@ ForEach ($Subnet in $Subnets) {
     $member | Add-Member -type NoteProperty -name "SiteDesc" -Value $Subnet.Description
     $AllSubnet += $member
 }
+
+$AllSubnet = $AllSubnet | Sort-Object SiteName, Subnet, DcInSite, SiteLoc, SiteDesc
+$frag4 = $AllSubnet | Select-Object Subnet, SiteName, DcInSite, SiteLoc, SiteDesc | ConvertTo-Html -property Subnet, SiteName, DcInSite, SiteLoc, SiteDesc -head $a -PreContent '<h2>Subnets information</h2>' | Out-String
 
 <#
 foreach ($site in $allsites) {
@@ -221,10 +227,9 @@ foreach ($site in $allsites) {
         $AllSubnet += $member
     }
 }
-#>
 
-#$frag4 = $AllSubnet | Select Site,Subnet,DcInSite | ConvertTo-Html -property Site,Subnet,DcInSite -head $a -PreContent '<h2>Subnets information</h2>' | Out-String
-$frag4 = $AllSubnet | Select-Object Subnet, SiteName, DcInSite, SiteLoc, SiteDesc | ConvertTo-Html -property Subnet, SiteName, DcInSite, SiteLoc, SiteDesc -head $a -PreContent '<h2>Subnets information</h2>' | Out-String
+$frag4 = $AllSubnet | Select Site,Subnet,DcInSite | ConvertTo-Html -property Site,Subnet,DcInSite -head $a -PreContent '<h2>Subnets information</h2>' | Out-String
+#>
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 [Array]$siteLinks = Get-ADObject -Server $forest -Filter { objectClass -eq "siteLink" } -SearchBase $ConfigurationPart -Properties name, cost, replInterval, siteList | Sort-Object replInterval
 [Array]$siteLinksdetails = $null
@@ -245,6 +250,7 @@ foreach ($sitelink in $siteLinks) {
     $member | Add-Member -MemberType NoteProperty -Name "Site names" -Value $ss1
     $siteLinksdetails += $member
 }
+$siteLinksdetails = $siteLinksdetails | Sort-Object name, Cost, replInterval
 $frag5 = $siteLinksdetails | Select-Object name, Cost, replInterval, "Site names" | ConvertTo-Html -head $a -PreContent '<h2>Site links information </h2>' | Out-String
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -427,6 +433,7 @@ $allDomains | ForEach-Object {
             $member | Add-Member -MemberType NoteProperty -Name "Count" -Value $dd.count
             $AllComputers += $member
         }
+        $AllComputers = $AllComputers | Sort-Object OperatingSystem, Count
 
         #GROUPS DETAILS
         Write-Host " Processing $domainname group information" -ForegroundColor Green
