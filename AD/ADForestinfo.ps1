@@ -7,10 +7,12 @@ Forestinfo.ps1
     1.1 Added Updated Servers & Update Report File Name
     1.1 Added Change Schema Info
     1.2 Added Sort for Output
+    1.3 Added Count for Domain Admins, Cleanup
+
 
 #>
 
-#Set Domain
+# Set Domain
 $domain = $env:USERDNSDOMAIN
 #$domain = $env:USERDOMAIN
 
@@ -44,7 +46,7 @@ $FSMODomainNaming = $ForestInfo.DomainNamingMaster
 $FSMOSchema = $ForestInfo.SchemaMaster
 $ADRecBinSupport = "feature not supported"
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-#AD RecycleBin
+# AD RecycleBin
 if ($ffl -like "Windows2008R2Forest" -or $ffl -like "Windows2012Forest" -or $ffl -like "Windows2012R2Forest" -or $ffl -like "Windows2016Forest" -or $ffl -like "Windows2019Forest" -or $ffl -like "Windows2022Forest") {
     $ADRecBin = (Get-ADOptionalFeature -Server $forest -Identity 766ddcd8-acd0-445e-f3b9-a7f9b6744f2a).EnabledScopes | Measure-Object
     if ($ADRecBin.Count -ne 0 ) {
@@ -55,11 +57,11 @@ if ($ffl -like "Windows2008R2Forest" -or $ffl -like "Windows2012Forest" -or $ffl
     }
 }
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-# Define Schema partition variables
+# Define Schema Partition Variables
 $SchemaPartition = $ForestInfo.PartitionsContainer.Replace("CN=Partitions", "CN=Schema")
 $configPartition = $ForestInfo.PartitionsContainer.Replace("CN=Partitions,", "")
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-#To get the Schema Version
+# To get the Schema Version
 $SchemaVersion = Get-ADObject -Server $forest -Identity $SchemaPartition -Properties * | Select-Object objectVersion
 switch ($SchemaVersion.objectVersion) {
     13 { $Sc_os_name = "Windows 2000 Server" }
@@ -78,13 +80,19 @@ switch ($SchemaVersion.objectVersion) {
     default { $Sc_os_name = "Unknow" + "-" + $SchemaVersion.objectVersion }
 }
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-#No of enterprose admins
+# No of Schema Admins
 $schemaGroupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-518"
 [array]$schemaAdminsNo = Get-ADGroup -Server $forest -Identity $schemaGroupID | Get-ADGroupMember -Recursive
+# No of Enterprose Admins
 $entGroupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-519"
 [array]$enterpriseAdminsNo = Get-ADGroup -Server $forest -Identity $entGroupID | Get-ADGroupMember -Recursive
+<#
+# No of Domain Admins
+$domAdminGroupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-512"
+[array]$domainAdminsNo = Get-ADGroup -Server $forest -Identity $domAdminGroupID | Get-ADGroupMember -Recursive
+#>
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-#To get the TombstoneLifetime
+# Get the TombstoneLifetime
 $tombstoneLifetime = (Get-ADobject -Server $forest -Identity "cn=Directory Service,cn=Windows NT,cn=Services,$configPartition" -Properties tombstoneLifetime).tombstoneLifetime
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 $ConfigurationPart = ($ForestInfo.PartitionsContainer -Replace "CN=Partitions,", "")
@@ -92,6 +100,7 @@ $ConfigurationPart = ($ForestInfo.PartitionsContainer -Replace "CN=Partitions,",
 [Array]$AllSubnets = Get-ADObject -Server $forest -Filter { objectClass -eq "subnet" } -SearchBase $ConfigurationPart -Properties *
 [Array]$siteLinks = Get-ADObject -Server $forest -Filter { objectClass -eq "siteLink" } -SearchBase $ConfigurationPart -Properties name, cost, replInterval, siteList | Sort-Object replInterval
 #---------------------------------------------------------------------------------------------------------------------------------------------------
+# Get Exchange Information
 If (Test-Path "AD:$SchemaPathExchange") {
     $SchemaVersionExchange = Get-ADObject "CN=ms-Exch-Schema-Version-Pt,$((Get-ADRootDSE).schemaNamingContext)" -Property * | Select-Object rangeUpper
 } 
@@ -166,6 +175,7 @@ $props = @{'AD RecycleBin'         = $ADRecBinSupport
     'Total Sitelinks'              = $siteLinks.count
     'Number of Schema Admins'      = $schemaAdminsNo.count
     'Number of Enterprise Admins'  = $enterpriseAdminsNo.count
+    #'Number of Domain Admins'      = $domainAdminsNo.count
 }
 $obj = New-Object -TypeName PSObject -Property $props
 $allsites = $allsites | Sort-Object name
@@ -231,6 +241,7 @@ foreach ($site in $allsites) {
 $frag4 = $AllSubnet | Select Site,Subnet,DcInSite | ConvertTo-Html -property Site,Subnet,DcInSite -head $a -PreContent '<h2>Subnets information</h2>' | Out-String
 #>
 #---------------------------------------------------------------------------------------------------------------------------------------------------
+# Site links information
 [Array]$siteLinks = Get-ADObject -Server $forest -Filter { objectClass -eq "siteLink" } -SearchBase $ConfigurationPart -Properties name, cost, replInterval, siteList | Sort-Object replInterval
 [Array]$siteLinksdetails = $null
 foreach ($sitelink in $siteLinks) {
@@ -247,17 +258,17 @@ foreach ($sitelink in $siteLinks) {
     }
     $ss1 = $null
     $ss1 = $ss.Split(";", 2)[1]
-    $member | Add-Member -MemberType NoteProperty -Name "Site names" -Value $ss1
+    $member | Add-Member -MemberType NoteProperty -Name "Site Names" -Value $ss1
     $siteLinksdetails += $member
 }
 $siteLinksdetails = $siteLinksdetails | Sort-Object name, Cost, replInterval
-$frag5 = $siteLinksdetails | Select-Object name, Cost, replInterval, "Site names" | ConvertTo-Html -head $a -PreContent '<h2>Site links information </h2>' | Out-String
+$frag5 = $siteLinksdetails | Select-Object name, Cost, replInterval, "Site Names" | ConvertTo-Html -head $a -PreContent '<h2>Site links information </h2>' | Out-String
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 
 $precontent11 = "<center><h1>DOMAIN LEVEL INFORMATION </h1></center>"
 $frag11 = ConvertTo-Html -head $a -PreContent $precontent11 | Out-String
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-#Get Domains information
+# Get Domains information
 [String]$fra9 = $null
 $allDomains | ForEach-Object {
     $domainname = $_
@@ -287,7 +298,7 @@ $allDomains | ForEach-Object {
         $nn7 = $null
         $nn8 = $null
 
-        #SYSVOLREPLICATION mETHOD
+        # SYSVOLREPLICATION Method
         $defaultNamingContext = (([ADSI]"LDAP://$domainname/rootDSE").defaultNamingContext)
         $searcher = New-Object DirectoryServices.DirectorySearcher
         $searcher.Filter = "(&(objectClass=computer)(dNSHostName=$domainname))"
@@ -315,7 +326,7 @@ $allDomains | ForEach-Object {
             $Sysvol_repl_method = "UNKNOWN"
         }
 
-        #DNS SERVER IN DOMAIN 
+        # DNS Servers in Domain
         $partitions = Get-ADObject -Server $forest -Filter * -SearchBase $ForestInfo.PartitionsContainer -SearchScope OneLevel -Properties name, nCName, msDS-NC-Replica-Locations | Select-Object name, nCName, msDS-NC-Replica-Locations | Sort-Object name
         [Array]$DNSServers1 = $null
         foreach ($part in $partitions) {
@@ -327,11 +338,13 @@ $allDomains | ForEach-Object {
             }
         }
 
-        #DOMAIN ADMINS
+        # Domain Admins
         $domaindetails = $null
         $domaindetails = get-addomain $domainname
         $domainSID = $domaindetails.DomainSID
         [int]$domainadmins = (Get-ADGroup -Identity $domainSID-512 -Server $domainname | Get-ADGroupMember -Recursive | Measure-Object).Count
+        
+        # Domain Mode
         $member = New-Object PSObject
         $member | Add-Member -MemberType NoteProperty -Name "DomainName" -Value $domaindetails.DNSRoot
         if ($domaindetails.DomainMode -like "*win*") {
@@ -371,8 +384,8 @@ $allDomains | ForEach-Object {
         $Grouplist = $null
         $Grouplist = Get-ADGroup -Filter * -Properties GroupScope -server $domainname | Select-Object GroupScope -Unique
 
-        #DOMAIN CONTROLLERS DETAILS
-        Write-Host " Processing $domainname Domain controllers information" -ForegroundColor Green
+        # Domain Controller(s) Details
+        Write-Host " Processing $domainname Domain Controllers Information" -ForegroundColor Green
         foreach ($dcdetails in $dcsdetails) {
             $member = New-Object PSObject
             $member | Add-Member -MemberType NoteProperty -Name "DomainName" -Value $dcdetails.Domain
@@ -395,12 +408,12 @@ $allDomains | ForEach-Object {
             $Domaincontrollersdetails += $member
         }
 
-        #TRUST DETAILS
-        Write-Host " Processing $domainname Trust  information" -ForegroundColor Green
+        # Trust Details
+        Write-Host " Processing $domainname Trust Information" -ForegroundColor Green
         ForEach ($Trust in $ADDomainTrusts) { 
             Switch ($Trust.TrustAttributes) { 
                 1 { $TrustAttributes = "Non-Transitive" } 
-                2 { $TrustAttributes = "Uplevel clients only (Windows 2000 or newer" } 
+                2 { $TrustAttributes = "Uplevel Clients Only (Windows 2000 or newer" } 
                 4 { $TrustAttributes = "External" } 
                 8 { $TrustAttributes = "Forest Trust" } 
                 16 { $TrustAttributes = "Cross-Organizational Trust (Selective Authentication)" } 
@@ -421,8 +434,8 @@ $allDomains | ForEach-Object {
             $Trustdetails += $member
         }
 
-        #OPERATING SYSTEM DETAILS
-        Write-Host " Processing $domainname operating system information" -ForegroundColor Green
+        # Operating System Details
+        Write-Host " Processing $domainname Operating System Information" -ForegroundColor Green
         foreach ($os in $oslist) {
             $osoperatingsystem = $null
             $osoperatingsystem = $os.operatingsystem
@@ -435,8 +448,8 @@ $allDomains | ForEach-Object {
         }
         $AllComputers = $AllComputers | Sort-Object OperatingSystem, Count
 
-        #GROUPS DETAILS
-        Write-Host " Processing $domainname group information" -ForegroundColor Green
+        # Group(s) Details
+        Write-Host " Processing $domainname Group Information" -ForegroundColor Green
         foreach ($Groups in $Grouplist) {
             $Groupss = $null
             $Groupss = $Groups.GroupScope
@@ -448,8 +461,8 @@ $allDomains | ForEach-Object {
             $Allgroups += $member
         }
 
-        # USERS DETAILS
-        Write-Host " Processing $domainname user information" -ForegroundColor Green
+        # User(s) Details
+        Write-Host " Processing $domainname User Information" -ForegroundColor Green
         [Array]$Userslist = $null
         [Array]$enabledUsers = $null
         [Array]$DisabledUsers = $null
@@ -462,8 +475,8 @@ $allDomains | ForEach-Object {
         $member | Add-Member -MemberType NoteProperty -Name "DisabledUsers" -Value $DisabledUsers.count
         $AllUsers += $member
 
-        #GROUP POLICY DETAILS
-        Write-Host " Processing $domainname GPO information" -ForegroundColor Green
+        # Group Policy Details
+        Write-Host " Processing $domainname GPO Information" -ForegroundColor Green
         [Array]$unlinkedGPOs = $null
         [Array]$GPOstatus = $null
         function IsNotLinked($xmldata) { 
@@ -506,17 +519,19 @@ $allDomains | ForEach-Object {
             'ComputerSettingsDisabled'    = $ComputerSettingsDisabled1
         }
         $obj1 = New-Object -TypeName PSObject -Property $props
+
+        # Build Report
         $dnname = $domainname.toupper()
         $precontent8 = "<center><h1>DOMAIN: $dnname </h1></center>"
         $nn8 = ConvertTo-Html -head $a -PreContent $precontent8 | Out-String
-        $precontent = "<h2> Domains Controllers details</h2>"
-        $precontent1 = "<h2> Trust details</h2>"
-        $precontent2 = "<h2> Operating system details</h2>"
-        $precontent3 = "<h2> Groups details</h2>"
-        $precontent4 = "<h2> Users details</h2>"
-        $precontent5 = "<h2> Group Policy details</h2>"
-        $precontent6 = "<h2> Domain wide information</h2>"
-        $precontent7 = "<h2> Domain wide information - Contd</h2>"
+        $precontent = "<h2> Domains Controllers Details</h2>"
+        $precontent1 = "<h2> Trust Details</h2>"
+        $precontent2 = "<h2> Operating System Details</h2>"
+        $precontent3 = "<h2> Groups Details</h2>"
+        $precontent4 = "<h2> Users Details</h2>"
+        $precontent5 = "<h2> Group Policy Details</h2>"
+        $precontent6 = "<h2> Domain Wide Information</h2>"
+        $precontent7 = "<h2> Domain Wide Information - Contd</h2>"
         $nn = $Domaincontrollersdetails | Select-Object DomainName, Sitename, HostName, IPv4Address, IPv6Address, IsReadOnly, IsGlobalCatalog, isDNS, OperatingSystem | ConvertTo-Html -head $a -PreContent $precontent | Out-String
         $nn1 = $Trustdetails | Select-Object trustInfo, TrustType | ConvertTo-Html -head $a -PreContent $precontent1 | Out-String
         $nn2 = $AllComputers | Select-Object OperatingSystem, Count | ConvertTo-Html -head $a -PreContent $precontent2 | Out-String
