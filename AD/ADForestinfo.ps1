@@ -83,7 +83,7 @@ switch ($SchemaVersion.objectVersion) {
 # No of Schema Admins
 $schemaGroupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-518"
 [array]$schemaAdminsNo = Get-ADGroup -Server $forest -Identity $schemaGroupID | Get-ADGroupMember -Recursive
-# No of Enterprose Admins
+# No of Enterprise Admins
 $entGroupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-519"
 [array]$enterpriseAdminsNo = Get-ADGroup -Server $forest -Identity $entGroupID | Get-ADGroupMember -Recursive
 <#
