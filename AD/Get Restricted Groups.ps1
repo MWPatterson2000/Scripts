@@ -111,7 +111,7 @@ $domainSID = $domaindetails.DomainSID
 #>
 
 # Write Output
-#Write-Host "Getting AD Restricted Groups" -ForegroundColor Green
+Write-Host "`tGetting Forest Information from $($forest)" -ForegroundColor Yellow
 
 # Enterprise Read-only Domain Controllers
 $groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-498"
@@ -132,12 +132,15 @@ GetGroupInfoForest
 # Loop each Domain in the list
 $allDomains | ForEach-Object {
     $domainname = $_
-    
+
+    # Write Output
+    Write-Host "`tGetting Domain Information from $($domainname)" -ForegroundColor Yellow
+
     # Get Domain Details
     $domaindetails = $null
     $domaindetails = get-addomain $domainname
     $domainSID = $domaindetails.DomainSID
-    
+
     # Domain Admins
     $groupID = ($domainSID).value + "-512"
     GetGroupInfoDomain
