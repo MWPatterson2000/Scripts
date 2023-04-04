@@ -58,6 +58,7 @@ function GetGroupInfoDomain {
         $user | Add-Member -Type NoteProperty -Name 'Domain' -Value $domainname
         $user | Add-Member -Type NoteProperty -Name 'Group' -Value $groupName.Name
         $user | Add-Member -Type NoteProperty -Name 'DisplayName' -Value $userInfo.DisplayName
+        $user | Add-Member -Type NoteProperty -Name 'Name' -Value $userInfo.Name
         $user | Add-Member -Type NoteProperty -Name 'sAMAccountName' -Value $userInfo.sAMAccountName
         $user | Add-Member -Type NoteProperty -Name 'userPrincipalName' -Value $userInfo.userPrincipalName
         $user | Add-Member -Type NoteProperty -Name 'Last Login Timestamp' -Value $lastLogin
@@ -84,6 +85,7 @@ Write-Host "Getting AD Restricted Groups" -ForegroundColor Green
 # Get Forest Information
 $ForestInfo = Get-ADForest
 $forest = $ForestInfo.RootDomain
+Write-Host "`tGetting Forest Information from $($forest)" -ForegroundColor Yellow
 [Array]$allDomains = $ForestInfo.Domains
 
 # Get Date & Log Locations
@@ -110,9 +112,6 @@ $domaindetails = get-addomain $domainName
 $domainSID = $domaindetails.DomainSID
 #>
 
-# Write Output
-Write-Host "`tGetting Forest Information from $($forest)" -ForegroundColor Yellow
-
 # Enterprise Read-only Domain Controllers
 $groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-498"
 GetGroupInfoForest
@@ -133,10 +132,8 @@ GetGroupInfoForest
 $allDomains | ForEach-Object {
     $domainname = $_
 
-    # Write Output
-    Write-Host "`tGetting Domain Information from $($domainname)" -ForegroundColor Yellow
-
     # Get Domain Details
+    Write-Host "`tGetting Domain Information from $($domainname)" -ForegroundColor Yellow
     $domaindetails = $null
     $domaindetails = get-addomain $domainname
     $domainSID = $domaindetails.DomainSID
@@ -186,4 +183,4 @@ GetGroupInfoDomain
 
 # Export Data
 $groupCounts | Select-Object Domain, GroupName, Members | Export-Csv -Path $logPath1 -NoTypeInformation -Encoding UTF8
-$groupMembers | Select-Object Domain, Group, DisplayName, sAMAccountName, userPrincipalName, 'Last Login Timestamp' | Export-Csv -Path $logPath2 -NoTypeInformation -Encoding UTF8
+$groupMembers | Select-Object Domain, Group, DisplayName, Name, sAMAccountName, userPrincipalName, 'Last Login Timestamp' | Export-Csv -Path $logPath2 -NoTypeInformation -Encoding UTF8
