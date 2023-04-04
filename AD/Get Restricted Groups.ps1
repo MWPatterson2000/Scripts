@@ -15,6 +15,7 @@ Revision History
 function GetGroupInfoForest {
     [array]$members = Get-ADGroup -Server $forest -Identity $groupID | Get-ADGroupMember -Recursive
     $groupName = Get-ADGroup -Server $forest -Identity $groupID | Select-Object Name
+    Write-Host "`tGetting $($groupName.Name) from $($forest)" -ForegroundColor Green
     $group = @{}
     $group | Add-Member -Type NoteProperty -Name 'Domain' -Value $forest
     $group | Add-Member -Type NoteProperty -Name 'GroupName' -Value $groupName.Name
@@ -39,8 +40,9 @@ function GetGroupInfoForest {
 }
 
 function GetGroupInfoDomain {
-    [array]$domainAdmins = Get-ADGroup -Server $domainname -Identity $groupID | Get-ADGroupMember -Recursive
+    [array]$members = Get-ADGroup -Server $domainname -Identity $groupID | Get-ADGroupMember -Recursive
     $groupName = Get-ADGroup -Server $domainname -Identity $groupID | Select-Object Name
+    Write-Host "`tGetting $($groupName.Name) from $($domainname)" -ForegroundColor Green
     $group = @{}
     $group | Add-Member -Type NoteProperty -Name 'Domain' -Value $domainname
     $group | Add-Member -Type NoteProperty -Name 'GroupName' -Value $groupName.Name
@@ -50,7 +52,8 @@ function GetGroupInfoDomain {
     # Loop each user in the list
     Foreach ($member in $members) {
         $user = @{}
-        $userInfo = Get-ADUser -Identity $member -Property * #| Select-Object displayName
+        #$userInfo = Get-ADUser -Identity $member -Property * #| Select-Object displayName
+        $userInfo = Get-ADObject -Identity $member -Property * #| Select-Object displayName
         $lastLogin = [DateTime]::FromFileTime($userInfo.lastLogonTimestamp)
         $user | Add-Member -Type NoteProperty -Name 'Domain' -Value $domainname
         $user | Add-Member -Type NoteProperty -Name 'Group' -Value $groupName.Name
@@ -71,10 +74,12 @@ Clear-Host
 # PowerShell 5.x required. The version of PowerShell included with Windows 10
 #Requires -Version 5.0
 
-
 # Create Array
 $groupCounts = [System.Collections.ArrayList]::new()
 $groupMembers = [System.Collections.ArrayList]::new()
+
+# Write Output
+Write-Host "Getting AD Restricted Groups" -ForegroundColor Green
 
 # Get Forest Information
 $ForestInfo = Get-ADForest
