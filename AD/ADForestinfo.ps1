@@ -272,12 +272,12 @@ $frag11 = ConvertTo-Html -head $a -PreContent $precontent11 | Out-String
 [String]$fra9 = $null
 $allDomains | ForEach-Object {
     $domainname = $_
-    Write-Host " Processing $domainname information" -ForegroundColor Green
+    Write-Host "Processing $domainname Information" -ForegroundColor Green
     $DomainReachability = $null
     $DomainReachability = get-addomain $domainname
 
     if ($DomainReachability -ne $null) {
-        Write-Host "$domainname is reachable" -ForegroundColor Green
+        Write-Host "`t$domainname is reachable" -ForegroundColor Green
         [Array]$dcsdetails = $null
         [Array]$Domaincontrollersdetails = $null
         [Array]$allDomaincontrollersdetails = $null
@@ -385,7 +385,7 @@ $allDomains | ForEach-Object {
         $Grouplist = Get-ADGroup -Filter * -Properties GroupScope -server $domainname | Select-Object GroupScope -Unique
 
         # Domain Controller(s) Details
-        Write-Host " Processing $domainname Domain Controllers Information" -ForegroundColor Green
+        Write-Host "Processing $domainname Domain Controllers Information" -ForegroundColor Green
         foreach ($dcdetails in $dcsdetails) {
             $member = New-Object PSObject
             $member | Add-Member -MemberType NoteProperty -Name "DomainName" -Value $dcdetails.Domain
@@ -409,7 +409,7 @@ $allDomains | ForEach-Object {
         }
 
         # Trust Details
-        Write-Host " Processing $domainname Trust Information" -ForegroundColor Green
+        Write-Host "Processing $domainname Trust Information" -ForegroundColor Green
         ForEach ($Trust in $ADDomainTrusts) { 
             Switch ($Trust.TrustAttributes) { 
                 1 { $TrustAttributes = "Non-Transitive" } 
@@ -435,7 +435,7 @@ $allDomains | ForEach-Object {
         }
 
         # Operating System Details
-        Write-Host " Processing $domainname Operating System Information" -ForegroundColor Green
+        Write-Host "Processing $domainname Operating System Information" -ForegroundColor Green
         foreach ($os in $oslist) {
             $osoperatingsystem = $null
             $osoperatingsystem = $os.operatingsystem
@@ -449,7 +449,7 @@ $allDomains | ForEach-Object {
         $AllComputers = $AllComputers | Sort-Object OperatingSystem, Count
 
         # Group(s) Details
-        Write-Host " Processing $domainname Group Information" -ForegroundColor Green
+        Write-Host "Processing $domainname Group Information" -ForegroundColor Green
         foreach ($Groups in $Grouplist) {
             $Groupss = $null
             $Groupss = $Groups.GroupScope
@@ -462,7 +462,7 @@ $allDomains | ForEach-Object {
         }
 
         # User(s) Details
-        Write-Host " Processing $domainname User Information" -ForegroundColor Green
+        Write-Host "Processing $domainname User Information" -ForegroundColor Green
         [Array]$Userslist = $null
         [Array]$enabledUsers = $null
         [Array]$DisabledUsers = $null
@@ -476,7 +476,7 @@ $allDomains | ForEach-Object {
         $AllUsers += $member
 
         # Group Policy Details
-        Write-Host " Processing $domainname GPO Information" -ForegroundColor Green
+        Write-Host "Processing $domainname GPO Information" -ForegroundColor Green
         [Array]$unlinkedGPOs = $null
         [Array]$GPOstatus = $null
         function IsNotLinked($xmldata) { 
