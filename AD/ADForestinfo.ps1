@@ -36,6 +36,7 @@ $a = $a + ".odd  { background-color:#ffffff; }"
 $a = $a + ".even { background-color:#dddddd; }"
 $a = $a + "</style>"
 #---------------------------------------------------------------------------------------------------------------------------------------------------
+Write-Host "Processing $domainname Forest Information" -ForegroundColor Green
 $ForestInfo = Get-ADForest
 $forest = $ForestInfo.RootDomain
 [Array]$allDomains = $ForestInfo.Domains
@@ -62,6 +63,7 @@ $SchemaPartition = $ForestInfo.PartitionsContainer.Replace("CN=Partitions", "CN=
 $configPartition = $ForestInfo.PartitionsContainer.Replace("CN=Partitions,", "")
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # To get the Schema Version
+Write-Host "Processing $domainname Forest Schema Information" -ForegroundColor Green
 $SchemaVersion = Get-ADObject -Server $forest -Identity $SchemaPartition -Properties * | Select-Object objectVersion
 switch ($SchemaVersion.objectVersion) {
     13 { $Sc_os_name = "Windows 2000 Server" }
@@ -80,6 +82,7 @@ switch ($SchemaVersion.objectVersion) {
     default { $Sc_os_name = "Unknow" + "-" + $SchemaVersion.objectVersion }
 }
 #---------------------------------------------------------------------------------------------------------------------------------------------------
+Write-Host "Processing $domainname Forest Admin Group Information" -ForegroundColor Green
 # No of Schema Admins
 $schemaGroupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-518"
 [array]$schemaAdminsNo = Get-ADGroup -Server $forest -Identity $schemaGroupID | Get-ADGroupMember -Recursive
@@ -100,6 +103,7 @@ $ConfigurationPart = ($ForestInfo.PartitionsContainer -Replace "CN=Partitions,",
 [Array]$AllSubnets = Get-ADObject -Server $forest -Filter { objectClass -eq "subnet" } -SearchBase $ConfigurationPart -Properties *
 [Array]$siteLinks = Get-ADObject -Server $forest -Filter { objectClass -eq "siteLink" } -SearchBase $ConfigurationPart -Properties name, cost, replInterval, siteList | Sort-Object replInterval
 #---------------------------------------------------------------------------------------------------------------------------------------------------
+Write-Host "Processing $domainname Forest Exchange Information" -ForegroundColor Green
 # Get Exchange Information
 If (Test-Path "AD:$SchemaPathExchange") {
     $SchemaVersionExchange = Get-ADObject "CN=ms-Exch-Schema-Version-Pt,$((Get-ADRootDSE).schemaNamingContext)" -Property * | Select-Object rangeUpper
@@ -182,6 +186,7 @@ $allsites = $allsites | Sort-Object name
 $frag1 = $obj | ConvertTo-Html -As LIST -Fragment -PreContent '<center><h1>FOREST LEVEL INFORMATION </h1></center>' | Out-String
 $frag3 = $allsites | Select-Object name | ConvertTo-Html -property Name -head $a -PreContent '<h2>Sites information</h2>' | Out-String
 #---------------------------------------------------------------------------------------------------------------------------------------------------
+Write-Host "Processing $domainname Forest Subnet Information" -ForegroundColor Green
 [Array]$AllSubnet = $null
 ## Get a list of all domain controllers in the forest
 $DcList = (Get-ADForest).Domains | ForEach-Object { Get-ADDomainController -Discover -DomainName $_ } | ForEach-Object { Get-ADDomainController -Server $_.Name -filter * } | Select-Object Site, Name, Domain
@@ -241,6 +246,7 @@ foreach ($site in $allsites) {
 $frag4 = $AllSubnet | Select Site,Subnet,DcInSite | ConvertTo-Html -property Site,Subnet,DcInSite -head $a -PreContent '<h2>Subnets information</h2>' | Out-String
 #>
 #---------------------------------------------------------------------------------------------------------------------------------------------------
+Write-Host "Processing $domainname Forest Site Information" -ForegroundColor Green
 # Site links information
 [Array]$siteLinks = Get-ADObject -Server $forest -Filter { objectClass -eq "siteLink" } -SearchBase $ConfigurationPart -Properties name, cost, replInterval, siteList | Sort-Object replInterval
 [Array]$siteLinksdetails = $null
