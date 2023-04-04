@@ -36,7 +36,7 @@ $a = $a + ".odd  { background-color:#ffffff; }"
 $a = $a + ".even { background-color:#dddddd; }"
 $a = $a + "</style>"
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-Write-Host "Processing $domainname Forest Information" -ForegroundColor Green
+Write-Host "Processing Forest Information: $domainname" -ForegroundColor Green
 $ForestInfo = Get-ADForest
 $forest = $ForestInfo.RootDomain
 [Array]$allDomains = $ForestInfo.Domains
@@ -63,7 +63,7 @@ $SchemaPartition = $ForestInfo.PartitionsContainer.Replace("CN=Partitions", "CN=
 $configPartition = $ForestInfo.PartitionsContainer.Replace("CN=Partitions,", "")
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # To get the Schema Version
-Write-Host "Processing $domainname Forest Schema Information" -ForegroundColor Green
+Write-Host "Processing Forest Schema Information: $domainname" -ForegroundColor Green
 $SchemaVersion = Get-ADObject -Server $forest -Identity $SchemaPartition -Properties * | Select-Object objectVersion
 switch ($SchemaVersion.objectVersion) {
     13 { $Sc_os_name = "Windows 2000 Server" }
@@ -82,7 +82,7 @@ switch ($SchemaVersion.objectVersion) {
     default { $Sc_os_name = "Unknow" + "-" + $SchemaVersion.objectVersion }
 }
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-Write-Host "Processing $domainname Forest Admin Group Information" -ForegroundColor Green
+Write-Host "Processing Forest Admin Group Information: $domainname" -ForegroundColor Green
 # No of Schema Admins
 $schemaGroupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-518"
 [array]$schemaAdminsNo = Get-ADGroup -Server $forest -Identity $schemaGroupID | Get-ADGroupMember -Recursive
@@ -103,7 +103,7 @@ $ConfigurationPart = ($ForestInfo.PartitionsContainer -Replace "CN=Partitions,",
 [Array]$AllSubnets = Get-ADObject -Server $forest -Filter { objectClass -eq "subnet" } -SearchBase $ConfigurationPart -Properties *
 [Array]$siteLinks = Get-ADObject -Server $forest -Filter { objectClass -eq "siteLink" } -SearchBase $ConfigurationPart -Properties name, cost, replInterval, siteList | Sort-Object replInterval
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-Write-Host "Processing $domainname Forest Exchange Information" -ForegroundColor Green
+Write-Host "Processing Forest Exchange Information: $domainname" -ForegroundColor Green
 # Get Exchange Information
 If (Test-Path "AD:$SchemaPathExchange") {
     $SchemaVersionExchange = Get-ADObject "CN=ms-Exch-Schema-Version-Pt,$((Get-ADRootDSE).schemaNamingContext)" -Property * | Select-Object rangeUpper
@@ -186,7 +186,7 @@ $allsites = $allsites | Sort-Object name
 $frag1 = $obj | ConvertTo-Html -As LIST -Fragment -PreContent '<center><h1>FOREST LEVEL INFORMATION </h1></center>' | Out-String
 $frag3 = $allsites | Select-Object name | ConvertTo-Html -property Name -head $a -PreContent '<h2>Sites information</h2>' | Out-String
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-Write-Host "Processing $domainname Forest Subnet Information" -ForegroundColor Green
+Write-Host "Processing Forest Subnet Information: $domainname" -ForegroundColor Green
 [Array]$AllSubnet = $null
 ## Get a list of all domain controllers in the forest
 $DcList = (Get-ADForest).Domains | ForEach-Object { Get-ADDomainController -Discover -DomainName $_ } | ForEach-Object { Get-ADDomainController -Server $_.Name -filter * } | Select-Object Site, Name, Domain
@@ -246,7 +246,7 @@ foreach ($site in $allsites) {
 $frag4 = $AllSubnet | Select Site,Subnet,DcInSite | ConvertTo-Html -property Site,Subnet,DcInSite -head $a -PreContent '<h2>Subnets information</h2>' | Out-String
 #>
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-Write-Host "Processing $domainname Forest Site Information" -ForegroundColor Green
+Write-Host "Processing Forest Site Information: $domainname" -ForegroundColor Green
 # Site links information
 [Array]$siteLinks = Get-ADObject -Server $forest -Filter { objectClass -eq "siteLink" } -SearchBase $ConfigurationPart -Properties name, cost, replInterval, siteList | Sort-Object replInterval
 [Array]$siteLinksdetails = $null
@@ -278,7 +278,7 @@ $frag11 = ConvertTo-Html -head $a -PreContent $precontent11 | Out-String
 [String]$fra9 = $null
 $allDomains | ForEach-Object {
     $domainname = $_
-    Write-Host "Processing $domainname Information" -ForegroundColor Green
+    Write-Host "Processing Domain Information: $domainname" -ForegroundColor Green
     $DomainReachability = $null
     $DomainReachability = get-addomain $domainname
 
@@ -391,7 +391,7 @@ $allDomains | ForEach-Object {
         $Grouplist = Get-ADGroup -Filter * -Properties GroupScope -server $domainname | Select-Object GroupScope -Unique
 
         # Domain Controller(s) Details
-        Write-Host "Processing $domainname Domain Controllers Information" -ForegroundColor Green
+        Write-Host "Processing Domain Controllers Information: $domainname" -ForegroundColor Green
         foreach ($dcdetails in $dcsdetails) {
             $member = New-Object PSObject
             $member | Add-Member -MemberType NoteProperty -Name "DomainName" -Value $dcdetails.Domain
@@ -415,7 +415,7 @@ $allDomains | ForEach-Object {
         }
 
         # Trust Details
-        Write-Host "Processing $domainname Trust Information" -ForegroundColor Green
+        Write-Host "Processing Domain Trust Information: $domainname" -ForegroundColor Green
         ForEach ($Trust in $ADDomainTrusts) { 
             Switch ($Trust.TrustAttributes) { 
                 1 { $TrustAttributes = "Non-Transitive" } 
@@ -441,7 +441,7 @@ $allDomains | ForEach-Object {
         }
 
         # Operating System Details
-        Write-Host "Processing $domainname Operating System Information" -ForegroundColor Green
+        Write-Host "Processing Domain Operating System Information: $domainname" -ForegroundColor Green
         foreach ($os in $oslist) {
             $osoperatingsystem = $null
             $osoperatingsystem = $os.operatingsystem
@@ -455,7 +455,7 @@ $allDomains | ForEach-Object {
         $AllComputers = $AllComputers | Sort-Object OperatingSystem, Count
 
         # Group(s) Details
-        Write-Host "Processing $domainname Group Information" -ForegroundColor Green
+        Write-Host "Processing Domain Group Information: $domainname" -ForegroundColor Green
         foreach ($Groups in $Grouplist) {
             $Groupss = $null
             $Groupss = $Groups.GroupScope
@@ -468,7 +468,7 @@ $allDomains | ForEach-Object {
         }
 
         # User(s) Details
-        Write-Host "Processing $domainname User Information" -ForegroundColor Green
+        Write-Host "Processing Domain User Information: $domainname" -ForegroundColor Green
         [Array]$Userslist = $null
         [Array]$enabledUsers = $null
         [Array]$DisabledUsers = $null
@@ -482,7 +482,7 @@ $allDomains | ForEach-Object {
         $AllUsers += $member
 
         # Group Policy Details
-        Write-Host "Processing $domainname GPO Information" -ForegroundColor Green
+        Write-Host "Processing Domain GPO Information: $domainname" -ForegroundColor Green
         [Array]$unlinkedGPOs = $null
         [Array]$GPOstatus = $null
         function IsNotLinked($xmldata) { 
