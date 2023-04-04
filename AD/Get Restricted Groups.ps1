@@ -113,6 +113,10 @@ GetGroupInfoForest
 $groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-519"
 GetGroupInfoForest
 
+# Enterprise Read-only Domain Controllers
+$groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-498"
+GetGroupInfoForest
+
 # Loop each Domain in the list
 $allDomains | ForEach-Object {
     $domainname = $_
@@ -140,10 +144,6 @@ $allDomains | ForEach-Object {
 
     # Cloneable Domain Controllers
     $groupID = ($domainSID).value + "-522"
-    GetGroupInfoDomain
-
-    # Enterprise Read-only Domain Controllers
-    $groupID = ($domainSID).value + "-498"
     GetGroupInfoDomain
 
     # Allowed RODC Password Replication Group
