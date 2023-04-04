@@ -110,6 +110,13 @@ $domaindetails = get-addomain $domainName
 $domainSID = $domaindetails.DomainSID
 #>
 
+# Write Output
+#Write-Host "Getting AD Restricted Groups" -ForegroundColor Green
+
+# Enterprise Read-only Domain Controllers
+$groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-498"
+GetGroupInfoForest
+
 # Schema Admins
 $groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-518"
 GetGroupInfoForest
@@ -118,8 +125,8 @@ GetGroupInfoForest
 $groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-519"
 GetGroupInfoForest
 
-# Enterprise Read-only Domain Controllers
-$groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-498"
+# Enterprise Key Admins
+$groupID = ((Get-ADDomain(Get-ADForest).name).domainSID).value + "-527"
 GetGroupInfoForest
 
 # Loop each Domain in the list
@@ -135,12 +142,16 @@ $allDomains | ForEach-Object {
     $groupID = ($domainSID).value + "-512"
     GetGroupInfoDomain
 
-    # Group Policy Creator Owners
-    $groupID = ($domainSID).value + "-520"
-    GetGroupInfoDomain
-
     # Domain Controllers
     $groupID = ($domainSID).value + "-516"
+    GetGroupInfoDomain
+
+    # Cert Publishers
+    $groupID = ($domainSID).value + "-517"
+    GetGroupInfoDomain
+
+    # Group Policy Creator Owners
+    $groupID = ($domainSID).value + "-520"
     GetGroupInfoDomain
 
     # Read-only Domain Controllers
@@ -149,6 +160,10 @@ $allDomains | ForEach-Object {
 
     # Cloneable Domain Controllers
     $groupID = ($domainSID).value + "-522"
+    GetGroupInfoDomain
+
+    # Key Admins
+    $groupID = ($domainSID).value + "-526"
     GetGroupInfoDomain
 
     # Allowed RODC Password Replication Group
