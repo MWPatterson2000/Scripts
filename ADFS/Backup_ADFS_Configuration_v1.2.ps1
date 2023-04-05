@@ -13,7 +13,7 @@
 		This Script has been created to backup the AD FS 3.0 configuration in case you apply any change and you would like to reverse back.
 	
 	.DESCRIPTION
-		 this script will assist you to get a copy of the following configuration & Settings:
+		This script will assist you to get a copy of the following configuration & Settings:
 			Retreive every information of your ADFS environment using any get & Export CMDLet from ADFS powershell Module
 		Information like would be collect:
 			Custom Configuration of an External AUthentication provider
@@ -26,7 +26,6 @@
 			Collect Service Account use by Federation Service
 		This script need to be run on the Primary node
 			
-		 
 
 #>
 
@@ -78,10 +77,10 @@ Function Create-Folder
 	param
 	(
 		[Parameter(Mandatory = $true,
-				   Position = 1)]
+			Position = 1)]
 		[string]$Path,
 		[Parameter(Mandatory = $true,
-				   Position = 2)]
+			Position = 2)]
 		[String]$LogFile
 	)
 	
@@ -220,8 +219,8 @@ Else
 ####################   Export-AdfsAuthenticationProviderConfigurationData  ####################
 # Export All the custom configuration of an external authentication provide to a file
 $ADFSAuthenProviders = @()
-$ADFSAuthenProviders = Get-AdfsAuthenticationProvider | where { $_.IsCustom -match "True" } -ErrorVariable ErrorGetADFSAuthenProviders
-$Number_Provider = $ADFSAuthenProviders | measure
+$ADFSAuthenProviders = Get-AdfsAuthenticationProvider | Where-Object { $_.IsCustom -match "True" } -ErrorVariable ErrorGetADFSAuthenProviders
+$Number_Provider = $ADFSAuthenProviders | Measure-Object
 $Number = $Number_Provider.count
 Write-Log WARNING $LogFile " $Number of ADFS Authentication Provider"
 If ($ErrorGetADFSAuthenProviders)
@@ -252,7 +251,7 @@ Else
 #######################################################                ADFS Federation Service Account                #########################################################
 ###############################################################################################################################################################################
 
-$ADFS_Service = Get-WmiObject win32_service | where {$_.Name -eq "adfssrv"} | select StartName
+$ADFS_Service = Get-WmiObject win32_service | Where-Object {$_.Name -eq "adfssrv"} | Select-Object StartName
 $Federation_Service_Account = $ADFS_Service.StartName
 Write-Log INFO $LogFile "Federation Service is runnning with the following account:$Federation_Service_Account "
 # Export to txt file
