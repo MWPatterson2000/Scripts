@@ -8,6 +8,7 @@ scripts@mwpatterson.com
 
 Revision History
     2018-05-21 - Initial Release
+    2023-04-05 - Added Output to Screen
 
 #>
 
@@ -22,6 +23,11 @@ Clear-Host
 
 # Set Variables
 
+# Clear Screen
+Clear-Host
+
+# PowerShell 5.x required. The version of PowerShell included with Windows 10
+#Requires -Version 5.0
 
 #<#
 # Get Date & Log Locations
@@ -33,6 +39,9 @@ $logFile = "Legacy AD Groups.csv"
 #$logFileName = $date +"-" +$logFile 
 $logPath = $logRoot +$logFolder +$date +"-" +$logFile
 #>
+
+# Write Output
+Write-Host "Finding Legacy AD Groups - Please Wait" -ForegroundColor Green
 
 Get-ADGroup -Filter * -Server <Domain Controller> | `
     Get-ADReplicationAttributeMetadata -Server <Domain Controller> -Properties Member -ShowAllLinkedValues | `
