@@ -33,7 +33,7 @@ $logPath = $logRoot +$logFolder +$date +"-" +$env:USERDNSDOMAIN +"-" +$logFile
 #>
 
 Get-ADReplicationSubnet -Filter * `
-    | select Name,site `
-    | group site `
-    | select @{Name='Name';Expression={$_.Name.Split(',')[0].Trim('CN=')}},@{Name='Subnets';Expression={$_.Group.Name}} `
+    | Select-Object Name,site `
+    | Group-Object site `
+    | Select-Object @{Name='Name';Expression={$_.Name.Split(',')[0].Trim('CN=')}},@{Name='Subnets';Expression={$_.Group.Name}} `
     | Export-Csv $logPath -NoTypeInformation -Encoding UTF8
