@@ -49,71 +49,70 @@
 #endregion
 
 #Verify proper directory structure to run this script
-	$Dirpath = "c:\scripts\dc"
-	if((Test-Path $Dirpath) -eq 0)
-	{
-		$ValidateDir = new-object -comobject wscript.shell
-		 $TestStructure = $ValidateDir.popup(“Please create the directory c:\scripts\dc.“,0,”Warning”,1)
-		 Exit
-	}
+$Dirpath = "c:\scripts\dc"
+if ((Test-Path $Dirpath) -eq 0) {
+	$ValidateDir = new-object -comobject wscript.shell
+	$TestStructure = $ValidateDir.popup(“Please create the directory c:\scripts\dc.“, 0, ”Warning”, 1)
+	Exit
+}
 
 #Cleanup Log from Previous Day if Exists
-	$strFileName = "C:\scripts\DC\AD health Review-*.html"
-	If (Test-Path $strFileName){
-		Remove-Item $strFileName
-	}
+$strFileName = "C:\scripts\DC\AD health Review-*.html"
+If (Test-Path $strFileName) {
+	Remove-Item $strFileName
+}
 
 #region Variables
 #----------------
 
 #email parameters
-    $smtpServer = "smtp.yourdomain.com"
-    $MailAdmin = "Admin@yourdomain.com"
-    $Recipients = @("user1@yourdomain.com","user2@yourdomain.com","Group@yourdomain.com")
-    $MsgSubject = "Daily Active Directory Health Report"
-    $MsgBody = "Daily Active Directory Health Report Attached"
+$smtpServer = "smtp.yourdomain.com"
+$MailAdmin = "Admin@yourdomain.com"
+$Recipients = @("user1@yourdomain.com", "user2@yourdomain.com", "Group@yourdomain.com")
+$MsgSubject = "Daily Active Directory Health Report"
+$MsgBody = "Daily Active Directory Health Report Attached"
 
 # State Colors
-[array]$BkgrdColor = "", "#ACFA58","#E6E6E6","#FB7171","#FBD95B","#BDD7EE"
-[array]$ForegrdColor = "", "#298A08","#848484","#A40000","#9C6500","#204F7A","#FFFFFF"
+[array]$BkgrdColor = "", "#ACFA58", "#E6E6E6", "#FB7171", "#FBD95B", "#BDD7EE"
+[array]$ForegrdColor = "", "#298A08", "#848484", "#A40000", "#9C6500", "#204F7A", "#FFFFFF"
 
 #Working Files required to process script
-	$logfile = "c:\scripts\dc\Diag.txt"
-	$logfiletemp = "c:\scripts\dc\istg.txt"
-	$filepath = "c:\scripts\DC\"
-	Out-File $logfile -encoding Unicode
-	Out-File $logfiletemp -Encoding unicode
+$logfile = "c:\scripts\dc\Diag.txt"
+$logfiletemp = "c:\scripts\dc\istg.txt"
+$filepath = "c:\scripts\DC\"
+Out-File $logfile -encoding Unicode
+Out-File $logfiletemp -Encoding unicode
 
 #HTML Table Captions
-	$ADTableCaption = "Domain Information"
-	$adSystemTableCaption = "Active Directory System Checks"
-	$adConnTableCaption = "Active Directory Connectivity Checks"
-	$adrepTableCaption = "Active Directory Replication Checks"
-	$adEntTableCaption = "Active Directory Enterprise Checks"
-	$DNSTableCaption = "DNS Diagnostic Summary"
-	$adTimeTableCaption = "Domain Time Offset"
-	$RepSummarySourceCaption = "Replication Summary by Source"
-	$RepSummaryDestCaption = "Replication Summary by Destination"
-	$DomTestsTableCaption = "ADSync and KCC Verification"
-	$ISTGTableCaption = "ISTG (Inter-Site Topology Generator) Assignments"
+$ADTableCaption = "Domain Information"
+$adSystemTableCaption = "Active Directory System Checks"
+$adConnTableCaption = "Active Directory Connectivity Checks"
+$adrepTableCaption = "Active Directory Replication Checks"
+$adEntTableCaption = "Active Directory Enterprise Checks"
+$DNSTableCaption = "DNS Diagnostic Summary"
+$adTimeTableCaption = "Domain Time Offset"
+$RepSummarySourceCaption = "Replication Summary by Source"
+$RepSummaryDestCaption = "Replication Summary by Destination"
+$DomTestsTableCaption = "ADSync and KCC Verification"
+$ISTGTableCaption = "ISTG (Inter-Site Topology Generator) Assignments"
 
 # Gather Date/Time and Create Report File Variable
-	$Date = Get-Date -Format d/MMM/yyyy
-	$Time = Get-Date -Format "hh:mm:ss tt"
+$Date = Get-Date -Format d/MMM/yyyy
+$Time = Get-Date -Format "hh:mm:ss tt"
 
-	$ReportFilePath = "c:\scripts\DC\"
-	$ReportFile = $ReportFilePath + "\" + $ReportFileNamePrefix + "Daily Active Directory Health Report.html"
+$ReportFilePath = "c:\scripts\DC\"
+$ReportFile = $ReportFilePath + "\" + $ReportFileNamePrefix + "Daily Active Directory Health Report.html"
 #endregion
 
 #region Load Active Directory Module
 
-	import-module activedirectory
-	
+import-module activedirectory
+
 #endregion
 
 #region HTML Start
 # HTML Head
-	$RptHtmlStart = "<html>
+$RptHtmlStart = "<html>
 	<head>
 	<title>Active Directory Health Report</title>
 	<style>
@@ -352,132 +351,129 @@ table {border-collapse: collapse;border-spacing: 0;}
 #endregion
 
 #region functions
-function Get-RIDsRemaining($domainDN)
+function Get-RIDsRemaining($domainDN) {
+	$RidRem = [ADSI]"LDAP://CN=RID Manager$,CN=System,$domainDN"
+	$return = new-object system.DirectoryServices.DirectorySearcher($RidRem)
+	$pool = ($return.FindOne()).properties.ridavailablepool
 
-	{
-		$RidRem = [ADSI]"LDAP://CN=RID Manager$,CN=System,$domainDN"
-		$return = new-object system.DirectoryServices.DirectorySearcher($RidRem)
-		$pool= ($return.FindOne()).properties.ridavailablepool
+	[int32]$totalSIDS = $($pool) / ([math]::Pow(2, 32))
+	[int64]$intval = $totalSIDS * ([math]::Pow(2, 32))
+	[int32]$currentRIDPoolCount = $($pool) - $intval
 
-			[int32]$totalSIDS = $($pool) / ([math]::Pow(2,32))
-			[int64]$intval = $totalSIDS * ([math]::Pow(2,32))
-			[int32]$currentRIDPoolCount = $($pool) - $intval
-			
-		
 	#Create an hashtable variable 
-		[hashtable]$Return = @{} 
-		$ridsremaining = $totalSIDS - $currentRIDPoolCount
-		$Return.Current = $currentRidPoolCount
-		$Return.Remaining = $ridsremaining
-		
+	[hashtable]$Return = @{} 
+	$ridsremaining = $totalSIDS - $currentRIDPoolCount
+	$Return.Current = $currentRidPoolCount
+	$Return.Remaining = $ridsremaining
+
 	#Return the hashtable
-		Return $Return 
-	}
+	Return $Return 
+}
 #endregion
 
 #region Gather AD Basic Information
 
-	#Get Forest Information
-		$ForestInfo = Get-ADForest
-		$ForestLevel = $ForestInfo.ForestMode 
-		$SchemaM = $ForestInfo.SchemaMaster
-		$DomainNamingM = $ForestInfo.DomainNamingMaster
+#Get Forest Information
+$ForestInfo = Get-ADForest
+$ForestLevel = $ForestInfo.ForestMode 
+$SchemaM = $ForestInfo.SchemaMaster
+$DomainNamingM = $ForestInfo.DomainNamingMaster
 
-	#Get Domain Information
-		$DomainInfo = Get-ADDomain
-		$DomainLevel = $DomainInfo.DomainMode
-		$ForestName = $DomainInfo.Forest
-		$DomainName = $DomainInfo.DNSRoot
-		$Infra = $DomainInfo.InfrastructureMaster
-		$PDCE = $DomainInfo.PDCEmulator
-		$RIDM = $DomainInfo.RIDMaster
-		$DistN = $DomainInfo.DistinguishedName
+#Get Domain Information
+$DomainInfo = Get-ADDomain
+$DomainLevel = $DomainInfo.DomainMode
+$ForestName = $DomainInfo.Forest
+$DomainName = $DomainInfo.DNSRoot
+$Infra = $DomainInfo.InfrastructureMaster
+$PDCE = $DomainInfo.PDCEmulator
+$RIDM = $DomainInfo.RIDMaster
+$DistN = $DomainInfo.DistinguishedName
 
-	#Get Domain Shortname for use later
-		$Dshortname=$domainname.split(".")
-		$domainonly=$Dshortname[0]
+#Get Domain Shortname for use later
+$Dshortname = $domainname.split(".")
+$domainonly = $Dshortname[0]
 
-	#Get Number of Domain Controllers
-		$localdomain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
-		$localdomain | % { $_.DomainControllers }
-		$dcNumber = $localdomain.Domaincontrollers
-		$TotalDCs = $dcnumber.count
+#Get Number of Domain Controllers
+$localdomain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
+$localdomain | % { $_.DomainControllers }
+$dcNumber = $localdomain.Domaincontrollers
+$TotalDCs = $dcnumber.count
 
-	#Get RID Information
+#Get RID Information
 
-		$RID = Get-RIDsRemaining $DistN
-		$RidC = $RID.Current
-		$RidR = $RID.Remaining
+$RID = Get-RIDsRemaining $DistN
+$RidC = $RID.Current
+$RidR = $RID.Remaining
 
 #endregion
 
 #region Create Active Directory Basic Information HTML
-	
+
 # Create HTML Report for the current System being looped through
-       $RptADTable = "
-	   <div class=""ADBaseInfo""><!--Start ADBaseInfo Class-->
-			        <h3><b>$($ADTableCaption)</b></h3><br>
-       <table id=""ADBase-Table"">
+$RptADTable = "
+		<div class=""ADBaseInfo""><!--Start ADBaseInfo Class-->
+					<h3><b>$($ADTableCaption)</b></h3><br>
+		<table id=""ADBase-Table"">
 
         <tbody>
-       <tr>
-       <td><p style=""text-align:left;"">Forest Root Name:</td>
-       <td><p style=""text-align:left;"">$ForestName</td>
-       </tr>
-	   <tr>
-       <td><p style=""text-align:left;"">Domain Name</td>
-       <td><p style=""text-align:left;"">$DomainName</td>
-       </tr>
-	   <tr>
-       <td><p style=""text-align:left;"">Forest Functional Level:</td>
-       <td><p style=""text-align:left;"">$ForestLevel</td>
-       </tr>
-       <tr>
-       <td><p style=""text-align:left;"">Domain Functional Level:</td>
-       <td><p style=""text-align:left;"">$DomainLevel</td>
-       </tr>
-       <tr>
-       <td><p style=""text-align:left;"">Total Domain Controllers:</td>
-       <td><p style=""text-align:left;"">$TotalDCs</td>
-       </tr>
-       <tr>
-       <td><p style=""text-align:right;"">Schema Master:</td>
-       <td><p style=""text-align:left;"">$SchemaM</td>
-       </tr>
-       <tr>
-       <td><p style=""text-align:right;"">Domain Naming Master:</td>
-       <td><p style=""text-align:left;"">$DomainNamingM</td>
-       </tr>
-       <tr>
-       <td><p style=""text-align:right;"">Infrastructure Master:</td>
-       <td><p style=""text-align:left;"">$Infra</td>
-       </tr>
-	   <tr>
-       <td><p style=""text-align:right;"">PDC Emulator:</td>
-       <td><p style=""text-align:left;"">$PDCE</td>
-       </tr>
-	   <tr>
-       <td><p style=""text-align:right;"">Rid Master:</td>
-       <td><p style=""text-align:left;"">$RIDM</td>
-       </tr>
-	   <tr>
-       <td></td>
-       <td><p style=""text-align:left;"">RIDs issued: $RIDC</td>
-       </tr>
-	   <tr>
-       <td></td>
-       <td><p style=""text-align:left;"">RIDs remaining: $RIDR</td>
-       </tr>              
-	   </table>
-	   <p><br></p>"
+		<tr>
+		<td><p style=""text-align:left;"">Forest Root Name:</td>
+		<td><p style=""text-align:left;"">$ForestName</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:left;"">Domain Name</td>
+		<td><p style=""text-align:left;"">$DomainName</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:left;"">Forest Functional Level:</td>
+		<td><p style=""text-align:left;"">$ForestLevel</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:left;"">Domain Functional Level:</td>
+		<td><p style=""text-align:left;"">$DomainLevel</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:left;"">Total Domain Controllers:</td>
+		<td><p style=""text-align:left;"">$TotalDCs</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:right;"">Schema Master:</td>
+		<td><p style=""text-align:left;"">$SchemaM</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:right;"">Domain Naming Master:</td>
+		<td><p style=""text-align:left;"">$DomainNamingM</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:right;"">Infrastructure Master:</td>
+		<td><p style=""text-align:left;"">$Infra</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:right;"">PDC Emulator:</td>
+		<td><p style=""text-align:left;"">$PDCE</td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:right;"">Rid Master:</td>
+		<td><p style=""text-align:left;"">$RIDM</td>
+		</tr>
+		<tr>
+		<td></td>
+		<td><p style=""text-align:left;"">RIDs issued: $RIDC</td>
+		</tr>
+		<tr>
+		<td></td>
+		<td><p style=""text-align:left;"">RIDs remaining: $RIDR</td>
+		</tr>              
+		</table>
+	<p><br></p>"
 #endregion
 
 #region Gathering Active Directory Health Information from DCDiag
 
 #DCSystem-Table Header
-		$RptDCSystemTableBegin ="
+$RptDCSystemTableBegin = "
 		<div class=""DomCSystem""><!--Start DomCSystem Class-->
-			        <h3><b>$($adSystemTableCaption)</b></h3><br>
+					<h3><b>$($adSystemTableCaption)</b></h3><br>
         <table id=""DCSystem-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -494,9 +490,9 @@ function Get-RIDsRemaining($domainDN)
             </tr>"
 			
 #DCConn-Table Header
-		$RptDCConnTableBegin ="
+$RptDCConnTableBegin = "
 		<div class=""DomCConn""><!--Start DomCConn Class-->
-			        <h3><b>$($adConnTableCaption)</b></h3><br>
+					<h3><b>$($adConnTableCaption)</b></h3><br>
         <table id=""DCConn-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -512,9 +508,9 @@ function Get-RIDsRemaining($domainDN)
             </tr>"
 			
 #DCRep-Table Header
-		$RptDCRepTableBegin ="
+$RptDCRepTableBegin = "
 		<div class=""DomCRep""><!--Start DomCRep Class-->
-			        <h3><b>$($adrepTableCaption)</b></h3><br>
+					<h3><b>$($adrepTableCaption)</b></h3><br>
         <table id=""DCRep-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -533,9 +529,9 @@ function Get-RIDsRemaining($domainDN)
             </tr>"
 
 #DCEnt-Table Header
-	$RptDCEntTableBegin ="
+$RptDCEntTableBegin = "
 		<div class=""DomCEnt""><!--Start DomCEnt Class-->
-			        <h3><b>$($adEntTableCaption)</b></h3><br>
+					<h3><b>$($adEntTableCaption)</b></h3><br>
         <table id=""DCRep-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -561,75 +557,73 @@ function Get-RIDsRemaining($domainDN)
 				<th><p>CrossRefValidation</p></th>
             </tr>"
 
-	#Clear Html Tables
-		$RptdcSystemTable = $Null
-		$RptDCconnectivityTable = $Null
-		$RptdcreplicaitonTable = $Null
-        $RptdcEntTable = $Null
-		$RptISTGTable = $Null
-	
+#Clear Html Tables
+$RptdcSystemTable = $Null
+$RptDCconnectivityTable = $Null
+$RptdcreplicaitonTable = $Null
+$RptdcEntTable = $Null
+$RptISTGTable = $Null
+
 $ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainControllers | ForEach-Object { $_.Name }  
 
 #Loop through Domain Controllers and gather time data
- for ($i = 0; $i -lt $ADs.Count; $i++)  
- {  
-	 $System = $ADs[$i]
-	 
+for ($i = 0; $i -lt $ADs.Count; $i++) {  
+	$System = $ADs[$i]
+
 	if ($System) {
-	Clear-Content $logfile
+		Clear-Content $logfile
 		#Clear variables
-			$dcname = $Null
-			$dcconnectivity = $Null
-			$dcadvertising = $Null
-			$dcerror = $Null
-			$dccuttservers = $Null
-			$dcevent = $Null
-			$dcdfsrevent = $Null
-			$dcsysvcheck = $Null
-			$dcfrsvol = $Null
-			$dckccevent = $Null
-			$dcholders = $Null
-			$dcaccount = $Null
-			$dcdesc = $Null
-			$dclogons = $Null
-			$dcreplicated = $Null
-			$dcchannels = $Null
-			$dcreplications = $Null
-			$dcmanager = $Null
-			$dcservices = $Null
-			$dcsyslog = $Null
-			$dctopology = $Null
-			$dcEntreferences = $Null
-			$dcreferences = $Null
-			$dcreplicas = $Null
-			$dcdom = $Null
-			$dcvalidation = $Null
-			$dcdns = $Null
-			$dclcheck = $Null
-			$dccheck = $Null
-			$dcintersite = $Null
-			$dcDFSREvent = $Null
-			$dcSysVolCheck  = $Null		
-			$dcFrsSysVol = $Null		
-			$dcKccEvent = $Null		
-			$dcObjectsR = $Null		
-			$dcReplications = $Null
-			$dcEntDNS = $Null
-			$Schdcdom = $Null
-			$Schdcvalid = $Null
-			$Confdcdom = $Null
-			$Confdcvalid = $Null
-			$Domdcdom = $Null
-			$Domdcvalid = $Null
-			$Dnsdcdom = $Null
-			$Dnsdcvalid = $Null		
-			$FDnsdcdom = $Null
-			$FDnsdcvalid = $Null
+		$dcname = $Null
+		$dcconnectivity = $Null
+		$dcadvertising = $Null
+		$dcerror = $Null
+		$dccuttservers = $Null
+		$dcevent = $Null
+		$dcdfsrevent = $Null
+		$dcsysvcheck = $Null
+		$dcfrsvol = $Null
+		$dckccevent = $Null
+		$dcholders = $Null
+		$dcaccount = $Null
+		$dcdesc = $Null
+		$dclogons = $Null
+		$dcreplicated = $Null
+		$dcchannels = $Null
+		$dcreplications = $Null
+		$dcmanager = $Null
+		$dcservices = $Null
+		$dcsyslog = $Null
+		$dctopology = $Null
+		$dcEntreferences = $Null
+		$dcreferences = $Null
+		$dcreplicas = $Null
+		$dcdom = $Null
+		$dcvalidation = $Null
+		$dcdns = $Null
+		$dclcheck = $Null
+		$dccheck = $Null
+		$dcintersite = $Null
+		$dcDFSREvent = $Null
+		$dcSysVolCheck = $Null		
+		$dcFrsSysVol = $Null		
+		$dcKccEvent = $Null		
+		$dcObjectsR = $Null		
+		$dcReplications = $Null
+		$dcEntDNS = $Null
+		$Schdcdom = $Null
+		$Schdcvalid = $Null
+		$Confdcdom = $Null
+		$Confdcvalid = $Null
+		$Domdcdom = $Null
+		$Domdcvalid = $Null
+		$Dnsdcdom = $Null
+		$Dnsdcvalid = $Null		
+		$FDnsdcdom = $Null
+		$FDnsdcvalid = $Null
 
-	#Begin gathering health data
-
+		#Begin gathering health data
 		CMD /c "mode con:cols=512 && DCDIAG /s:$System /c /f:$Logfile && mode con:cols=120"
-		$file = Get-Content $Logfile | %{$_.trim()} | ?{$_}
+		$file = Get-Content $Logfile | ForEach-Object { $_.trim() } | Where-Object { $_ }
 
 		$hash = @{}
 		$hash["server"] = $System
@@ -640,455 +634,370 @@ $ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainCont
 				continue
 			}
 			else {
-				switch -regex -casesensitive ($item)
-				{
-					"Testing" {$bi = "server"; $hash["$ai"]["$bi"] = @{}}
-					"Running" {$bi = $($_ -Replace ".*tests on : "); $hash["$ai"]["$bi"] = @{}}
-					"Starting" {$ci = $($_ -Replace ".*Starting Test: "); $hash["$ai"]["$bi"]["$ci"] = @{}}
-					"failed" {$hash["$ai"]["$bi"]["$ci"] = "Fail"}
-					"passed" {$hash["$ai"]["$bi"]["$ci"] = "Pass"}
-					default {continue}
+				switch -regex -casesensitive ($item) {
+					"Testing" { $bi = "server"; $hash["$ai"]["$bi"] = @{} }
+					"Running" { $bi = $($_ -Replace ".*tests on : "); $hash["$ai"]["$bi"] = @{} }
+					"Starting" { $ci = $($_ -Replace ".*Starting Test: "); $hash["$ai"]["$bi"]["$ci"] = @{} }
+					"failed" { $hash["$ai"]["$bi"]["$ci"] = "Fail" }
+					"passed" { $hash["$ai"]["$bi"]["$ci"] = "Pass" }
+					default { continue }
 				}
 			}
 		}
 
+		#Generate Data
+		$dcname = ($hash["server"])
+		$dcconnectivity = ($hash["initial"]["server"]["connectivity"])
+		$dcadvertising = ($hash["primary"]["server"]["Advertising"]) 
+		$dcerror = ($hash["primary"]["server"]["CheckSecurityError"])
+		$dccuttservers = ($hash["primary"]["server"]["CutoffServers"])  
+		$dcevent = ($hash["primary"]["server"]["FrsEvent"])
+		$dcholders = ($hash["primary"]["server"]["KnowsOfRoleHolders"])
+		$dcaccount = ($hash["primary"]["server"]["MachineAccount"])
+		$dcdesc = ($hash["primary"]["server"]["NCSecDesc"])
+		$dclogons = ($hash["primary"]["server"]["NetLogons"])
+		$dcchannels = ($hash["primary"]["server"]["OutboundSecureChannels"])
+		$dcmanager = ($hash["primary"]["server"]["RidManager"])
+		$dcservices = ($hash["primary"]["server"]["Services"])
+		$dcsyslog = ($hash["primary"]["server"]["SystemLog"])
+		$dctopology = ($hash["primary"]["server"]["Topology"])  
+		$dcEntreferences = ($hash["primary"]["server"]["VerifyEnterpriseReferences"])
+		$dcreferences = ($hash["primary"]["server"]["VerifyReferences"]) 
+		$dcreplicas = ($hash["primary"]["server"]["VerifyReplicas"])
+		$dcdns = ($hash["primary"]["server"]["DNS"])         
+		$dclcheck = ($hash["primary"][$forestname]["LocatorCheck"])
+		$dccheck = ($hash["primary"][$forestname]["FsmoCheck"])
+		$dcintersite = ($hash["primary"][$forestname]["Intersite"])
+		$dcDFSREvent = ($hash["primary"]["server"]["DFSREvent"])
+		$dcSysVolCheck = ($hash["primary"]["server"]["SysVolCheck"])
+		$dcFrsSysVol = ($hash["primary"]["server"]["FrsSysVol"])
+		$dcKccEvent = ($hash["primary"]["server"]["KccEvent"])
+		$dcObjectsR = ($hash["primary"]["server"]["ObjectsReplicated"])
+		$dcReplications = ($hash["primary"]["server"]["Replications"])
 
-	   #Generate Data
+		#Enterprise References Check
+		$dcEntDNS = ($hash["primary"][$forestname]["DNS"])
+		#Schema
+		$Schdcdom = ($hash["primary"]["schema"]["CheckSDRefDom"])
+		$Schdcvalid = ($hash["primary"]["schema"]["CrossRefValidation"])
+		#Configuration
+		$Confdcdom = ($hash["primary"]["configuration"]["CheckSDRefDom"])
+		$Confdcvalid = ($hash["primary"]["configuration"]["CrossRefValidation"])
+		#DomainReference
+		$Domdcdom = ($hash["primary"][$domainonly]["CheckSDRefDom"])
+		$Domdcvalid = ($hash["primary"][$domainonly]["CrossRefValidation"])
+		#DomainDNSZones
+		$Dnsdcdom = ($hash["primary"]["DomainDnsZones"]["CheckSDRefDom"])
+		$Dnsdcvalid = ($hash["primary"]["DomainDnsZones"]["CrossRefValidation"])		
+		#ForestDNSZones
+		$FDnsdcdom = ($hash["primary"]["ForestDnsZones"]["CheckSDRefDom"])
+		$FDnsdcvalid = ($hash["primary"]["ForestDnsZones"]["CrossRefValidation"])	
 
-			$dcname = ($hash["server"])
-			$dcconnectivity = ($hash["initial"]["server"]["connectivity"])
-			$dcadvertising = ($hash["primary"]["server"]["Advertising"]) 
-			$dcerror = ($hash["primary"]["server"]["CheckSecurityError"])
-			$dccuttservers = ($hash["primary"]["server"]["CutoffServers"])  
-			$dcevent = ($hash["primary"]["server"]["FrsEvent"])
-			$dcholders = ($hash["primary"]["server"]["KnowsOfRoleHolders"])
-			$dcaccount = ($hash["primary"]["server"]["MachineAccount"])
-			$dcdesc = ($hash["primary"]["server"]["NCSecDesc"])
-			$dclogons = ($hash["primary"]["server"]["NetLogons"])
-			$dcchannels = ($hash["primary"]["server"]["OutboundSecureChannels"])
-			$dcmanager = ($hash["primary"]["server"]["RidManager"])
-			$dcservices = ($hash["primary"]["server"]["Services"])
-			$dcsyslog = ($hash["primary"]["server"]["SystemLog"])
-			$dctopology = ($hash["primary"]["server"]["Topology"])  
-			$dcEntreferences = ($hash["primary"]["server"]["VerifyEnterpriseReferences"])
-			$dcreferences = ($hash["primary"]["server"]["VerifyReferences"]) 
-			$dcreplicas = ($hash["primary"]["server"]["VerifyReplicas"])
-			$dcdns = ($hash["primary"]["server"]["DNS"])         
-			$dclcheck = ($hash["primary"][$forestname]["LocatorCheck"])
-			$dccheck = ($hash["primary"][$forestname]["FsmoCheck"])
-			$dcintersite = ($hash["primary"][$forestname]["Intersite"])
-			$dcDFSREvent = ($hash["primary"]["server"]["DFSREvent"])
-			$dcSysVolCheck  = ($hash["primary"]["server"]["SysVolCheck"])
-			$dcFrsSysVol = ($hash["primary"]["server"]["FrsSysVol"])
-			$dcKccEvent = ($hash["primary"]["server"]["KccEvent"])
-			$dcObjectsR = ($hash["primary"]["server"]["ObjectsReplicated"])
-			$dcReplications = ($hash["primary"]["server"]["Replications"])
-
-			#Enterprise References Check
-			$dcEntDNS = ($hash["primary"][$forestname]["DNS"])
-			#Schema
-			$Schdcdom = ($hash["primary"]["schema"]["CheckSDRefDom"])
-			$Schdcvalid = ($hash["primary"]["schema"]["CrossRefValidation"])
-			#Configuration
-			$Confdcdom = ($hash["primary"]["configuration"]["CheckSDRefDom"])
-			$Confdcvalid = ($hash["primary"]["configuration"]["CrossRefValidation"])
-			#DomainReference
-			$Domdcdom = ($hash["primary"][$domainonly]["CheckSDRefDom"])
-			$Domdcvalid = ($hash["primary"][$domainonly]["CrossRefValidation"])
-			#DomainDNSZones
-			$Dnsdcdom = ($hash["primary"]["DomainDnsZones"]["CheckSDRefDom"])
-			$Dnsdcvalid = ($hash["primary"]["DomainDnsZones"]["CrossRefValidation"])		
-			#ForestDNSZones
-			$FDnsdcdom = ($hash["primary"]["ForestDnsZones"]["CheckSDRefDom"])
-			$FDnsdcvalid = ($hash["primary"]["ForestDnsZones"]["CrossRefValidation"])	
-
-		
-			$dcSystemTable = $null
-			$dcconnectivitydaTable = $null
-			$dcreplicaitonTable = $null
+		$dcSystemTable = $null
+		$dcconnectivitydaTable = $null
+		$dcreplicaitonTable = $null
 
 		#Check Connectivity
-			
-			if ($dcconnectivity -eq "Pass")
-			{
-				$Rptdcconnectivity = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcconnectivity = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcconnectivity -eq "Pass") {
+			$Rptdcconnectivity = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcconnectivity = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check Advertising
-			if ($dcadvertising -eq "Pass")
-			{
-				$Rptdcadvertising = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcadvertising = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcadvertising -eq "Pass") {
+			$Rptdcadvertising = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcadvertising = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check CheckSecurityError
-			if ($dcerror -eq "Pass")
-			{
-				$Rptdcerror = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcerror = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcerror -eq "Pass") {
+			$Rptdcerror = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcerror = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check CutoffServers
-			if ($dccuttservers -eq "Pass")
-			{
-				$Rptdccuttservers = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdccuttservers = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dccuttservers -eq "Pass") {
+			$Rptdccuttservers = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdccuttservers = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check FRSEvent
-			if ($dcevent -eq "Pass")
-			{
-				$Rptdcevent = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcevent = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcevent -eq "Pass") {
+			$Rptdcevent = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcevent = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check DFSREvent
-			if ($dcDFSREvent -eq "Pass")
-			{
-				$RptdcDFSREvent = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcDFSREvent = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcDFSREvent -eq "Pass") {
+			$RptdcDFSREvent = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcDFSREvent = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check SysVolCheck
-			if ($dcSysVolCheck -eq "Pass")
-			{
-				$RptdcSysVolCheck = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcSysVolCheck = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
-
+		if ($dcSysVolCheck -eq "Pass") {
+			$RptdcSysVolCheck = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcSysVolCheck = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check FrsSysVol
-			if ($dcFrsSysVol -eq "Pass")
-			{
-				$RptdcFrsSysVol = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcFrsSysVol = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcFrsSysVol -eq "Pass") {
+			$RptdcFrsSysVol = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcFrsSysVol = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check KCCEvent
-			if ($dcKccEvent -eq "Pass")
-			{
-				$RptdcKccEvent = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcKccEvent = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcKccEvent -eq "Pass") {
+			$RptdcKccEvent = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcKccEvent = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check KnowsOfRoleHolders
-			if ($dcholders -eq "Pass")
-			{
-				$Rptdcholders = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcholders = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcholders -eq "Pass") {
+			$Rptdcholders = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcholders = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check MachineAccount
-			if ($dcaccount -eq "Pass")
-			{
-				$Rptdcaccount = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcaccount = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcaccount -eq "Pass") {
+			$Rptdcaccount = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcaccount = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check NCSecDesc 
-			if ($dcdesc -eq "Pass")
-			{
-				$Rptdcdesc = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcdesc = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcdesc -eq "Pass") {
+			$Rptdcdesc = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcdesc = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check NetLogons
-			if ($dclogons -eq "Pass")
-			{
-				$Rptdclogons = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdclogons = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dclogons -eq "Pass") {
+			$Rptdclogons = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdclogons = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check ObjectsReplicated			
-			if ($dcObjectsR -eq "Pass")
-			{
-				$RptdcObjectsR = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcObjectsR = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcObjectsR -eq "Pass") {
+			$RptdcObjectsR = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcObjectsR = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check OutboundSecureChannels
-			if ($dcchannels -eq "Pass")
-			{
-				$Rptdcchannels = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcchannels = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcchannels -eq "Pass") {
+			$Rptdcchannels = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcchannels = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check Replication
-			if ($dcReplications -eq "Pass")
-			{
-				$RptdcReplications = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcReplications = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcReplications -eq "Pass") {
+			$RptdcReplications = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcReplications = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check RidManager
-			if ($dcmanager -eq "Pass")
-			{
-				$Rptdcmanager = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcmanager = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcmanager -eq "Pass") {
+			$Rptdcmanager = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcmanager = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check Services
-			if ($dcservices -eq "Pass")
-			{
-				$Rptdcservices = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcservices = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcservices -eq "Pass") {
+			$Rptdcservices = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcservices = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check SystemLog
-			if ($dcsyslog -eq "Pass")
-			{
-				$Rptdcsyslog = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcsyslog = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcsyslog -eq "Pass") {
+			$Rptdcsyslog = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcsyslog = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check Topology
-			if ($dctopology -eq "Pass")
-			{
-				$Rptdctopology = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdctopology = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dctopology -eq "Pass") {
+			$Rptdctopology = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdctopology = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check VerifyEnterpriseReferences
-			if ($dcEntreferences -eq "Pass")
-			{
-				$RptdcEntreferences = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcEntreferences = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcEntreferences -eq "Pass") {
+			$RptdcEntreferences = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcEntreferences = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check VerifyReferences
-			if ($dcreferences -eq "Pass")
-			{
-				$Rptdcreferences = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcreferences = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcreferences -eq "Pass") {
+			$Rptdcreferences = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcreferences = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check VerifyReplicas
-			if ($dcreplicas -eq "Pass")
-			{
-				$Rptdcreplicas = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcreplicas = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcreplicas -eq "Pass") {
+			$Rptdcreplicas = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcreplicas = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check DNS
-			if ($dcdns -eq "Pass")
-			{
-				$Rptdcdns = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcdns = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
-
+		if ($dcdns -eq "Pass") {
+			$Rptdcdns = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcdns = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check LocatorCheck
-			if ($dclcheck -eq "Pass")
-			{
-				$Rptdclcheck = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdclcheck = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dclcheck -eq "Pass") {
+			$Rptdclcheck = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdclcheck = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check FsmoCheck
-			if ($dccheck -eq "Pass")
-			{
-				$Rptdccheck = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdccheck = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dccheck -eq "Pass") {
+			$Rptdccheck = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdccheck = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
 		#Check Intersite
-			if ($dcintersite -eq "Pass")
-			{
-				$Rptdcintersite = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$Rptdcintersite = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($dcintersite -eq "Pass") {
+			$Rptdcintersite = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$Rptdcintersite = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-	#Enterprise Checks
-			if ($dcEntDNS -eq "Pass")
-			{
-				$RptdcEntDNS = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptdcEntDNS = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		#Enterprise Checks
+		if ($dcEntDNS -eq "Pass") {
+			$RptdcEntDNS = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptdcEntDNS = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-	#Schema
-			if ($Schdcdom -eq "Pass")
-			{
-				$RptSchdcdom = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptSchdcdom = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		#Schema
+		if ($Schdcdom -eq "Pass") {
+			$RptSchdcdom = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptSchdcdom = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-			if ($Schdcvalid -eq "Pass")
-			{
-				$RptSchdcvalid = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptSchdcvalid = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
-	#Configuration
+		if ($Schdcvalid -eq "Pass") {
+			$RptSchdcvalid = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptSchdcvalid = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-			if ($Confdcdom -eq "Pass")
-			{
-				$RptConfdcdom = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptConfdcdom = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		#Configuration
+		if ($Confdcdom -eq "Pass") {
+			$RptConfdcdom = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptConfdcdom = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-			if ($Confdcvalid -eq "Pass")
-			{
-				$RptConfdcvalid = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptConfdcvalid = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($Confdcvalid -eq "Pass") {
+			$RptConfdcvalid = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptConfdcvalid = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-	#Domain
-			if ($Domdcdom -eq "Pass")
-			{
-				$RptDomdcdom = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptDomdcdom = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		#Domain
+		if ($Domdcdom -eq "Pass") {
+			$RptDomdcdom = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptDomdcdom = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-			if ($Domdcvalid -eq "Pass")
-			{
-				$RptDomdcvalid = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptDomdcvalid = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($Domdcvalid -eq "Pass") {
+			$RptDomdcvalid = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptDomdcvalid = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-	#DomainDnsZones
-			if ($Dnsdcdom -eq "Pass")
-			{
-				$RptDnsdcdom = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptDnsdcdom = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		#DomainDnsZones
+		if ($Dnsdcdom -eq "Pass") {
+			$RptDnsdcdom = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptDnsdcdom = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-			if ($Dnsdcvalid -eq "Pass")
-			{
-				$RptDnsdcvalid = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptDnsdcvalid = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($Dnsdcvalid -eq "Pass") {
+			$RptDnsdcvalid = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptDnsdcvalid = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-	#ForestDnsZones
-			if ($FDnsdcdom -eq "Pass")
-			{
-				$RptFDnsdcdom = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptFDnsdcdom = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		#ForestDnsZones
+		if ($FDnsdcdom -eq "Pass") {
+			$RptFDnsdcdom = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptFDnsdcdom = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-			if ($FDnsdcvalid -eq "Pass")
-			{
-				$RptFDnsdcvalid = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-			}
-			else
-			{
-				$RptFDnsdcvalid = "Fail",$BkgrdColor[0],$ForegrdColor[3]
-			}
+		if ($FDnsdcvalid -eq "Pass") {
+			$RptFDnsdcvalid = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+		}
+		else {
+			$RptFDnsdcvalid = "Fail", $BkgrdColor[0], $ForegrdColor[3]
+		}
 
-			
-			
 		#BuildTable System
-			$dcSystemTable = "
+		$dcSystemTable = "
 						<tr><!--Data Line-->
 					<td><p style=""text-align:left;"">$($dcname)</p></td>
 					<td bgcolor=""$($Rptdcerror[1])""><p style=""color:$($Rptdcerror[2])"">$($Rptdcerror[0])</p></td>
@@ -1101,11 +1010,10 @@ $ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainCont
 					<td bgcolor=""$($Rptdcreferences[1])""><p style=""color:$($Rptdcreferences[2])"">$($Rptdcreferences[0])</p></td>
 					<td bgcolor=""$($Rptdcreplicas[1])""><p style=""color:$($Rptdcreplicas[2])"">$($Rptdcreplicas[0])</p></td>
 					</tr>"
-			$RptdcSystemTable += $dcSystemTable
-
+		$RptdcSystemTable += $dcSystemTable
 
 		#BuildTable Connectivity
-			$dcconnectivitydaTable = "
+		$dcconnectivitydaTable = "
 						<tr><!--Data Line-->
 					<td><p style=""text-align:left;"">$($dcname)</p></td>
 					<td bgcolor=""$($Rptdcadvertising[1])""><p style=""color:$($Rptdcadvertising[2])"">$($Rptdcadvertising[0])</p></td>
@@ -1117,10 +1025,10 @@ $ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainCont
 					<td bgcolor=""$($Rptdcmanager[1])""><p style=""color:$($Rptdcmanager[2])"">$($Rptdcmanager[0])</p></td>
 					<td bgcolor=""$($Rptdctopology[1])""><p style=""color:$($Rptdctopology[2])"">$($Rptdctopology[0])</p></td>
 					</tr>"
-			$RptDCconnectivityTable += $dcconnectivitydaTable
-			
+		$RptDCconnectivityTable += $dcconnectivitydaTable
+
 		#BuildTable Replication
-			$dcreplicaitonTable = "
+		$dcreplicaitonTable = "
 						<tr><!--Data Line-->
 					<td><p style=""text-align:left;"">$($dcname)</p></td>
 					<td bgcolor=""$($RptdcReplications[1])""><p style=""color:$($RptdcReplications[2])"">$($RptdcReplications[0])</p></td>
@@ -1134,10 +1042,10 @@ $ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainCont
 					<td bgcolor=""$($Rptdclogons[1])""><p style=""color:$($Rptdclogons[2])"">$($Rptdclogons[0])</p></td>
 					<td bgcolor=""$($RptdcObjectsR[1])""><p style=""color:$($RptdcObjectsR[2])"">$($RptdcObjectsR[0])</p></td>
 					</tr>"
-			$RptdcreplicaitonTable += $dcreplicaitonTable
+		$RptdcreplicaitonTable += $dcreplicaitonTable
 
 		#BuildTable Enterprise References
-			$dcentTable = "
+		$dcentTable = "
 						<tr><!--Data Line-->
 					<td><p style=""text-align:left;"">$($dcname)</p></td>
 					<td bgcolor=""$($RptdcEntDNS[1])""><p style=""color:$($RptdcEntDNS[2])"">$($RptdcEntDNS[0])</p></td>
@@ -1152,123 +1060,113 @@ $ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainCont
 					<td bgcolor=""$($RptFDnsdcdom[1])""><p style=""color:$($RptFDnsdcdom[2])"">$($RptFDnsdcdom[0])</p></td>
 					<td bgcolor=""$($RptFDnsdcvalid[1])""><p style=""color:$($RptFDnsdcvalid[2])"">$($RptFDnsdcvalid[0])</p></td>
 					</tr>"
-			$RptdcentTable += $dcentTable	
+		$RptdcentTable += $dcentTable	
 
-		}
 	}
-	
+}
+
 # End DCHealth-Table
 
 # End DCSystem-Table
-    $RptdcsystemEnd ="
+$RptdcsystemEnd = "
         </tbody>
         </table>
     </div><!--End DomCSystem Class-->"
 
-	$CompleteDCsysTable = $RptDCSystemTableBegin + $RptdcSystemTable + $RptdcsystemEnd
+$CompleteDCsysTable = $RptDCSystemTableBegin + $RptdcSystemTable + $RptdcsystemEnd
 
-	
 # End DCConn-Table
-    $RptdcconnEnd ="
+$RptdcconnEnd = "
         </tbody>
         </table>
     </div><!--End DomCConn Class-->"
 
-	$CompleteDCConnTable = $RptDCConnTableBegin + $RptDCconnectivityTable + $RptdcconnEnd
-
+$CompleteDCConnTable = $RptDCConnTableBegin + $RptDCconnectivityTable + $RptdcconnEnd
 
 # End DCRep-Table
-    $RptdcrepEnd ="
+$RptdcrepEnd = "
         </tbody>
         </table>
     </div><!--End DomCRep Class-->"
 
-	$CompleteDCrepTable = $RptDCRepTableBegin + $RptdcreplicaitonTable + $RptdcrepEnd
+$CompleteDCrepTable = $RptDCRepTableBegin + $RptdcreplicaitonTable + $RptdcrepEnd
 
 # End DCEnt-Table
-    $RptdcentEnd ="
+$RptdcentEnd = "
         </tbody>
         </table>
     </div><!--End DomCEnt Class-->"
 
-	$CompleteDCentTable = $RptDCentTableBegin + $RptdcEntTable + $Rptdcentend
+$CompleteDCentTable = $RptDCentTableBegin + $RptdcEntTable + $Rptdcentend
 #endregion
 
 #region Sync-KCC
 
- # Create SYNC and KCC Header
-		
+# Create SYNC and KCC Header
 
- # Perform KCC Failcache Verification
+# Perform KCC Failcache Verification
 
-    Clear-Content $logfile
-    repadmin /failcache > $Logfile
+Clear-Content $logfile
+repadmin /failcache > $Logfile
 
-        $patt = 'KCC CONNECTION'
-         $indx = Select-String $patt $logfile | ForEach-Object {$_.LineNumber}
-         $conchk = (Get-Content $logfile)[$indx]
+$patt = 'KCC CONNECTION'
+$indx = Select-String $patt $logfile | ForEach-Object { $_.LineNumber }
+$conchk = (Get-Content $logfile)[$indx]
 
-         $patt = 'KCC LINK'
-         $indx = Select-String $patt $logfile | ForEach-Object {$_.LineNumber}
-         $Linkchk = (Get-Content $logfile)[$indx]
+$patt = 'KCC LINK'
+$indx = Select-String $patt $logfile | ForEach-Object { $_.LineNumber }
+$Linkchk = (Get-Content $logfile)[$indx]
 
 
-            If ($Test = '(none)')
-                {
-                $kccCon = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-                }
-            Else
-                {
-                $kccCon = "Error",$BkgrdColor[0],$ForegrdColor[3]
-                }
-            If ($TestLink = '(none)')
-                {
-                $kcclink = "Pass",$BkgrdColor[0],$ForegrdColor[1]
-                }
-            Else
-                {
-                $kcclink = "Error",$BkgrdColor[0],$ForegrdColor[3]
-                }
+If ($Test = '(none)') {
+	$kccCon = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+}
+Else {
+	$kccCon = "Error", $BkgrdColor[0], $ForegrdColor[3]
+}
+If ($TestLink = '(none)') {
+	$kcclink = "Pass", $BkgrdColor[0], $ForegrdColor[1]
+}
+Else {
+	$kcclink = "Error", $BkgrdColor[0], $ForegrdColor[3]
+}
 
- # Perform Syncall Verification
+# Perform Syncall Verification
 
-    $syncvalid = "SyncAll terminated with no errors."
-    Clear-Content $logfile
-    repadmin /syncall > $Logfile
+$syncvalid = "SyncAll terminated with no errors."
+Clear-Content $logfile
+repadmin /syncall > $Logfile
 
-    
-        if((Get-Content $logfile).contains($syncvalid))
-            {
-            $SyncStatus = "No Errors",$BkgrdColor[0],$ForegrdColor[1]
-            }
-        Else
-            {
-            $SyncStatus = "Errors Present",$BkgrdColor[0],$ForegrdColor[3]
-            }
+if ((Get-Content $logfile).contains($syncvalid)) {
+	$SyncStatus = "No Errors", $BkgrdColor[0], $ForegrdColor[1]
+}
+Else {
+	$SyncStatus = "Errors Present", $BkgrdColor[0], $ForegrdColor[3]
+}
 
- # Build Data into HTML
- $CompleteDomTestTable ="
+# Build Data into HTML
+$CompleteDomTestTable = "
 		<div class=""DomTests""><!--Start DomTests Class-->
-			        <h3><b>$($DomTestsTableCaption)</b></h3><br>
+					<h3><b>$($DomTestsTableCaption)</b></h3><br>
         <table id=""DomTest-Table"">
         <tbody>
         <tr><!--Header Line-->
         <th><p style=""text-align:left;margin-left:-4px"">Test</p></th>
         <th><p>Status</p></th>
         </tr>
-       <tr>
-       <td><p style=""text-align:left;"">Sync Replication:</td>
-       <td bgcolor=""$($SyncStatus[1])""><p style=""color:$($SyncStatus[2])"">$($SyncStatus[0])</p></td>
-       </tr>
-       <tr>
-       <td><p style=""text-align:left;"">KCC Connection Failures:</td>
-       <td bgcolor=""$($kccCon[1])""><p style=""color:$($kccCon[2])"">$($kccCon[0])</p></td>
-       </tr>
-       <tr>
-       <td><p style=""text-align:left;"">KCC Link Failures:</td>
-       <td bgcolor=""$($kcclink[1])""><p style=""color:$($kcclink[2])"">$($kcclink[0])</p></td>
-       </tr>
-       </tbody>
+		<tr>
+		<td><p style=""text-align:left;"">Sync Replication:</td>
+		<td bgcolor=""$($SyncStatus[1])""><p style=""color:$($SyncStatus[2])"">$($SyncStatus[0])</p></td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:left;"">KCC Connection Failures:</td>
+		<td bgcolor=""$($kccCon[1])""><p style=""color:$($kccCon[2])"">$($kccCon[0])</p></td>
+		</tr>
+		<tr>
+		<td><p style=""text-align:left;"">KCC Link Failures:</td>
+		<td bgcolor=""$($kcclink[1])""><p style=""color:$($kcclink[2])"">$($kcclink[0])</p></td>
+		</tr>
+		</tbody>
         </table>
     </div><!--End DomTests Class-->"
 
@@ -1278,16 +1176,16 @@ $ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainCont
 #------------------------------------Build class for Inter-Site Topology Generator coverage
 Clear-Content $logfile
 Clear-Content $logfiletemp
-	$istgtest = $null
-	$istgclean = $null
-	$istgdata = $null
-	$site = $null
-	$data = $null
+$istgtest = $null
+$istgclean = $null
+$istgdata = $null
+$site = $null
+$data = $null
 	
 #DomISTG-Table Header
-	$DomISTGtableBegin = "
+$DomISTGtableBegin = "
 			<div class=""DomISTG""><!--Start DomISTG Class-->
-			        <h3><b>$($ISTGTableCaption)</b></h3><br>
+					<h3><b>$($ISTGTableCaption)</b></h3><br>
         <table id=""DomISTG-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -1297,28 +1195,27 @@ Clear-Content $logfiletemp
 
 #Gather Data
 repadmin /istg >$Logfile
-	$istgtest = $Logfile
-	gc $istgtest | Where-Object { $_.Trim() -ne '' } | select -Skip 4 | % { $_ -replace '  +',"`t" } | 
-	 set-content $Logfiletemp
+$istgtest = $Logfile
+Get-Content $istgtest | Where-Object { $_.Trim() -ne '' } | Select-Object -Skip 4 | ForEach-Object { $_ -replace '  +', "`t" } | 
+set-content $Logfiletemp
 
-	$istgclean = gc $Logfiletemp
-	$istgdata = $istgclean.trimstart("`t")
+$istgclean = Get-Content $Logfiletemp
+$istgdata = $istgclean.trimstart("`t")
 
-	foreach ($site in $istgdata)
-		{
-			$data = $site.split( "`t" )
+foreach ($site in $istgdata) {
+	$data = $site.split( "`t" )
 
-			$sitename = $data[0]
-			$istgsvr = $data[1]
-			$ISTGTable = "
+	$sitename = $data[0]
+	$istgsvr = $data[1]
+	$ISTGTable = "
 							<tr><!--Data Line-->
 						<td><p style=""text-align:left;"">$sitename</p></td>
 						<td><p style=""text-align:left;"">$istgsvr</p></td>
 						</tr>"
-				$RptISTGTable += $ISTGTable
-		}
+	$RptISTGTable += $ISTGTable
+}
 # End ISTG-Table
-    $DomISTGTableEnd ="
+$DomISTGTableEnd = "
         </tbody>
         </table>
     </div><!--End ISTG Class-->"
@@ -1329,10 +1226,10 @@ $CompletedISTGTable = $DomISTGtableBegin + $RptISTGTable + $domISTGTableEnd
 
 #region Get DNS Information
 #------------------------------------Build class for DNSEntries
-	#DNS-Table Header
-		$RptDNSTableBegin ="
+#DNS-Table Header
+$RptDNSTableBegin = "
 		<div class=""DNSEntries""><!--Start DNSEntries Class-->
-			        <h3><b>$($DNSTableCaption)</b></h3><br>
+					<h3><b>$($DNSTableCaption)</b></h3><br>
         <table id=""DNS-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -1352,178 +1249,150 @@ $CompletedISTGTable = $DomISTGtableBegin + $RptISTGTable + $domISTGTableEnd
 #Note:  /x outputs XML for DCDIAG.  This only works for the DNS test.
 $Result = $Null
 
-    DCDiag.exe /test:dns /s:$PDCE /x:$filePath\dcdiag.xml /e
+DCDiag.exe /test:dns /s:$PDCE /x:$filePath\dcdiag.xml /e
 
-    #Now pull the XML output into an object and start manipulating it
-    [System.Xml.XmlDocument] $XD = new-object System.Xml.XmlDocument
-    $XD.Load("$filePath\dcdiag.xml")
+#Now pull the XML output into an object and start manipulating it
+[System.Xml.XmlDocument] $XD = new-object System.Xml.XmlDocument
+$XD.Load("$filePath\dcdiag.xml")
 
-    #Loop through all the domain controllers and get the results of the test - tests are dynamically added to 
-    #the object
-    $Result = ForEach ($Element in $XD.DCDIAGTestResults.DNSEnterpriseTestResults.Summary.Domain.DC)
-    {   $Tests = New-Object PSObject -Property @{
-            DC = $Element.Name
-        }
-        $Fields = @("DC")
-        ForEach ($Test in $Element.Test)
-        {   Add-Member -InputObject $Tests -MemberType NoteProperty -Name $Test.Name -Value $Test.Status
-            $Fields += $Test.Name
-        }
-        $Tests
+#Loop through all the domain controllers and get the results of the test - tests are dynamically added to 
+#the object
+$Result = ForEach ($Element in $XD.DCDIAGTestResults.DNSEnterpriseTestResults.Summary.Domain.DC) {
+	$Tests = New-Object PSObject -Property @{
+		DC = $Element.Name
+	}
+	$Fields = @("DC")
+	ForEach ($Test in $Element.Test) {
+		Add-Member -InputObject $Tests -MemberType NoteProperty -Name $Test.Name -Value $Test.Status
+		$Fields += $Test.Name
+	}
+	$Tests
 }
 
 
 
 #Create the HTML and save it to a file
-$HTML = $Result | Select $Fields 
+$HTML = $Result | Select-Object $Fields 
 $RptdnsTable = $Null
-	foreach ($dnssvr in $HTML) {
-		$DSvr = ($dnssvr.DC)
+foreach ($dnssvr in $HTML) {
+	$DSvr = ($dnssvr.DC)
 		
-		#This IF statement is specific to DOJ because we cannot access the Root domain with this test.
-		#If ($DSvr -ne "jcon-dc-348" -AND $DSvr -ne "jcon-dc-349" -And $DSvr -ne "JCON-DC-148" -And $DSvr -ne "coar-dc-351" -And $DSvr -ne "COAR-DC-350" -And $DSvr -ne "JCD-DC-RCK03" -And $DSvr -ne "JCD-DC-RCK04" -And $DSvr -ne "SRD-DC-111" -And $DSvr -ne "SRD-DC-311")
-		#{
-				$DAuth = ($dnssvr.Authentication)
-				$DBasic = ($dnssvr.Basic)
-				$DForw = ($dnssvr.Forwarders)
-				$DDel = ($dnssvr.Delegation)
-				$DDyn = ($dnssvr.DynamicUpdate)
-				$DRecR = ($dnssvr.RecordRegistration)
-				$DExtN = ($dnssvr.ExternalNameResolution)
+	#This IF statement is specific to DOJ because we cannot access the Root domain with this test.
+	#If ($DSvr -ne "jcon-dc-348" -AND $DSvr -ne "jcon-dc-349" -And $DSvr -ne "JCON-DC-148" -And $DSvr -ne "coar-dc-351" -And $DSvr -ne "COAR-DC-350" -And $DSvr -ne "JCD-DC-RCK03" -And $DSvr -ne "JCD-DC-RCK04" -And $DSvr -ne "SRD-DC-111" -And $DSvr -ne "SRD-DC-311")
+	#{
+	$DAuth = ($dnssvr.Authentication)
+	$DBasic = ($dnssvr.Basic)
+	$DForw = ($dnssvr.Forwarders)
+	$DDel = ($dnssvr.Delegation)
+	$DDyn = ($dnssvr.DynamicUpdate)
+	$DRecR = ($dnssvr.RecordRegistration)
+	$DExtN = ($dnssvr.ExternalNameResolution)
 			
-			$DNSTable = $null
+	$DNSTable = $null
 			
-			#Check DNS Authentication
-				if ($DAuth -eq "PASS")
-				{
-					$RptDAuth = "PASS",$BkgrdColor[0],$ForegrdColor[1]
-				}
-				elseif ($DAuth -eq "WARN")
-				{
-					$RptDAuth = "WARN",$BkgrdColor[0],$ForegrdColor[4]
-				}
-				elseif ($DAuth -eq "FAIL")
-				{
-					$RptDAuth = "FAIL",$BkgrdColor[0],$ForegrdColor[3]
-				}
-				else
-				{
-					$RptDAuth = "N/A",$BkgrdColor[0],$ForegrdColor[5]	
-				}
+	#Check DNS Authentication
+	if ($DAuth -eq "PASS") {
+		$RptDAuth = "PASS", $BkgrdColor[0], $ForegrdColor[1]
+	}
+	elseif ($DAuth -eq "WARN") {
+		$RptDAuth = "WARN", $BkgrdColor[0], $ForegrdColor[4]
+	}
+	elseif ($DAuth -eq "FAIL") {
+		$RptDAuth = "FAIL", $BkgrdColor[0], $ForegrdColor[3]
+	}
+	else {
+		$RptDAuth = "N/A", $BkgrdColor[0], $ForegrdColor[5]	
+	}
 				
-			#Check Basic DNS Test
-				if ($DBasic -eq "PASS")
-				{
-					$RptDBasic = "PASS",$BkgrdColor[0],$ForegrdColor[1]
-				}
-				elseif ($DBasic -eq "WARN")
-				{
-					$RptDBasic = "WARN",$BkgrdColor[0],$ForegrdColor[4]
-				}
-				elseif ($DBasic -eq "FAIL")
-				{
-					$RptDBasic = "FAIL",$BkgrdColor[0],$ForegrdColor[3]
-				}
-				else
-				{
-					$RptDBasic = "N/A",$BkgrdColor[0],$ForegrdColor[5]	
-				}
+	#Check Basic DNS Test
+	if ($DBasic -eq "PASS") {
+		$RptDBasic = "PASS", $BkgrdColor[0], $ForegrdColor[1]
+	}
+	elseif ($DBasic -eq "WARN") {
+		$RptDBasic = "WARN", $BkgrdColor[0], $ForegrdColor[4]
+	}
+	elseif ($DBasic -eq "FAIL") {
+		$RptDBasic = "FAIL", $BkgrdColor[0], $ForegrdColor[3]
+	}
+	else {
+		$RptDBasic = "N/A", $BkgrdColor[0], $ForegrdColor[5]	
+	}
 
-			#Check DNS Forwarders
-				if ($DForw -eq "PASS")
-				{
-					$RptDForw = "PASS",$BkgrdColor[0],$ForegrdColor[1]
-				}
-				elseif ($DForw -eq "WARN")
-				{
-					$RptDForw = "WARN",$BkgrdColor[0],$ForegrdColor[4]
-				}
-				elseif ($DForw -eq "FAIL")
-				{
-					$RptDForw = "FAIL",$BkgrdColor[0],$ForegrdColor[3]
-				}
-				else
-				{
-					$RptDForw = "N/A",$BkgrdColor[0],$ForegrdColor[5]	
-				}	
+	#Check DNS Forwarders
+	if ($DForw -eq "PASS") {
+		$RptDForw = "PASS", $BkgrdColor[0], $ForegrdColor[1]
+	}
+	elseif ($DForw -eq "WARN") {
+		$RptDForw = "WARN", $BkgrdColor[0], $ForegrdColor[4]
+	}
+	elseif ($DForw -eq "FAIL") {
+		$RptDForw = "FAIL", $BkgrdColor[0], $ForegrdColor[3]
+	}
+	else {
+		$RptDForw = "N/A", $BkgrdColor[0], $ForegrdColor[5]	
+	}	
 
-			#Check DNS Delegation
-				if ($DDel -eq "PASS")
-				{
-					$RptDDel = "PASS",$BkgrdColor[0],$ForegrdColor[1]
-				}
-				elseif ($DDel -eq "WARN")
-				{
-					$RptDDel = "WARN",$BkgrdColor[0],$ForegrdColor[4]
-				}
-				elseif ($DDel -eq "FAIL")
-				{
-					$RptDDel = "FAIL",$BkgrdColor[0],$ForegrdColor[3]
-				}
-				else
-				{
-					$RptDDel = "N/A",$BkgrdColor[0],$ForegrdColor[5]	
-				}		
+	#Check DNS Delegation
+	if ($DDel -eq "PASS") {
+		$RptDDel = "PASS", $BkgrdColor[0], $ForegrdColor[1]
+	}
+	elseif ($DDel -eq "WARN") {
+		$RptDDel = "WARN", $BkgrdColor[0], $ForegrdColor[4]
+	}
+	elseif ($DDel -eq "FAIL") {
+		$RptDDel = "FAIL", $BkgrdColor[0], $ForegrdColor[3]
+	}
+	else {
+		$RptDDel = "N/A", $BkgrdColor[0], $ForegrdColor[5]	
+	}		
 
-			#Check DNS Dynamic Update
-				if ($DDyn -eq "PASS")
-				{
-					$RptDDyn = "PASS",$BkgrdColor[0],$ForegrdColor[1]
-				}
-				elseif ($DDyn -eq "WARN")
-				{
-					$RptDDyn = "WARN",$BkgrdColor[0],$ForegrdColor[4]
-				}
-				elseif ($DDyn -eq "FAIL")
-				{
-					$RptDDel = "FAIL",$BkgrdColor[0],$ForegrdColor[3]
-				}
-				else
-				{
-					$RptDDyn = "N/A",$BkgrdColor[0],$ForegrdColor[5]	
-				}		
+	#Check DNS Dynamic Update
+	if ($DDyn -eq "PASS") {
+		$RptDDyn = "PASS", $BkgrdColor[0], $ForegrdColor[1]
+	}
+	elseif ($DDyn -eq "WARN") {
+		$RptDDyn = "WARN", $BkgrdColor[0], $ForegrdColor[4]
+	}
+	elseif ($DDyn -eq "FAIL") {
+		$RptDDel = "FAIL", $BkgrdColor[0], $ForegrdColor[3]
+	}
+	else {
+		$RptDDyn = "N/A", $BkgrdColor[0], $ForegrdColor[5]	
+	}		
 
-			#Check DNS Record Registration
-				if ($DRecR -eq "PASS")
-				{
-					$RptDRecR = "PASS",$BkgrdColor[0],$ForegrdColor[1]
-				}
-				elseif ($DRecR -eq "WARN")
-				{
-					$RptDRecR = "WARN",$BkgrdColor[0],$ForegrdColor[4]
-				}
-				elseif ($DRecR -eq "FAIL")
-				{
-					$RptDRecR = "FAIL",$BkgrdColor[0],$ForegrdColor[3]
-				}
-				else
-				{
-					$RptDRecR = "N/A",$BkgrdColor[0],$ForegrdColor[5]	
-				}		
+	#Check DNS Record Registration
+	if ($DRecR -eq "PASS") {
+		$RptDRecR = "PASS", $BkgrdColor[0], $ForegrdColor[1]
+	}
+	elseif ($DRecR -eq "WARN") {
+		$RptDRecR = "WARN", $BkgrdColor[0], $ForegrdColor[4]
+	}
+	elseif ($DRecR -eq "FAIL") {
+		$RptDRecR = "FAIL", $BkgrdColor[0], $ForegrdColor[3]
+	}
+	else {
+		$RptDRecR = "N/A", $BkgrdColor[0], $ForegrdColor[5]	
+	}		
 
-			#Check DNS External Name Resolution
-				if ($DExtN -eq "PASS")
-				{
-					$RptDExtN = "PASS",$BkgrdColor[0],$ForegrdColor[1]
-				}
-				elseif ($DExtN -eq "WARN")
-				{
-					$RptDExtN = "WARN",$BkgrdColor[0],$ForegrdColor[4]
-				}
-				elseif ($DExtN -eq "FAIL")
-				{
-					$RptDExtN = "FAIL",$BkgrdColor[0],$ForegrdColor[3]
-				}
-				else
-				{
-					$RptDExtN = "N/A",$BkgrdColor[0],$ForegrdColor[5]	
-				}		
+	#Check DNS External Name Resolution
+	if ($DExtN -eq "PASS") {
+		$RptDExtN = "PASS", $BkgrdColor[0], $ForegrdColor[1]
+	}
+	elseif ($DExtN -eq "WARN") {
+		$RptDExtN = "WARN", $BkgrdColor[0], $ForegrdColor[4]
+	}
+	elseif ($DExtN -eq "FAIL") {
+		$RptDExtN = "FAIL", $BkgrdColor[0], $ForegrdColor[3]
+	}
+	else {
+		$RptDExtN = "N/A", $BkgrdColor[0], $ForegrdColor[5]	
+	}		
 
 				
-				#Check 
-		#BuildTable
+	#Check 
+	#BuildTable
 
-				$dnsTable = "
+	$dnsTable = "
 							<tr><!--Data Line-->
 						<td><p style=""text-align:left;"">$($DSvr)</p></td>
 						<td bgcolor=""$($RptDAuth[1])""><p style=""color:$($RptDAuth[2])"">$($RptDAuth[0])</p></td>
@@ -1534,12 +1403,12 @@ $RptdnsTable = $Null
 						<td bgcolor=""$($RptDRecR[1])""><p style=""color:$($RptDRecR[2])"">$($RptDRecR[0])</p></td>
 						<td bgcolor=""$($RptDExtN[1])""><p style=""color:$($RptDExtN[2])"">$($RptDExtN[0])</p></td>
 						</tr>"
-				$RptdnsTable += $dnsTable
-		#}
-    }
+	$RptdnsTable += $dnsTable
+	#}
+}
 
-        # End DNS-Table
-    $RptDNSTableEnd ="
+# End DNS-Table
+$RptDNSTableEnd = "
         </tbody>
         </table>
     </div><!--End DNSEntries Class-->"
@@ -1553,22 +1422,22 @@ $CompletedDNSTable = $RptDNSTableBegin + $RptDnsTable + $RptDNSTableEnd
 #region Get Time Offset
 #Create Time output and manipulation file and Clean up Previous Files if exists
 
-	if (Test-Path -path C:\Scripts\DC\TimeOut.txt)  {  
-		Remove-Item C:\Scripts\DC\TimeOut.txt -Force 
-		}  
-    if (Test-Path -path C:\Scripts\DC\Timeadj.txt)  {  
-		Remove-Item C:\Scripts\DC\Timeadj.txt -Force 
-		}
-	if (Test-Path -path C:\Scripts\DC\Time.txt)  {  
-		Remove-Item C:\Scripts\DC\Time.txt -Force 
-		}  
+if (Test-Path -path C:\Scripts\DC\TimeOut.txt) {  
+	Remove-Item C:\Scripts\DC\TimeOut.txt -Force 
+}  
+if (Test-Path -path C:\Scripts\DC\Timeadj.txt) {  
+	Remove-Item C:\Scripts\DC\Timeadj.txt -Force 
+}
+if (Test-Path -path C:\Scripts\DC\Time.txt) {  
+	Remove-Item C:\Scripts\DC\Time.txt -Force 
+}  
 
 #Create table header
 
-		$RptdcTimeTable = $Null
+$RptdcTimeTable = $Null
 
 #DCtime-Table Header
-		$RptDCtimeTableBegin ="
+$RptDCtimeTableBegin = "
 		<div class=""DomTime""><!--Start DomTime Class-->
 			        <h3><b>$($adTimeTableCaption)</b></h3><br>
         <table id=""DCTime-Table"">
@@ -1580,144 +1449,139 @@ $CompletedDNSTable = $RptDNSTableBegin + $RptDnsTable + $RptDNSTableEnd
             </tr>"
 			
 #Gather Domain Controllers
-	$ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainControllers | ForEach-Object { $_.Name }  
+$ADs = [DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainControllers | ForEach-Object { $_.Name }  
 
 #Loop through Domain Controllers and gather time data
- for ($i = 0; $i -lt $ADs.Count; $i++)  
- {  
-	 $dcName = $ADs[$i]  
+for ($i = 0; $i -lt $ADs.Count; $i++) {  
+	$dcName = $ADs[$i]  
 
-	 w32tm /monitor /computers:$dcName |ft fullname |out-file C:\Scripts\DC\Time.txt -append 
- }  
+	w32tm /monitor /computers:$dcName | Format-Table fullname | out-file C:\Scripts\DC\Time.txt -append 
+}  
 
- #Create Time output
- (type C:\Scripts\DC\Time.txt) -notmatch "and may not" -notmatch "Warning" -notmatch "Stratum" -notmatch "Reverse" -notmatch "time packets" -notmatch "delayoffset" -notmatch "analyzing" -notmatch "                        " | out-file C:\Scripts\DC\Time.txt  
+#Create Time output
+(Get-Content C:\Scripts\DC\Time.txt) -notmatch "and may not" -notmatch "Warning" -notmatch "Stratum" -notmatch "Reverse" -notmatch "time packets" -notmatch "delayoffset" -notmatch "analyzing" -notmatch "                        " | out-file C:\Scripts\DC\Time.txt  
 
-	$InputFile = "C:\Scripts\DC\Time.txt" 
-    $AdjustedFile = "C:\Scripts\DC\Timeadj.txt"
-	$RptputFile = "C:\Scripts\DC\TimeOut.txt" 
+$InputFile = "C:\Scripts\DC\Time.txt" 
+$AdjustedFile = "C:\Scripts\DC\Timeadj.txt"
+$RptputFile = "C:\Scripts\DC\TimeOut.txt" 
 
-	#Write time output to a new file in a format which can be manipulated
-	#NOTE:  Adjustedfile is created to remove any icmp errors which will throw off the output.
+#Write time output to a new file in a format which can be manipulated
+#NOTE:  Adjustedfile is created to remove any icmp errors which will throw off the output.
     
-         Get-Content $InputFile | Where-Object {$_ -notmatch 'error' -and $_ -notmatch 'offset'} | Set-Content $AdjustedFile
-		 $Writer = New-Object IO.StreamWriter "$RptputFile" 
-		 $Writer.Write( [String]::Join("", $(Get-Content $AdjustedFile)) )  
-		 $Writer.Close()  
-         
+Get-Content $InputFile | Where-Object { $_ -notmatch 'error' -and $_ -notmatch 'offset' } | Set-Content $AdjustedFile
+$Writer = New-Object IO.StreamWriter "$RptputFile" 
+$Writer.Write( [String]::Join("", $(Get-Content $AdjustedFile)) )  
+$Writer.Close()  
+
 #Replace unwanted character strings in the Text File so we can obtain data
-	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object {$_ -replace ":    ICMP", "`tICMP"} | Set-Content C:\Scripts\DC\TimeOut.txt  
-	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object {$_ -replace "     NTP: ", "`t"} | Set-Content C:\Scripts\DC\TimeOut.txt  
-	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object {$_ -replace "s         RefID: ", "`t"} | Set-Content C:\Scripts\DC\TimeOut.txt  
-	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object {$_ -replace "]        ", "]|`r`n"} | Set-Content C:\Scripts\DC\TimeOut.txt  
+	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object { $_ -replace ":    ICMP", "`tICMP" } | Set-Content C:\Scripts\DC\TimeOut.txt  
+	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object { $_ -replace "     NTP: ", "`t" } | Set-Content C:\Scripts\DC\TimeOut.txt  
+	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object { $_ -replace "s         RefID: ", "`t" } | Set-Content C:\Scripts\DC\TimeOut.txt  
+	(Get-Content C:\Scripts\DC\TimeOut.txt) | Foreach-Object { $_ -replace "]        ", "]|`r`n" } | Set-Content C:\Scripts\DC\TimeOut.txt  
 
 #Open completed text file as content
- [string] $NTPData = (Get-Content C:\Scripts\DC\TimeOut.txt)  
+[string] $NTPData = (Get-Content C:\Scripts\DC\TimeOut.txt)  
 
- $PartsNTPData = $NTPData.Split( "|" )  
- $Count = 0  
+$PartsNTPData = $NTPData.Split( "|" )  
+$Count = 0  
 
-  (gc C:\Scripts\DC\TimeOut.txt) | ? {$_.trim() -ne "" } | set-content C:\Scripts\DC\TimeOut.txt 
+(Get-Content C:\Scripts\DC\TimeOut.txt) | Where-Object { $_.trim() -ne "" } | set-content C:\Scripts\DC\TimeOut.txt 
 
-  #Loop through each Server and obtain required data parts
-  foreach ($Server in $PartsNTPData)  
-  {  
-	  $ServerParts = $Server.Split( "`t" )
+#Loop through each Server and obtain required data parts
+foreach ($Server in $PartsNTPData) {  
+	$ServerParts = $Server.Split( "`t" )
 
 	#Build the Server Name
-	  $Name = $ServerParts[0]  
-	  $Name=$Name.trim()
+	$Name = $ServerParts[0]  
+	$Name = $Name.trim()
 
-		#Remove FDQN and IP addresses
-			If ($Name -match ".") 
-			{
-				$pos = $name.IndexOf(".")
-				$Hostname = $name.Substring(0, $pos)
-				#$rightPart = $name.Substring($pos+1)
-			}
+	#Remove FDQN and IP addresses
+	If ($Name -match ".") {
+		$pos = $name.IndexOf(".")
+		$Hostname = $name.Substring(0, $pos)
+		#$rightPart = $name.Substring($pos+1)
+	}
 
-	  $ICMP = $ServerParts[1]  
+	$ICMP = $ServerParts[1]  
 	#Get the Time Offset
-	 [double] $Time = $ServerParts[2]  
+	[double] $Time = $ServerParts[2]  
 
 	#Get the Referring Domain Controller without the IP
-	  $RefID = $ServerParts[3]  
-		$RefID = ($RefID -Split ' ')[0]
+	$RefID = $ServerParts[3]  
+	$RefID = ($RefID -Split ' ')[0]
 
 	#Strip any empty lines and create data output	  
-		If ($name -ne "") 
-		{
+	If ($name -ne "") {
 		$dctimeTable = "
-		         <tr><!--Data Line-->
+					<tr><!--Data Line-->
                 <td><p style=""text-align:left;"">$($hostname)</p></td>
                 <td><p style=""text-align:left;"">$($time)</p></td>
 				<td><p style=""text-align:left;"">$($RefID)</p></td>
 				</tr>"
 		$RptdctimeTable += $dctimeTable
-		}
-  }  
+	}
+}  
 
-  # End DCTime-Table
-    $RptdctimeEnd ="
+# End DCTime-Table
+$RptdctimeEnd = "
         </tbody>
         </table>
     </div><!--End DomTime Class-->"
 
-	$CompleteDCTimeTable = $RptDCtimeTableBegin + $RptdctimeTable + $RptdctimeEnd
+$CompleteDCTimeTable = $RptDCtimeTableBegin + $RptdctimeTable + $RptdctimeEnd
 	
 #endregion
 
 #region replication summary
 
- $RepSrcTable = $Null
- $RptRepSrcTable = $Null
- $RepdestTable = $Null
- $RptRepdestTable = $Null
+$RepSrcTable = $Null
+$RptRepSrcTable = $Null
+$RepdestTable = $Null
+$RptRepdestTable = $Null
 
- $myRepInfo = @(repadmin /replsum * /bysrc /bydest /sort:delta)
-  
- # Initialize our array.
- $cleanRepInfo = @() 
-    # Start @ #10 because all the previous lines are junk formatting
-    # and strip off the last 4 lines because they are not needed.
-     for ($i=10; $i -lt ($myRepInfo.Count-4); $i++) {
-             if($myRepInfo[$i] -ne ""){
-             # Remove empty lines from our array.
-             $myRepInfo[$i] -replace '\s+', " "            
-             $cleanRepInfo += $myRepInfo[$i]             
-             }
-             } 
+$myRepInfo = @(repadmin /replsum * /bysrc /bydest /sort:delta)
 
-              $finalRepInfo = @()   
-             foreach ($line in $cleanRepInfo) {
-             $splitRepInfo = $line -split '\s+',8
-             if ($splitRepInfo[0] -eq "Source") { $repType = "Source" }
-             if ($splitRepInfo[0] -eq "Destination") { $repType = "Destination" }
-             
-				 if ($splitRepInfo[1] -notmatch "DSA") {       
-				 # Create an Object and populate it with our values.
-				$objRepValues = New-Object System.Object 
-					$objRepValues | Add-Member -type NoteProperty -name DSAType -value $repType # Source or Destination DSA
-					$objRepValues | Add-Member -type NoteProperty -name Hostname  -value $splitRepInfo[1] # Hostname
-					$objRepValues | Add-Member -type NoteProperty -name Delta  -value $splitRepInfo[2] # Largest Delta
-					$objRepValues | Add-Member -type NoteProperty -name Fails -value $splitRepInfo[3] # Failures
-					#$objRepValues | Add-Member -type NoteProperty -name Slash  -value $splitRepInfo[4] # Slash char
-					$objRepValues | Add-Member -type NoteProperty -name Total -value $splitRepInfo[5] # Totals
-					$objRepValues | Add-Member -type NoteProperty -name PctError  -value $splitRepInfo[6] # % errors   
-					$objRepValues | Add-Member -type NoteProperty -name ErrorMsg  -value $splitRepInfo[7] # Error code
-				
-				 # Add the Object as a row to our array    
-				 $finalRepInfo += $objRepValues
-				 
-				 }
-             }
+# Initialize our array.
+$cleanRepInfo = @() 
+# Start @ #10 because all the previous lines are junk formatting
+# and strip off the last 4 lines because they are not needed.
+for ($i = 10; $i -lt ($myRepInfo.Count - 4); $i++) {
+	if ($myRepInfo[$i] -ne "") {
+		# Remove empty lines from our array.
+		$myRepInfo[$i] -replace '\s+', " "            
+		$cleanRepInfo += $myRepInfo[$i]             
+	}
+} 
 
+$finalRepInfo = @()   
+foreach ($line in $cleanRepInfo) {
+	$splitRepInfo = $line -split '\s+', 8
+	if ($splitRepInfo[0] -eq "Source") { $repType = "Source" }
+	if ($splitRepInfo[0] -eq "Destination") { $repType = "Destination" }
+
+	if ($splitRepInfo[1] -notmatch "DSA") {       
+		# Create an Object and populate it with our values.
+		$objRepValues = New-Object System.Object 
+		$objRepValues | Add-Member -type NoteProperty -name DSAType -value $repType # Source or Destination DSA
+		$objRepValues | Add-Member -type NoteProperty -name Hostname  -value $splitRepInfo[1] # Hostname
+		$objRepValues | Add-Member -type NoteProperty -name Delta  -value $splitRepInfo[2] # Largest Delta
+		$objRepValues | Add-Member -type NoteProperty -name Fails -value $splitRepInfo[3] # Failures
+		#$objRepValues | Add-Member -type NoteProperty -name Slash  -value $splitRepInfo[4] # Slash char
+		$objRepValues | Add-Member -type NoteProperty -name Total -value $splitRepInfo[5] # Totals
+		$objRepValues | Add-Member -type NoteProperty -name PctError  -value $splitRepInfo[6] # % errors   
+		$objRepValues | Add-Member -type NoteProperty -name ErrorMsg  -value $splitRepInfo[7] # Error code
+		
+		# Add the Object as a row to our array    
+		$finalRepInfo += $objRepValues
+		
+	}
+}
 
 
 #ReplicationSummarySource-Table Header
-		$RptRepSrcTableBegin ="
+$RptRepSrcTableBegin = "
 		<div class=""RepSource""><!--Start RepSource Class-->
-			        <h3><b>$($RepSummarySourceCaption)</b></h3><br>
+					<h3><b>$($RepSummarySourceCaption)</b></h3><br>
         <table id=""RepsummarySource-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -1729,25 +1593,23 @@ $CompletedDNSTable = $RptDNSTableBegin + $RptDnsTable + $RptDNSTableEnd
 				<th><p>Err Msg</p></th>
             </tr>"
 			
-	#Get Data
-    $finalRepInfo | ForEach-Object {If ($_.DSAType -eq "Source") 
-    {$RepHost = $_.Hostname
-    $RepDelta = $_.Delta
-	$RepFails = $_.Fails
-	$RepTotal = $_.Total
-	$RepPctE = $_.PctError
-	$RepErrMsg = $_.ErrorMsg
+#Get Data
+$finalRepInfo | ForEach-Object { If ($_.DSAType -eq "Source") {
+		$RepHost = $_.Hostname
+		$RepDelta = $_.Delta
+		$RepFails = $_.Fails
+		$RepTotal = $_.Total
+		$RepPctE = $_.PctError
+		$RepErrMsg = $_.ErrorMsg
 	
- 	if ($RepFails -gt 0) 
-		{
-		$Rptrepfail = $repfails,$BkgrdColor[0],$ForegrdColor[3]
+	if ($RepFails -gt 0) {
+			$Rptrepfail = $repfails, $BkgrdColor[0], $ForegrdColor[3]
 		}
-	Else
-		{
-		$Rptrepfail = $repfails,$BkgrdColor[0],$ForegrdColor[1]
+		Else {
+			$Rptrepfail = $repfails, $BkgrdColor[0], $ForegrdColor[1]
 		}   
 
-				$RepSrcTable = "
+		$RepSrcTable = "
 							<tr><!--Data Line-->
 						<td><p style=""text-align:left;"">$($rephost)</p></td>
 						<td><p style=""text-align:left;"">$($RepDelta)</p></td>
@@ -1756,26 +1618,24 @@ $CompletedDNSTable = $RptDNSTableBegin + $RptDnsTable + $RptDNSTableEnd
 						<td><p style=""text-align:left;"">$($RepPctE)</p></td>
 						<td><p style=""text-align:left;"">$($RepErrMsg)</p></td>
 						</tr>"
-				$RptRepSrcTable += $RepSrcTable
+		$RptRepSrcTable += $RepSrcTable
 	}
 }
 
-	    #End Table
+#End Table
 		
-    $RptRepSrcTableEnd ="
+$RptRepSrcTableEnd = "
         </tbody>
         </table>
     </div><!--End RepSource Class-->"
 
-	$CompleteRepSrcTable = $RptRepSrcTableBegin + $RptRepSrcTable + $RptRepSrcTableEnd
-
-
+$CompleteRepSrcTable = $RptRepSrcTableBegin + $RptRepSrcTable + $RptRepSrcTableEnd
 
 #RepsummaryDest-Table Header
 
-		$RptRepDestTableBegin ="
+$RptRepDestTableBegin = "
 		<div class=""RepDestination""><!--Start RepDestination Class-->
-			        <h3><b>$($RepSummaryDestCaption)</b></h3><br>
+					<h3><b>$($RepSummaryDestCaption)</b></h3><br>
         <table id=""RepsummaryDest-Table"">
         <tbody>
             <tr><!--Header Line-->
@@ -1786,27 +1646,24 @@ $CompletedDNSTable = $RptDNSTableBegin + $RptDnsTable + $RptDNSTableEnd
 				<th><p>%-Error</p></th>
 				<th><p>Err Msg</p></th>
             </tr>"
-			
-    #Get Data
-    $finalRepInfo | ForEach-Object {If ($_.DSAType -eq "Destination") 
-    {$RepHost = $_.Hostname
-    $RepDelta = $_.Delta
+
+#Get Data
+$finalRepInfo | ForEach-Object { If ($_.DSAType -eq "Destination") {
+	$RepHost = $_.Hostname
+	$RepDelta = $_.Delta
 	$RepFails = $_.Fails
 	$RepTotal = $_.Total
 	$RepPctE = $_.PctError
 	$RepErrMsg = $_.ErrorMsg
 	
-	if ($RepFails -gt 0) 
-		{
-		$Rptrepfail = $repfails,$BkgrdColor[0],$ForegrdColor[3]
-		}
-	Else
-		{
-		$Rptrepfail = $repfails,$BkgrdColor[0],$ForegrdColor[1]
-		}
- 
+	if ($RepFails -gt 0) {
+		$Rptrepfail = $repfails, $BkgrdColor[0], $ForegrdColor[3]
+	}
+	Else {
+		$Rptrepfail = $repfails, $BkgrdColor[0], $ForegrdColor[1]
+	}
 
-				$RepdestTable = "
+	$RepdestTable = "
 							<tr><!--Data Line-->
 						<td><p style=""text-align:left;"">$($rephost)</p></td>
 						<td><p style=""text-align:left;"">$($RepDelta)</p></td>
@@ -1815,19 +1672,18 @@ $CompletedDNSTable = $RptDNSTableBegin + $RptDnsTable + $RptDNSTableEnd
 						<td><p style=""text-align:left;"">$($RepPctE)</p></td>
 						<td><p style=""text-align:left;"">$($RepErrMsg)</p></td>
 						</tr>"
-				$RptRepdestTable += $RepdestTable
+		$RptRepdestTable += $RepdestTable
 	}
 }
 
-	    #End Table
+#End Table
 		
-    $RptRepdestTableEnd ="
+$RptRepdestTableEnd = "
         </tbody>
         </table>
     </div><!--End RepDestination Class-->"
-	
-	
-	$CompleteRepdestTable = $RptRepdestTableBegin + $RptRepdestTable + $RptRepdestTableEnd
+
+$CompleteRepdestTable = $RptRepdestTableBegin + $RptRepdestTable + $RptRepdestTableEnd
 
 
 #endregion
@@ -1835,7 +1691,7 @@ $CompletedDNSTable = $RptDNSTableBegin + $RptDnsTable + $RptDNSTableEnd
 
 #region HTML End
 
-$RptHtmlEnd ='
+$RptHtmlEnd = '
 <P></P>
 <P><em><center><font face="times new roman" size 1 color="#357EC7">Refer to the following <a href="https://technet.microsoft.com/en-us/library/cc731968.aspx"> Technet Article cc731968</a> for more information on the DCDiag test and meanings of each test performed</em></P>
 <br><br/><center><p style=""font-size:12px;color:#BDBDBD"">Modified ScriptVersion: 1.5 | Active Directory Health Check</p></center>
@@ -1844,7 +1700,7 @@ $RptHtmlEnd ='
 </html>'
 
 
-$RptFullHTML = $RptHtmlStart + $RptADTable + $CompleteDomTestTable + $CompleteDCsysTable + $CompleteDCConnTable + $CompleteDCrepTable + $CompleteDCentTable + $CompletedDNSTable + $CompleteRepSrcTable + $CompleteRepdestTable + $CompleteDCTimeTable + $CompletedISTGTable+ $RptHtmlEnd
+$RptFullHTML = $RptHtmlStart + $RptADTable + $CompleteDomTestTable + $CompleteDCsysTable + $CompleteDCConnTable + $CompleteDCrepTable + $CompleteDCentTable + $CompletedDNSTable + $CompleteRepSrcTable + $CompleteRepdestTable + $CompleteDCTimeTable + $CompletedISTGTable + $RptHtmlEnd
 
 $RptFullHTML | Out-File $ReportFile
 #endregion
@@ -1859,21 +1715,21 @@ $RptFullHTML | Out-File $ReportFile
 Clear-Content $logfile
 Clear-Content $filePath\dcdiag.xml
 Clear-Content $RptputFile
-    if (Test-Path -path C:\Scripts\DC\Timeadj.txt)  {  
-		Remove-Item C:\Scripts\DC\Timeadj.txt -Force 
-		}
-	if (Test-Path -path C:\Scripts\DC\Time.txt)  {  
-		Remove-Item C:\Scripts\DC\Time.txt -Force 
-		} 
-	if (Test-Path -path C:\Scripts\DC\TimeOut.txt)  {  
-		Remove-Item C:\Scripts\DC\TimeOut.txt -Force 
-		}
-	if (Test-Path -path $logfile)  {  
-		Remove-Item $logfile -Force
-		}
-	if (Test-Path -path C:\Scripts\DC\dcdiag.xml)  {  
-		Remove-Item C:\Scripts\DC\dcdiag.xml -Force
-		}
-	if (Test-Path -path $logfiletemp)  {  
-		Remove-Item $logfiletemp -Force
-		}
+if (Test-Path -path C:\Scripts\DC\Timeadj.txt) {  
+	Remove-Item C:\Scripts\DC\Timeadj.txt -Force 
+}
+if (Test-Path -path C:\Scripts\DC\Time.txt) {  
+	Remove-Item C:\Scripts\DC\Time.txt -Force 
+} 
+if (Test-Path -path C:\Scripts\DC\TimeOut.txt) {  
+	Remove-Item C:\Scripts\DC\TimeOut.txt -Force 
+}
+if (Test-Path -path $logfile) {  
+	Remove-Item $logfile -Force
+}
+if (Test-Path -path C:\Scripts\DC\dcdiag.xml) {  
+	Remove-Item C:\Scripts\DC\dcdiag.xml -Force
+}
+if (Test-Path -path $logfiletemp) {  
+	Remove-Item $logfiletemp -Force
+}
