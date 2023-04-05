@@ -1,4 +1,18 @@
-﻿function New-RandomPassword {
+﻿<#
+Name: .ps1
+
+This script is for Creating Ramdom Passwords.
+
+Michael Patterson
+scripts@mwpatterson.com
+
+Revision History
+    2023-04-05 - Initial Release
+
+#>
+
+# Start Function(s)
+function New-RandomPassword {
     param(
         [Parameter()]
         [int]$MinimumPasswordLength = 5,
@@ -21,5 +35,23 @@
     }
 }
 
+# End Function(s)
 
+# Clear Screen
+#Clear-Host
+
+<#
+# Self-elevate the script if required
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    Exit
+}
+#>
+
+<#
+# Check For Admin Mode
+#Requires -RunAsAdministrator
+#>
+
+# Generate Ramdom Password
 New-RandomPassword -MinimumPasswordLength 10 -MaximumPasswordLength 15 -NumberOfAlphaNumericCharacters 6 -ConvertToSecureString
