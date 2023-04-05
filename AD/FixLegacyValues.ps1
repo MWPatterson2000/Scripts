@@ -45,7 +45,7 @@ Else
     # $ADObjectName is the sAMAccountName of an object.
     $ADObject = Get-ADObject -LDAPFilter "(sAMAccountName=$ADObjectName)" -Server $Server
 }
-If ($ADObject -eq $Null)
+If ($Null -eq $ADObject)
 {
     "Object $ADObjectName not found"
     Break
