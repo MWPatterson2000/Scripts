@@ -1,6 +1,6 @@
 # get AD schema path
 $adSchema = (Get-ADRootDSE).schemaNamingContext
- 
+
 # get user schema
 $userSchema = Get-ADObject -SearchBase $adSchema -Filter "Name -eq 'User'"
 
@@ -24,16 +24,16 @@ $indexable = 0
 
 # build custom attributes hashtable
 $adAttributes = @{
-  lDAPDisplayName = $attributeName;
+  lDAPDisplayName  = $attributeName;
   adminDescription = $attributeDesc;
-  attributeId = $OID;
-  oMSyntax = $oMSyntax;
-  attributeSyntax = $attributeSyntax;
-  searchflags = $indexable
+  attributeId      = $OID;
+  oMSyntax         = $oMSyntax;
+  attributeSyntax  = $attributeSyntax;
+  searchflags      = $indexable
 }
 
 # create the custom attribute in AD schema
 New-ADObject -Name  $attributeName -Type attributeSchema -Path $adSchema -OtherAttributes $adAttributes
- 
+
 # add the custom attribute to user class
-$userSchema | Set-ADObject -Add @{mayContain = $attributeName} 
+$userSchema | Set-ADObject -Add @{mayContain = $attributeName } 
