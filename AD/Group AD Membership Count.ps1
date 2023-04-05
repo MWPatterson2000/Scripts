@@ -110,7 +110,7 @@ Foreach ($Group in $Groups) {
     $reportObj | Add-Member NoteProperty -Name "Distinguished Name" -Value $Group.distinguishedName
     $report += $reportObj
     Write-Progress -Id $Id -Activity $Activity -Status ($StatusBlock) -CurrentOperation $Task -PercentComplete ($i / $totalGroups * 100)
-    }
+}
 
 $report | Export-CSV -Path $logPath -NoTypeInformation -Encoding UTF8
 #>
