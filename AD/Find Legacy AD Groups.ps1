@@ -13,8 +13,10 @@ Revision History
 #>
 
 # Clear Screen
-#cls
 Clear-Host
+
+# PowerShell 5.x required. The version of PowerShell included with Windows 10
+#Requires -Version 5.0
 
 <#
 # Check For Admin Mode
@@ -22,12 +24,6 @@ Clear-Host
 #>
 
 # Set Variables
-
-# Clear Screen
-Clear-Host
-
-# PowerShell 5.x required. The version of PowerShell included with Windows 10
-#Requires -Version 5.0
 
 #<#
 # Get Date & Log Locations
