@@ -12,7 +12,7 @@ Revision History
 #>
 
 # Clear Screen
-cls
+Clear-Host
 
 <#
 # Check For Admin Mode
@@ -55,7 +55,7 @@ $StatusBlock = [ScriptBlock]::Create($StatusText)
 Write-Progress -Id $Id -Activity $Activity -Status ($StatusBlock) -CurrentOperation $Task -PercentComplete "100"
 
 # Get AD Group Count
-$totalGroups = (Get-AdGroup -filter * | Where {$_.name -like "**"} | select name -ExpandProperty name).Count
+$totalGroups = (Get-AdGroup -filter * | Where-Object {$_.name -like "**"} | Select-Object name -ExpandProperty name).Count
 
 # Setup Progress Bar - Step 3
 $Step  = 3
@@ -66,9 +66,9 @@ Write-Progress -Id $Id -Activity $Activity -Status ($StatusBlock) -CurrentOperat
 
 # Get AD Groups
 #$Groups = (Get-AdGroup -filter * | Where {$_.name -like "**"} | select name -ExpandProperty name)
-$Groups = (Get-AdGroup -filter * | Where {$_.name -like "**"} | select name,distinguishedName,description,info)
+$Groups = (Get-AdGroup -filter * | Where-Object {$_.name -like "**"} | Select-Object name,distinguishedName,description,info)
 #$Groups = (Get-AdGroup -filter * -Properties * | Where {$_.name -like "**"} | select name,distinguishedName,description,info -ExpandProperty name,distinguishedName,description,info)
-$Groups = (Get-AdGroup -filter * -Properties * | Where {$_.name -like "**"} | select name,distinguishedName,description,info,Created,Modified)
+$Groups = (Get-AdGroup -filter * -Properties * | Where-Object {$_.name -like "**"} | Select-Object name,distinguishedName,description,info,Created,Modified)
 
 $Table = @()
 
@@ -100,6 +100,6 @@ Foreach ($Group in $Groups) {
     $reportObj | Add-Member NoteProperty -Name "Member Count" -Value $groupCount
     $report += $reportObj
     Write-Progress -Id $Id -Activity $Activity -Status ($StatusBlock) -CurrentOperation $Task -PercentComplete ($i / $totalGroups * 100)
-    }
+}
 
 $report | Export-CSV -Path $logPath -NoTypeInformation -Encoding UTF8
