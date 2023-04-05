@@ -6,7 +6,7 @@
 #       Description: AD Health Status 
 ############################################################################# 
 ###########################Define Variables################################## 
- 
+
 # Get Date & Backup Locations
 $date = get-date -Format "yyyy-MM-dd-HH-mm"
 $driveRoot = "C:\" #Can use another drive if available
@@ -19,7 +19,7 @@ $filePath = $driveFolderPath + $driveFileName
 #$reportpath = ".\ADReport.htm"  
 $reportpath = "C:\Temp\ADReport.htm"  
 #$reportpath = $backupPath  
- 
+
 if ((test-path $reportpath) -like $false) {
     new-item $reportpath -type file
 } 
@@ -27,10 +27,10 @@ $smtphost = "SMTP.labtest.com"
 $from = "DoNotReply@labtest.com"  
 $to = "Sukhija@labtest.com" 
 $timeout = "60" 
- 
+
 ###############################HTml Report Content############################ 
 $report = $reportpath 
- 
+
 Clear-Content $report  
 Add-Content $report "<html>"  
 Add-Content $report "<head>"  
@@ -70,7 +70,7 @@ add-content $report  "<font face='tahoma' color='#003399' size='4'><strong>Activ
 add-content $report  "</td>"  
 add-content $report  "</tr>"  
 add-content $report  "</table>"  
-  
+
 add-content $report  "<table width='100%'>"  
 Add-Content $report  "<tr bgcolor='IndianRed'>"  
 Add-Content $report  "<td width='5%' align='center'><B>Identity</B></td>"  
@@ -81,16 +81,16 @@ Add-Content $report  "<td width='10%' align='center'><B>DNSServiceStatus</B></td
 Add-Content $report  "<td width='10%' align='center'><B>NetlogonsTest</B></td>" 
 Add-Content $report  "<td width='10%' align='center'><B>ReplicationTest</B></td>" 
 Add-Content $report  "<td width='10%' align='center'><B>ServicesTest</B></td>" 
-  
+
 Add-Content $report "</tr>"  
- 
+
 #####################################Get ALL DC Servers################################# 
 $getForest = [system.directoryservices.activedirectory.Forest]::GetCurrentForest() 
- 
-$DCServers = $getForest.domains | ForEach-Object {$_.DomainControllers} | ForEach-Object {$_.Name}  
- 
+
+$DCServers = $getForest.domains | ForEach-Object { $_.DomainControllers } | ForEach-Object { $_.Name }  
+
 ################Ping Test###### 
- 
+
 foreach ($DC in $DCServers) { 
     $Identity = $DC 
     Add-Content $report "<tr>" 
@@ -101,7 +101,7 @@ foreach ($DC in $DCServers) {
         Add-Content $report "<td bgcolor= 'Aquamarine' align=center>  <B>Success</B></td>"  
     
         ##############Netlogon Service Status################ 
-        $serviceStatus = start-job -scriptblock {get-service -ComputerName $($args[0]) -Name "Netlogon" -ErrorAction SilentlyContinue} -ArgumentList $DC 
+        $serviceStatus = start-job -scriptblock { get-service -ComputerName $($args[0]) -Name "Netlogon" -ErrorAction SilentlyContinue } -ArgumentList $DC 
         wait-job $serviceStatus -timeout $timeout 
         if ($serviceStatus.state -like "Running") { 
             Write-Host $DC `t Netlogon Service TimeOut -ForegroundColor Yellow 
@@ -115,18 +115,18 @@ foreach ($DC in $DCServers) {
                 $svcName = $serviceStatus1.name  
                 $svcState = $serviceStatus1.status           
                 Add-Content $report "<td bgcolor= 'Aquamarine' align=center><B>$svcState</B></td>"  
-                } 
+            } 
             else {
                 Write-Host $DC `t $serviceStatus1.name `t $serviceStatus1.status -ForegroundColor Red  
                 $svcName = $serviceStatus1.name  
                 $svcState = $serviceStatus1.status           
                 Add-Content $report "<td bgcolor= 'Red' align=center><B>$svcState</B></td>"  
-                }  
-            } 
+            }  
+        } 
         ###################################################### 
 
         ##############NTDS Service Status################ 
-        $serviceStatus = start-job -scriptblock {get-service -ComputerName $($args[0]) -Name "NTDS" -ErrorAction SilentlyContinue} -ArgumentList $DC 
+        $serviceStatus = start-job -scriptblock { get-service -ComputerName $($args[0]) -Name "NTDS" -ErrorAction SilentlyContinue } -ArgumentList $DC 
         wait-job $serviceStatus -timeout $timeout 
         if ($serviceStatus.state -like "Running") {
             Write-Host $DC `t NTDS Service TimeOut -ForegroundColor Yellow 
@@ -151,7 +151,7 @@ foreach ($DC in $DCServers) {
         ###################################################### 
 
         ##############DNS Service Status################ 
-        $serviceStatus = start-job -scriptblock {get-service -ComputerName $($args[0]) -Name "DNS" -ErrorAction SilentlyContinue} -ArgumentList $DC 
+        $serviceStatus = start-job -scriptblock { get-service -ComputerName $($args[0]) -Name "DNS" -ErrorAction SilentlyContinue } -ArgumentList $DC 
         wait-job $serviceStatus -timeout $timeout 
         if ($serviceStatus.state -like "Running") {
             Write-Host $DC `t DNS Server Service TimeOut -ForegroundColor Yellow 
@@ -178,7 +178,7 @@ foreach ($DC in $DCServers) {
         ####################Netlogons status################## 
         add-type -AssemblyName microsoft.visualbasic  
         $cmp = "microsoft.visualbasic.strings" -as [type] 
-        $sysvol = start-job -scriptblock {dcdiag /test:netlogons /s:$($args[0])} -ArgumentList $DC 
+        $sysvol = start-job -scriptblock { dcdiag /test:netlogons /s:$($args[0]) } -ArgumentList $DC 
         wait-job $sysvol -timeout $timeout 
         if ($sysvol.state -like "Running") {
             Write-Host $DC `t Netlogons Test TimeOut -ForegroundColor Yellow 
@@ -202,7 +202,7 @@ foreach ($DC in $DCServers) {
         ####################Replications status################## 
         add-type -AssemblyName microsoft.visualbasic  
         $cmp = "microsoft.visualbasic.strings" -as [type] 
-        $sysvol = start-job -scriptblock {dcdiag /test:Replications /s:$($args[0])} -ArgumentList $DC 
+        $sysvol = start-job -scriptblock { dcdiag /test:Replications /s:$($args[0]) } -ArgumentList $DC 
         wait-job $sysvol -timeout $timeout 
         if ($sysvol.state -like "Running") {
             Write-Host $DC `t Replications Test TimeOut -ForegroundColor Yellow 
@@ -226,9 +226,9 @@ foreach ($DC in $DCServers) {
         ####################Services status################## 
         add-type -AssemblyName microsoft.visualbasic  
         $cmp = "microsoft.visualbasic.strings" -as [type] 
-        $sysvol = start-job -scriptblock {dcdiag /test:Services /s:$($args[0])} -ArgumentList $DC 
+        $sysvol = start-job -scriptblock { dcdiag /test:Services /s:$($args[0]) } -ArgumentList $DC 
         wait-job $sysvol -timeout $timeout 
-        if($sysvol.state -like "Running") { 
+        if ($sysvol.state -like "Running") { 
             Write-Host $DC `t Services Test TimeOut -ForegroundColor Yellow 
             Add-Content $report "<td bgcolor= 'Yellow' align=center><B>ServicesTimeout</B></td>" 
             stop-job $sysvol 
@@ -259,17 +259,17 @@ foreach ($DC in $DCServers) {
         Add-Content $report "<td bgcolor= 'Red' align=center>  <B>Ping Fail</B></td>" 
     }          
 }  
- 
+
 Add-Content $report "</tr>" 
 ############################################Close HTMl Tables########################### 
- 
+
 Add-content $report  "</table>"  
 Add-Content $report "</body>"  
 Add-Content $report "</html>"  
- 
+
 ######################################################################################## 
 #############################################Send Email################################# 
- 
+
 <# 
 $subject = "Active Directory Health Monitor"  
 $body = Get-Content ".\ADreport.htm"  
@@ -278,9 +278,6 @@ $msg = New-Object System.Net.Mail.MailMessage $from, $to, $subject, $body
 $msg.isBodyhtml = $true  
 $smtp.send($msg)  
 #>
- 
+
 ######################################################################################## 
 ######################################################################################## 
-  
-              
-        
