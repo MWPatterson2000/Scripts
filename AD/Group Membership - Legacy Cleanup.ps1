@@ -18,7 +18,7 @@ $ADGroupSource = "Pre-Windows 2000 Compatible Access"
 $ADGroupTarget = "Temp - Move Group"
 
 # Export AD Group Users Pre Cleanup
-Get-ADGroupMember -identity $ADGroupSource -recursive | select Name, SamAccountName | Export-CSV "c:\Temp\$(get-date -f yyyy-MM-dd-HH-mm) - AD Group Cleanup Pre - $ADGroupSource.csv" -NoTypeInformation
+Get-ADGroupMember -identity $ADGroupSource -recursive | Select-Object Name, SamAccountName | Export-CSV "c:\Temp\$(get-date -f yyyy-MM-dd-HH-mm) - AD Group Cleanup Pre - $ADGroupSource.csv" -NoTypeInformation
 Exit
 
 # Verify Temp AD Group is empty
@@ -36,7 +36,7 @@ Write-Host "Post Cleanup - Temp AD Group Members: $ADGroupTargetCount2"
 #Exit
 
 # Copy Group to Temp Group
-Get-ADGroupMember -Identity $ADGroupSource | foreach {Add-ADGroupMember -Identity $ADGroupTarget -Members $($_.DistinguishedName)}
+Get-ADGroupMember -Identity $ADGroupSource | ForEach-Object {Add-ADGroupMember -Identity $ADGroupTarget -Members $($_.DistinguishedName)}
 
 # Verify Counts match between the 2 groups
 $ADGroupSourceCount3 = (Get-ADGroupMember $ADGroupSource).Count
@@ -56,7 +56,7 @@ Write-Host "Post Cleanup - Base AD Group Members: $ADGroupSourceCount4"
 
 # Copy Group Back to Group
 Get-ADGroupMember -Identity $ADGroupTarget |
-foreach {
+ForEach-Object {
     Add-ADGroupMember -Identity $ADGroupSource -Members $($_.DistinguishedName)
 }
 #Exit
@@ -69,7 +69,7 @@ Write-Host "After Copy 2 - Temp AD Group Members: $ADGroupTargetCount5"
 #Exit
 
 # Export AD Group Users Post Cleanup
-Get-ADGroupMember -identity $ADGroupSource -recursive | select Name, SamAccountName | Export-CSV "c:\Temp\$(get-date -f yyyy-MM-dd-HH-mm) - AD Group Cleanup Post - $ADGroupSource.csv" -NoTypeInformation
+Get-ADGroupMember -identity $ADGroupSource -recursive | Select-Object Name, SamAccountName | Export-CSV "c:\Temp\$(get-date -f yyyy-MM-dd-HH-mm) - AD Group Cleanup Post - $ADGroupSource.csv" -NoTypeInformation
 #Exit
 
 # Cleanup Temp AD Group
