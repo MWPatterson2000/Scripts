@@ -8,10 +8,10 @@ $logFileName = $date +"-" +$logFile
 $logPath = $logRoot +$logFolder +$date +"-" +$logFile
 
 ## Get a list of all domain controllers in the forest
-$DcList = (Get-ADForest).Domains | ForEach { Get-ADDomainController -Discover -DomainName $_ } | ForEach { Get-ADDomainController -Server $_.Name -filter * } | Select Site, Name, Domain
+$DcList = (Get-ADForest).Domains | ForEach-Object { Get-ADDomainController -Discover -DomainName $_ } | ForEach-Object { Get-ADDomainController -Server $_.Name -filter * } | Select Site, Name, Domain
 
 ## Get all replication subnets from Sites & Services
-$Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select Name, Site, Location, Description
+$Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select-Object Name, Site, Location, Description
 
 ## Create an empty array to build the subnet list
 $ResultsArray = @()
@@ -20,7 +20,7 @@ $ResultsArray = @()
 ForEach ($Subnet in $Subnets) {
 
     $SiteName = ""
-    If ($Subnet.Site -ne $null) { $SiteName = $Subnet.Site.Split(',')[0].Trim('CN=') }
+    If ($null -ne $Subnet.Site) { $SiteName = $Subnet.Site.Split(',')[0].Trim('CN=') }
 
     $DcInSite = $False
     If ($DcList.Site -Contains $SiteName) { $DcInSite = $True }
@@ -38,4 +38,4 @@ ForEach ($Subnet in $Subnets) {
 
 ## Export the array as a CSV file
 #$ResultsArray | Sort Subnet | Export-Csv .\AD-Subnets.csv -nti
-$ResultsArray | Sort Subnet | Export-Csv $logPath -nti
+$ResultsArray | Sort-Object Subnet | Export-Csv $logPath -nti
