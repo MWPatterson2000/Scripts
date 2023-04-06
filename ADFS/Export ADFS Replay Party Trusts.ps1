@@ -32,7 +32,7 @@ function Get-UserVariable ($Name = '*')
 }
 
 function ExportADFSRelayTrust {
-    
+
 }
 
 # End Function(s)
@@ -95,3 +95,5 @@ Foreach ($trust in $adfsRelayPartyTrusts) {
 
 # Clear Variables
 Get-UserVariable | Remove-Variable
+
+# End
