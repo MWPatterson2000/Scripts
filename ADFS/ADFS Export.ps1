@@ -1,7 +1,7 @@
 ﻿<#
-Name: .ps1
+Name: ADFS Export.ps1
 
-This script is for .
+This script is for Exporting All ADFS Settings.
 
 Michael Patterson
 scripts@mwpatterson.com
@@ -19,7 +19,7 @@ Clear-Host
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
     Exit
- }
+}
 #>
 
 <#
@@ -29,22 +29,21 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 
 # Clear Varables
-function Get-UserVariable ($Name = '*')
-{
-  # these variables may exist in certain environments (like ISE, or after use of foreach)
-  $special = 'ps','psise','psunsupportedconsoleapplications', 'foreach', 'profile'
+function Get-UserVariable ($Name = '*') {
+    # these variables may exist in certain environments (like ISE, or after use of foreach)
+    $special = 'ps','psise','psunsupportedconsoleapplications', 'foreach', 'profile'
 
-  $ps = [PowerShell]::Create()
-  $null = $ps.AddScript('$null=$host;Get-Variable') 
-  $reserved = $ps.Invoke() | 
-    Select-Object -ExpandProperty Name
-  $ps.Runspace.Close()
-  $ps.Dispose()
-  Get-Variable -Scope Global | 
-    Where-Object Name -like $Name |
-    Where-Object { $reserved -notcontains $_.Name } |
-    Where-Object { $special -notcontains $_.Name } |
-    Where-Object Name 
+    $ps = [PowerShell]::Create()
+    $null = $ps.AddScript('$null=$host;Get-Variable') 
+    $reserved = $ps.Invoke() | 
+        Select-Object -ExpandProperty Name
+    $ps.Runspace.Close()
+    $ps.Dispose()
+    Get-Variable -Scope Global | 
+        Where-Object Name -like $Name |
+        Where-Object { $reserved -notcontains $_.Name } |
+        Where-Object { $special -notcontains $_.Name } |
+        Where-Object Name 
 }
 
 # Set Variables
@@ -52,7 +51,6 @@ function Get-UserVariable ($Name = '*')
 #$today = $today.ToString("dddd MMMM-dd-yyyy hh:mm tt")
 
 # Export ADFS SEttings
-
 Get-AdfsAdditionalAuthenticationRule | Export-CSV "C:\Temp\$(get-date -f yyyy-MM-dd) - $env:COMPUTERNAME - ADFSAdditionalAuthenticationRule.csv"
 Get-AdfsAttributeStore | Export-CSV "C:\Temp\$(get-date -f yyyy-MM-dd) - $env:COMPUTERNAME - ADFSAttributeStore.csv"
 Get-AdfsAuthenticationProvider | Export-CSV "C:\Temp\$(get-date -f yyyy-MM-dd) - $env:COMPUTERNAME - ADFSAuthenticationProvider.csv"
@@ -79,3 +77,5 @@ Get-AdfsWebTheme | Export-CSV "C:\Temp\$(get-date -f yyyy-MM-dd) - $env:COMPUTER
 
 # Clear Variables
 Get-UserVariable | Remove-Variable
+
+# End
