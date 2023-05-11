@@ -69,7 +69,7 @@ function Get-IPv4Subnet {
     )
 
     Begin {
-   
+
     }
 
     Process {

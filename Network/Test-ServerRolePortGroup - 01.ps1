@@ -27,29 +27,29 @@
 	[OutputType([System.Management.Automation.PSCustomObject])]
 	param (
 		[Parameter(Mandatory)]
-		[ValidateScript({ Test-Connection -ComputerName $_ -Count 1 -Quiet})]
+		[ValidateScript({ Test-Connection -ComputerName $_ -Count 1 -Quiet })]
 		[string[]]$Computername,
 		[Parameter(Mandatory)]
 		#[ValidateSet('WinRm','Smb','Dns','ActiveDirectoryGeneral','ActiveDirectoryGlobalCatalog','NetBios')]
-		[ValidateSet('WinRm','Smb','Dns','ActiveDirectoryGeneral','ActiveDirectoryGlobalCatalog','NetBios','RDP')]
+		[ValidateSet('WinRm', 'Smb', 'Dns', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP')]
 		[string[]]$ServerRole
 	)
 	begin {
 		$PortGroups = @{
-			'WinRm' = @{ 'TCP' = 5985}
-			'Smb' = @{ 'TCP' = 445; 'UDP' = 445 }
-			'Dns' = @{ 'TCP' = 53; 'UDP' = 53 }
-			'ActiveDirectoryGeneral' = @{ 'TCP' = 25, 88, 389, 464, 636, 5722, 9389; 'UDP' = 88,123,389,464 }
+			'WinRm'                        = @{ 'TCP' = 5985 }
+			'Smb'                          = @{ 'TCP' = 445; 'UDP' = 445 }
+			'Dns'                          = @{ 'TCP' = 53; 'UDP' = 53 }
+			'ActiveDirectoryGeneral'       = @{ 'TCP' = 25, 88, 389, 464, 636, 5722, 9389; 'UDP' = 88, 123, 389, 464 }
 			'ActiveDirectoryGlobalCatalog' = @{ 'TCP' = 3268, 3269 }
-			'NetBios' = @{ 'TCP' = 135, 137, 138, 139; 'UDP' = 137,138,139 }
-			'RDP' = @{ 'TCP' = 3389}
+			'NetBios'                      = @{ 'TCP' = 135, 137, 138, 139; 'UDP' = 137, 138, 139 }
+			'RDP'                          = @{ 'TCP' = 3389 }
 		}
 	}
 	process {
 		foreach ($Computer in $Computername) {
 			Write-Verbose "Beginning port tests on computer '$Computer'"
 			try {
-				$TestPortGroups = $PortGroups.GetEnumerator() | where { $ServerRole -contains $_.Key }
+				$TestPortGroups = $PortGroups.GetEnumerator() | Where-Object { $ServerRole -contains $_.Key }
 				Write-Verbose "Found '$($TestPortGroups.Count)' port group(s) to test"
 				foreach ($PortGroup in $TestPortGroups) {
 					$PortGroupName = $PortGroup.Key
@@ -62,7 +62,8 @@
 						$TestResult
 					}
 				}
-			} catch {
+			}
+			catch {
 				Write-Verbose "$($MyInvocation.MyCommand.Name) - Computer: $Computer - Error: $($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
 				$false
 			}
@@ -98,7 +99,7 @@ function Test-Port {
 		This example tests the TCP network ports 80 and 443 on both the LABDC
 		and LABDC2 servers.
 	#>
-	[CmdletBinding(DefaultParameterSetName='TCP')]
+	[CmdletBinding(DefaultParameterSetName = 'TCP')]
 	[OutputType([System.Management.Automation.PSCustomObject])]
 	param (
 		[Parameter(Mandatory)]
@@ -108,7 +109,7 @@ function Test-Port {
 		[Parameter(Mandatory)]
 		[ValidateSet('TCP', 'UDP')]
 		[string]$Protocol,
-		[Parameter(ParameterSetName='TCP')]
+		[Parameter(ParameterSetName = 'TCP')]
 		[int]$TcpTimeout = 1000,
 		[Parameter(ParameterSetName = 'UDP')]
 		[int]$UdpTimeout = 1000
@@ -126,7 +127,8 @@ function Test-Port {
 						$TcpClient.Close()
 						Write-Verbose "$($MyInvocation.MyCommand.Name) - '$Computer' failed port test on port '$Protocol</code>:$Portx'"
 						$Output.Result = $false
-					} else {
+					}
+					else {
 						$TcpClient.EndConnect($Connect)
 						$TcpClient.Close()
 						Write-Verbose "$($MyInvocation.MyCommand.Name) - '$Computer' passed port test on port '$Protocol<code>:$Portx'"
@@ -134,7 +136,8 @@ function Test-Port {
 					}
 					$TcpClient.Close()
 					$TcpClient.Dispose()
-				} elseif ($Protocol -eq 'UDP') {
+				}
+				elseif ($Protocol -eq 'UDP') {
 					$UdpClient = New-Object System.Net.Sockets.UdpClient
 					$UdpClient.Client.ReceiveTimeout = $UdpTimeout
 					$UdpClient.Connect($Computer, $Portx)
@@ -154,7 +157,8 @@ function Test-Port {
 							Write-Verbose "$($MyInvocation.MyCommand.Name) - '$Computer' passed port test on port '$Protocol</code>:$Portx'"
 							$Output.Result = $true
 						}
-					} catch {
+					}
+					catch {
 						Write-Verbose "$($MyInvocation.MyCommand.Name) - '$Computer' failed port test on port '$Protocol`:$Portx' with error '$($_.Exception.Message)'"
 						$Output.Result = $false
 					}
@@ -169,5 +173,5 @@ function Test-Port {
 
 # Run Test
 #Test-ServerRolePortGroup -Computername 'MFA-DC01','MFA-DC02' -ServerRole NetBIOS,WinRm,Dns
-Test-ServerRolePortGroup -Computername 'MFA-DC01','MFA-DC02' -ServerRole WinRm,Smb,Dns,ActiveDirectoryGeneral,ActiveDirectoryGlobalCatalog,NetBios,RDP | Format-Table -AutoSize
+Test-ServerRolePortGroup -Computername 'MFA-DC01', 'MFA-DC02' -ServerRole WinRm, Smb, Dns, ActiveDirectoryGeneral, ActiveDirectoryGlobalCatalog, NetBios, RDP | Format-Table -AutoSize
 

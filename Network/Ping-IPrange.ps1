@@ -2,7 +2,7 @@
     <#
     .SYNOPSIS
         Sends ICMP echo request packets to a range of IPv4 addresses between two given addresses.
- 
+
     .DESCRIPTION
         This function lets you sends ICMP echo request packets ("pings") to 
         a range of IPv4 addresses using an asynchronous method.
@@ -139,8 +139,8 @@
 
         $Reply = Get-Event -SourceIdentifier "ID-Ping*" | ForEach { 
             If($_.SourceEventArgs.Reply.Status -eq "Success"){
-                $_.SourceEventArgs.Reply | select @{
-                      Name="IPAddress"   ; Expression={$_.Address}},
+                $_.SourceEventArgs.Reply | Select-Object @{
+                    Name="IPAddress"   ; Expression={$_.Address}},
                     @{Name="Bytes"       ; Expression={$_.Buffer.Length}},
                     @{Name="Ttl"         ; Expression={$_.Options.Ttl}},
                     @{Name="ResponseTime"; Expression={$_.RoundtripTime}}
