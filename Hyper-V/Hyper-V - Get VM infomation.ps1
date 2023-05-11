@@ -53,4 +53,4 @@ $vms = foreach($VirHost in $EduVirHosts) {
 # Write Output to File
 $vms | Sort-Object ComputerName, VMName | Export-Csv $logPath -NoTypeInformation
 #$vms | Sort-Object ComputerName, VMName | Out-File $logPath1
- #| Sort-Object vmname | Format-Table -AutoSize
+#| Sort-Object vmname | Format-Table -AutoSize
