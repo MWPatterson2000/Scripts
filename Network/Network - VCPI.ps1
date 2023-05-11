@@ -1,0 +1,138 @@
+﻿<#
+Name: Local Admin - VCPI.ps1
+
+This script is to add a local Admin to a computer for RUI VCPI transition.
+
+Michael Patterson
+Mike.Patterson@mfa.net
+
+Revision History
+    2021-02-22 - Initial Release
+
+#>
+
+# Clear Screen
+cls
+
+#<#
+# Self-elevate the script if required
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { 
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    Exit
+ }
+#>
+
+<#
+# Check For Admin Mode
+#Requires -RunAsAdministrator
+#>
+
+### check facility and assign company ###
+$FAC  = $env:computername.substring(0,3)
+ switch ($FAC) {
+    AAR {$company = "RUI"}
+    ASL {$company = "RUI"}
+    BLK {$company = "RUI"}
+    BTW {$company = "RUI"}
+    HWD {$company = "RUI"}
+    HID {$company = "RUI"}
+    PSR {$company = "RUI"}
+   #PBL {$company = "RUI"}
+    WEL {$company = "RUI"}
+    WLH {$company = "RUI"}
+    WSP {$company = "RUI"}
+    RUI {$company = "RUI"}
+    }
+
+If ($company -eq "RUI") {
+    Copy-Item '\\mfadomain.mfa.net\SYSVOL\mfadomain.mfa.net\scripts\RUI\Wi-Fi-RUI-IT.xml' -Destination 'c:\ISData\Wi-Fi-RUI-IT.xml' -Force
+    netsh wlan add profile filename=c:\ISData\Wi-Fi-RUI-IT.xml user=all
+}
+
+# End
+Exit
+
+
+# SIG # Begin signature block
+# MIIPJAYJKoZIhvcNAQcCoIIPFTCCDxECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQULczAG8xbKpEQgv6Nkm2zUFsG
+# ++Ggggx4MIIGEDCCBPigAwIBAgITTgAAAALdqYWAg9p+LAAAAAAAAjANBgkqhkiG
+# 9w0BAQsFADAWMRQwEgYDVQQDEwtNRkEtUEtJUk9PVDAeFw0xNzA5MDgxOTMwMTJa
+# Fw00MjA5MDgxOTQwMTJaMF4xEzARBgoJkiaJk/IsZAEZFgNuZXQxEzARBgoJkiaJ
+# k/IsZAEZFgNtZmExGTAXBgoJkiaJk/IsZAEZFgltZmFkb21haW4xFzAVBgNVBAMT
+# Dk1GQS1QS0lTVUIxLUNBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
+# vR6HUmdcbqh1GryRcNxyQaizmffl9D8C4ravRh33IhkVNNYzREfYZ0rxSejVSgCU
+# LPKkFNE3pAvsICaHO45NGSSp3CDj+3GSS+3ubtFv9cwEzev8RU7UQOM3/cXdQwVA
+# EBkmqVOtqC2R2nwx2bMs+cdd1mbfLBPHyOppXRmo0dFpaY9kNhJrFIwWUEm/fiIr
+# maoguXMEpUHbWf5tWooIgU+gHzrXqbvVTl3h35xlTgi8LP+TRe88FmRzraiaVhmc
+# SCF4odj/w6n7yb5moCaKxhInD+1fKRwr2jt05D1bhuzIWtBifVJ8RQNkEKMc1pT0
+# SIKMMoODV+LHRnlnVC5/1QIDAQABo4IDDTCCAwkwEAYJKwYBBAGCNxUBBAMCAQAw
+# HQYDVR0OBBYEFAbE9uqXoE7iQ70t8SHqmBTH/ykYMEkGA1UdIARCMEAwPgYIKgME
+# iy9DWQUwMjAwBggrBgEFBQcCARYkaHR0cDovL3BraS5tZmFkb21haW4ubWZhLm5l
+# dC9jcHMudHh0MBkGCSsGAQQBgjcUAgQMHgoAUwB1AGIAQwBBMAsGA1UdDwQEAwIB
+# hjAPBgNVHRMBAf8EBTADAQH/MB8GA1UdIwQYMBaAFFVuk20fl7JVNsaDH1pSNNBZ
+# A2mOMIIBEgYDVR0fBIIBCTCCAQUwggEBoIH+oIH7hoG/bGRhcDovLy9DTj1NRkEt
+# UEtJUk9PVCxDTj1tZmEtcGtpcm9vdCxDTj1DRFAsQ049UHVibGljJTIwS2V5JTIw
+# U2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1tZmFkb21h
+# aW4sREM9bWZhLERDPW5ldD9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/
+# b2JqZWN0Q2xhc3M9Y1JMRGlzdHJpYnV0aW9uUG9pbnSGN2h0dHA6Ly9wa2kubWZh
+# ZG9tYWluLm1mYS5uZXQvQ2VydEVucm9sbC9NRkEtUEtJUk9PVC5jcmwwggEZBggr
+# BgEFBQcBAQSCAQswggEHMIGzBggrBgEFBQcwAoaBpmxkYXA6Ly8vQ049TUZBLVBL
+# SVJPT1QsQ049QUlBLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZp
+# Y2VzLENOPUNvbmZpZ3VyYXRpb24sREM9bWZhZG9tYWluLERDPW1mYSxEQz1uZXQ/
+# Y0FDZXJ0aWZpY2F0ZT9iYXNlP29iamVjdENsYXNzPWNlcnRpZmljYXRpb25BdXRo
+# b3JpdHkwTwYIKwYBBQUHMAKGQ2h0dHA6Ly9wa2kubWZhZG9tYWluLm1mYS5uZXQv
+# Q2VydEVucm9sbC9tZmEtcGtpcm9vdF9NRkEtUEtJUk9PVC5jcnQwDQYJKoZIhvcN
+# AQELBQADggEBAHiEqhKA4gnHPNZCZOEJ8TuX6P3gwMuOUn4eaZ+Icwm6FHfOp+DG
+# n9yaDjTnY/+b3o/ijzqxpBjfRCET9OL8lce++FiD/Tz6h4+Lr5g8Kd1kMmioQZsl
+# tuO4BB8C0ury/cgC1tHzNRfHeX1/5L701kY9AqUyg60VP3uJ5hp3AGzv7RerOOwi
+# ydFEiB0gvuu5t13KuoVTugItQLfFmDVPrLvxBp615Km/rX+Exs0WiIm1qmAfym3F
+# fephd1Jj0hMlZzolE87PC4Ogs3lvUTZGyzOniwpQhSorHRQf2feSR92Omy9g9C+U
+# GEtiq6/JDR+EWKbnrm+i+Cx0nQog3MUN9QQwggZgMIIFSKADAgECAhNnAADaWhh/
+# Tmm0LOBXAAAAANpaMA0GCSqGSIb3DQEBCwUAMF4xEzARBgoJkiaJk/IsZAEZFgNu
+# ZXQxEzARBgoJkiaJk/IsZAEZFgNtZmExGTAXBgoJkiaJk/IsZAEZFgltZmFkb21h
+# aW4xFzAVBgNVBAMTDk1GQS1QS0lTVUIxLUNBMB4XDTE5MDExODEyMzMxMloXDTI5
+# MDExNTEyMzMxMlowITEfMB0GA1UEAxMWUGF0dGVyc29uLCBNaWtlIGF0IE1GQTCC
+# ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANFJ36sdU7TYB16Rut9ylvrX
+# YOCTlafanWNi3PdgqYjPTYy1JR1IJ1v869Lp0gi6+jt6xut1gyLdGXCqM1nhwRPT
+# k3q5U8jYczoYUbOky3wIhmAuZKVYXy3O5huzrMQAKhY35xuScIs40dvOPaQdgnf/
+# D2yKbANFNIVrBfBTcgWeaTpDefgTFysknTwdj4dsNYCZ0czCRfpQ7pcxyMwAPlt5
+# 5ulrunAeqJkPbuTKEJNYfv5oIBg9lRQBux24yXS/sp4inw3FeT/RKNDz5mYRvXSm
+# I+fQ9WdoxE9j3vlqSyQe4G+qwO2Jlcad5w8w5Spzi8tkebGH7jsQJB7CgN61olkC
+# AwEAAaOCA1IwggNOMDwGCSsGAQQBgjcVBwQvMC0GJSsGAQQBgjcVCJW3doH3mS2C
+# /ZUugfbSSIWRni0JhsfNBoWok1ICAWQCASAwEwYDVR0lBAwwCgYIKwYBBQUHAwMw
+# CwYDVR0PBAQDAgeAMAwGA1UdEwEB/wQCMAAwGwYJKwYBBAGCNxUKBA4wDDAKBggr
+# BgEFBQcDAzAdBgNVHQ4EFgQUlcdDGjF3owKsLB+1XKMa3EiRfeswHwYDVR0jBBgw
+# FoAUBsT26pegTuJDvS3xIeqYFMf/KRgwggEaBgNVHR8EggERMIIBDTCCAQmgggEF
+# oIIBAYaBwmxkYXA6Ly8vQ049TUZBLVBLSVNVQjEtQ0EsQ049bWZhLXBraXN1YjEs
+# Q049Q0RQLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2VzLENO
+# PUNvbmZpZ3VyYXRpb24sREM9bWZhZG9tYWluLERDPW1mYSxEQz1uZXQ/Y2VydGlm
+# aWNhdGVSZXZvY2F0aW9uTGlzdD9iYXNlP29iamVjdENsYXNzPWNSTERpc3RyaWJ1
+# dGlvblBvaW50hjpodHRwOi8vcGtpLm1mYWRvbWFpbi5tZmEubmV0L0NlcnRFbnJv
+# bGwvTUZBLVBLSVNVQjEtQ0EuY3JsMIIBMQYIKwYBBQUHAQEEggEjMIIBHzCBtgYI
+# KwYBBQUHMAKGgalsZGFwOi8vL0NOPU1GQS1QS0lTVUIxLUNBLENOPUFJQSxDTj1Q
+# dWJsaWMlMjBLZXklMjBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0
+# aW9uLERDPW1mYWRvbWFpbixEQz1tZmEsREM9bmV0P2NBQ2VydGlmaWNhdGU/YmFz
+# ZT9vYmplY3RDbGFzcz1jZXJ0aWZpY2F0aW9uQXV0aG9yaXR5MGQGCCsGAQUFBzAC
+# hlhodHRwOi8vcGtpLm1mYWRvbWFpbi5tZmEubmV0L0NlcnRFbnJvbGwvbWZhLXBr
+# aXN1YjEubWZhZG9tYWluLm1mYS5uZXRfTUZBLVBLSVNVQjEtQ0EuY3J0MC4GA1Ud
+# EQQnMCWgIwYKKwYBBAGCNxQCA6AVDBNtd3BhdHRlcnNvbkBtZmEubmV0MA0GCSqG
+# SIb3DQEBCwUAA4IBAQCpR2nr2zsbdu/EemmVqAzNzg19zawBcrKZ4rQgc5k0t/az
+# hYvw7z0mjb7nFM7N9xgDfqx+RlO3/Bmp1Ziy3D4EtFpVxHwLhjeYU/9v4VugIqCe
+# pVMxB7CRncuh2e4L1kOdqQu2N6yVj0HvCTUFOxfU4ojkNIxdF55jX1yioxhyB84h
+# 6pPOgC9dobczpLP3iGTY8JWuhgB+IgdwbosGciWDb51a3CfpmEL8yVM1Q0lwSAx+
+# byyJGvk39+icAIJn6J44bZdm8MwXl1H+x9xfj1RzLedhS5ADbW0awL9zUNp/iyQt
+# fyleJD/ezoXtUZCbOaSiNf4eQe4h6MDbr1XRJmg5MYICFjCCAhICAQEwdTBeMRMw
+# EQYKCZImiZPyLGQBGRYDbmV0MRMwEQYKCZImiZPyLGQBGRYDbWZhMRkwFwYKCZIm
+# iZPyLGQBGRYJbWZhZG9tYWluMRcwFQYDVQQDEw5NRkEtUEtJU1VCMS1DQQITZwAA
+# 2loYf05ptCzgVwAAAADaWjAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAig
+# AoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgEL
+# MQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQUs5YfvpTubGJdR2C3Se8W
+# NzT178owDQYJKoZIhvcNAQEBBQAEggEAb4cxNnuoTPjgwrb4Mpih4kS1Keh8Yf11
+# eqmOCHV7t704oyPAGnbJTkTjxkBXuEP6ZaqTKkwO+CgVrFOUpiBC8WsmPl+i7iY7
+# zVasfmwsxvKvE86IFlPUF3UAemgZW6XLk66PwWdXnCPX1o45nK58j3qGCwsvnDMr
+# Xb0+2AcLECSlECH52R+UdWQW9OjtCxXE0Db+GrdJCOyxg0BSb7j7qBPloOBQr5xO
+# 8lUOs6qdr5bs1xbrk+gInAWM09BGTWHmXdyBYvR61oM3rroR87CtcJ6I9rkl315k
+# Uzb5CankdSC1r4vyH9lObYRce3i1BYu2HA3cQPfRJd+Nr2E96EgLrA==
+# SIG # End signature block
