@@ -12,7 +12,7 @@ Revision History
 #>
 
 # Clear Screen
-cls
+Clear-Host
 
 <#
 # Check For Admin Mode
@@ -39,7 +39,7 @@ $report = @()
 $i = 0
 
 # Get Date & Log Locations
-$date = get-date -Format "yyyy-MM-dd-HH-mm"
+$date = Get-Date -Format "yyyy-MM-dd-HH-mm"
 $logRoot = "C:\"
 #$logFolder = "Scripts\Logs\"
 $logFolder = "Temp\"
@@ -57,7 +57,7 @@ Write-Progress -Id $Id -Activity $Activity -Status ($StatusBlock) -CurrentOperat
 
 # Get AD Group Count
 #$totalGroups = (Get-AdGroup -filter "GroupCategory -eq 'Security'" | Where {$_.name -like "**"} | select name -ExpandProperty name).Count
-$totalGroups = (Get-AdGroup -filter * | Where {$_.name -like "**"} | select name -ExpandProperty name).Count
+$totalGroups = (Get-AdGroup -filter * | Where-Object {$_.name -like "**"} | Select-Object name -ExpandProperty name).Count
 
 # Setup Progress Bar - Step 3
 $Step  = 3
@@ -69,8 +69,8 @@ Write-Progress -Id $Id -Activity $Activity -Status ($StatusBlock) -CurrentOperat
 # Get AD Groups
 #Get-ADGroup -filter "GroupCategory -eq 'Security'" –properties Member,name,distinguishedName,description,info,Created,Modified | 
 #Get-ADGroup -filter "GroupCategory -eq 'Security'" –properties * | 
-$Groups = (Get-ADGroup -filter * –properties * | 
-Select Name,@{Name="Members";
+$Groups = (Get-ADGroup -filter * -properties * | 
+Select-Object Name,@{Name="Members";
 #Expression={($_.member | Measure-Object).count}},description,info,Created,Modified,GroupCategory,GroupScope,distinguishedName)
 Expression={($_.member | Measure-Object).count}},description,info,Created,Modified,GroupCategory,GroupScope,distinguishedName,CN,Mail)
 #Expression={($_.member | Measure-Object).count}},description,info,Created,Modified,GroupCategory,GroupScope,distinguishedName, |
