@@ -8,8 +8,8 @@ The Get-ADFsmoRole command gets the Active Directory FSMO Roles for the domain a
 This command uses both Get-ADDomain and Get-ADForest cmdlets to retrieve its information. The parameters of this command match the behavior and accept the same inputs as the parameters for these cmdlets. Refer to their individual help files for full details.
 .PARAMETER AuthType
 Specifies the authentication method to use. Possible values include:
-  Negotiate or 0
-  Basic or 1
+    Negotiate or 0
+    Basic or 1
 
 The default is Negotiate.
 Refer to the help of Get-ADDomain or Get-ADForest for more information.
@@ -21,8 +21,8 @@ Refer to the help of Get-ADDomain or Get-ADForest for more information.
 
 .PARAMETER Current
 Specifies whether to return the domain of the local computer or the current logged on user (CLU). Possible values include:
-  LocalComputer or 0
-  LoggedOnUser or 1
+    LocalComputer or 0
+    LoggedOnUser or 1
 
 The default is LoggedOnUser
 
@@ -91,63 +91,63 @@ Get-ADForest
 
 #Requires -Version 3.0
 
-[CmdletBinding(DefaultParameterSetName="Current",HelpURI="https://gallery.technet.microsoft.com/Get-the-FSMO-Flexible-2c784676")]
+[CmdletBinding(DefaultParameterSetName = "Current", HelpURI = "https://gallery.technet.microsoft.com/Get-the-FSMO-Flexible-2c784676")]
 
 Param(
-    [Parameter(ParameterSetName="Current")]
-    [Parameter(ParameterSetName="CurrentDN")]
-    [Parameter(ParameterSetName="CurrentSC")]
-    [Parameter(ParameterSetName="CurrentRI")]
-    [Parameter(ParameterSetName="CurrentPD")]
-    [Parameter(ParameterSetName="CurrentIN")]
-        [ValidateSet("LoggedOnUser","LocalComputer")]
-        [String]
-        $Current="LoggedOnUser",
+    [Parameter(ParameterSetName = "Current")]
+    [Parameter(ParameterSetName = "CurrentDN")]
+    [Parameter(ParameterSetName = "CurrentSC")]
+    [Parameter(ParameterSetName = "CurrentRI")]
+    [Parameter(ParameterSetName = "CurrentPD")]
+    [Parameter(ParameterSetName = "CurrentIN")]
+    [ValidateSet("LoggedOnUser", "LocalComputer")]
+    [String]
+    $Current = "LoggedOnUser",
 
-    [Parameter(ParameterSetName="Identity",Position=0,Mandatory=$true,ValueFromPipeline=$true)]
-    [Parameter(ParameterSetName="IdentityDN",Position=0,Mandatory=$true,ValueFromPipeline=$true)]
-    [Parameter(ParameterSetName="IdentitySC",Position=0,Mandatory=$true,ValueFromPipeline=$true)]
-    [Parameter(ParameterSetName="IdentityRI",Position=0,Mandatory=$true,ValueFromPipeline=$true)]
-    [Parameter(ParameterSetName="IdentityPD",Position=0,Mandatory=$true,ValueFromPipeline=$true)]
-    [Parameter(ParameterSetName="IdentityIN",Position=0,Mandatory=$true,ValueFromPipeline=$true)]
-        [Object[]]
-        $Identity,
+    [Parameter(ParameterSetName = "Identity", Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = "IdentityDN", Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = "IdentitySC", Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = "IdentityRI", Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = "IdentityPD", Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = "IdentityIN", Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
+    [Object[]]
+    $Identity,
 
-    [ValidateSet("Basic","Negotiate")]
-        [String]
-        $AuthType="Negotiate",
+    [ValidateSet("Basic", "Negotiate")]
+    [String]
+    $AuthType = "Negotiate",
 
     [PSCredential]
-        $Credential,
+    $Credential,
 
-    [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [String]
-        $Server,
+    [Parameter(ValueFromPipelineByPropertyName = $true)]
+    [String]
+    $Server,
     
-    [Parameter(ParameterSetName="CurrentDN")]
-    [Parameter(ParameterSetName="IdentityDN")]
-        [Alias("Naming")]    
-        [Switch]$DomainNamingMaster,
+    [Parameter(ParameterSetName = "CurrentDN")]
+    [Parameter(ParameterSetName = "IdentityDN")]
+    [Alias("Naming")]    
+    [Switch]$DomainNamingMaster,
         
-    [Parameter(ParameterSetName="CurrentSC")]
-    [Parameter(ParameterSetName="IdentitySC")]
-        [Alias("Schema","SM")]    
-        [Switch]$SchemaMaster,
+    [Parameter(ParameterSetName = "CurrentSC")]
+    [Parameter(ParameterSetName = "IdentitySC")]
+    [Alias("Schema", "SM")]    
+    [Switch]$SchemaMaster,
         
-    [Parameter(ParameterSetName="CurrentRI")]
-    [Parameter(ParameterSetName="IdentityRI")]
-        [Alias("RID","RM")]
-        [Switch]$RIDMaster,
+    [Parameter(ParameterSetName = "CurrentRI")]
+    [Parameter(ParameterSetName = "IdentityRI")]
+    [Alias("RID", "RM")]
+    [Switch]$RIDMaster,
         
-    [Parameter(ParameterSetName="CurrentPD")]
-    [Parameter(ParameterSetName="IdentityPD")]
-        [Alias("PDC")]    
-        [Switch]$PDCEmulator,
+    [Parameter(ParameterSetName = "CurrentPD")]
+    [Parameter(ParameterSetName = "IdentityPD")]
+    [Alias("PDC")]    
+    [Switch]$PDCEmulator,
         
-    [Parameter(ParameterSetName="CurrentIN")]
-    [Parameter(ParameterSetName="IdentityIN")]
-        [Alias("IM")]   
-        [Switch]$InfrastructureMaster
+    [Parameter(ParameterSetName = "CurrentIN")]
+    [Parameter(ParameterSetName = "IdentityIN")]
+    [Alias("IM")]   
+    [Switch]$InfrastructureMaster
 )
 
 Begin {
@@ -158,29 +158,29 @@ Begin {
     }
 
     #Splat the paramters as they exist for passing to Cmdlets
-    $paramSplat = @{AuthType=$AuthType}
+    $paramSplat = @{AuthType = $AuthType }
     switch ($true) {
-        {$Credential} {$paramSplat.Credential = $Credential}
-        {$Server}     {$paramSplat.Server = $Server}
+        { $Credential } { $paramSplat.Credential = $Credential }
+        { $Server } { $paramSplat.Server = $Server }
     }
 
     #Create a PSCustomObject that contains the FSMO Roles and the domain and forest names from the ADDomain and ADForest objects
     Function New-ResultObject ([Microsoft.ActiveDirectory.Management.ADDomain]$Domain, [Microsoft.ActiveDirectory.Management.ADForest]$Forest) {
-        $props = @{DomainName=$Domain.Name; ForestName=$Forest.Name; DomainNamingMaster=$Forest.DomainNamingMaster;
-            SchemaMaster=$Forest.SchemaMaster; PDCEmulator=$Domain.PDCEmulator; RIDMaster=$Domain.RIDMaster;
-            InfrastructureMaster=$Domain.InfrastructureMaster
+        $props = @{DomainName = $Domain.Name; ForestName = $Forest.Name; DomainNamingMaster = $Forest.DomainNamingMaster;
+            SchemaMaster = $Forest.SchemaMaster; PDCEmulator = $Domain.PDCEmulator; RIDMaster = $Domain.RIDMaster;
+            InfrastructureMaster = $Domain.InfrastructureMaster
         }
         
         #If individual role switches use, output their values and verbose domain header. If not, then create custom object
         switch ($true) {
-            {$DomainNamingMaster -or $SchemaMaster -or $RIDMaster -or $PDCEmulator -or $InfrastructureMaster}
-                {Write-Verbose "`n    Domain: $($Domain.Name)`n"}
-            {$DomainNamingMaster}   {$Forest.DomainNamingMaster}
-            {$SchemaMaster}         {$Forest.SchemaMaster}
-            {$RIDMaster}            {$Domain.RIDMaster}
-            {$PDCEmulator}          {$Domain.PDCEmulator}
-            {$InfrastructureMaster} {$Domain.InfrastructureMaster}
-            default                 {New-Object psobject -Property $props}
+            { $DomainNamingMaster -or $SchemaMaster -or $RIDMaster -or $PDCEmulator -or $InfrastructureMaster }
+            { Write-Verbose "`n    Domain: $($Domain.Name)`n" }
+            { $DomainNamingMaster } { $Forest.DomainNamingMaster }
+            { $SchemaMaster } { $Forest.SchemaMaster }
+            { $RIDMaster } { $Domain.RIDMaster }
+            { $PDCEmulator } { $Domain.PDCEmulator }
+            { $InfrastructureMaster } { $Domain.InfrastructureMaster }
+            default { New-Object psobject -Property $props }
         }
     }
 }
