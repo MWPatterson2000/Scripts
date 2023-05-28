@@ -1,0 +1,1 @@
+﻿Copy-Item -Path c:\processos.txt -Destionation c:\temp\localfile.txt

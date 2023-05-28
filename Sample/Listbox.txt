@@ -1,0 +1,6 @@
+Printer,MFG
+MFAThing1,HP
+MFAThing2,Xerox
+MFANowThisIsALongPrinterName,NA
+FRAThing3,HP
+FRAThing4,Xerox
