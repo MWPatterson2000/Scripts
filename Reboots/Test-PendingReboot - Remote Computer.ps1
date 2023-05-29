@@ -27,6 +27,7 @@ $scriptBlock = {
         $ErrorActionPreference = 'Stop'
 
         if (Get-Item -Path $Key -ErrorAction Ignore) {
+            Write-Host "`tFound"$Key -ForegroundColor Red
             $true
         }
     }
@@ -48,6 +49,7 @@ $scriptBlock = {
         $ErrorActionPreference = 'Stop'
 
         if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
+            Write-Host "`tFound"$Key -ForegroundColor Red
             $true
         }
     }
@@ -69,6 +71,7 @@ $scriptBlock = {
         $ErrorActionPreference = 'Stop'
 
         if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
+            Write-Host "`tFound"$Key -ForegroundColor Red
             $true
         }
     }

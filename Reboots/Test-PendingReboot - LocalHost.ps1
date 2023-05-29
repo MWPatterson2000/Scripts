@@ -12,7 +12,7 @@
     $ErrorActionPreference = 'Stop'
 
     if (Get-Item -Path $Key -ErrorAction Ignore) {
-        Write-Host "`t"$Key -ForegroundColor Red
+        Write-Host "`tFound"$Key -ForegroundColor Red
         $true
     }
 }
@@ -35,7 +35,7 @@ function Test-RegistryValue {
     $ErrorActionPreference = 'Stop'
 
     if (Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) {
-        Write-Host "`t"$Key -ForegroundColor Red
+        Write-Host "`tFound"$Key -ForegroundColor Red
         $true
     }
 }
@@ -58,7 +58,7 @@ function Test-RegistryValueNotNull {
     $ErrorActionPreference = 'Stop'
 
     if (($regVal = Get-ItemProperty -Path $Key -Name $Value -ErrorAction Ignore) -and $regVal.($Value)) {
-        Write-Host "`t"$Key -ForegroundColor Red
+        Write-Host "`tFound"$Key -ForegroundColor Red
         $true
     }
 }
