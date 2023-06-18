@@ -4,7 +4,7 @@
 
 # Copy Modules Folder
 Write-Host "Copy All Versions of PowerShell Module(s) Installed"
-robocopy 'C:\Program Files\WindowsPowerShell\Modules' 'C:\PowerShell\Modules'  /S /R:1 /W:1 /NP /XO /XC /MT:24 /ZB /XF
+robocopy 'C:\Program Files\WindowsPowerShell\Modules' 'D:\PowerShell\Modules'  /S /R:1 /W:1 /NP /XO /XC /MT:24 /ZB /XF
 
 # Get All Versions of PowerShell Modules Installed
 Write-Host "Getting All Versions of PowerShell Module(s) Installed"
