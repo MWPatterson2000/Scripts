@@ -266,23 +266,10 @@
     }
 }
 
-#Test-Port -computer MFA-E2PKIISCA01 -port 1812,1645,1813,1646 -UDP
-#Test-Port -computer MFA-EPKIISCA01 -port 1812,1645,1813,1646 -UDP
-
-<#
-$HosttoScan = "MFA-E2PKIISCA01"
-Write-Host "`n`tPlease Wait - Testing $HosttoScan" -Fore Yellow
-Test-Port -computer $HosttoScan -port 1812,1645,1813,1646 -UDP
-
-$HosttoScan = "MFA-EPKIISCA01"
-Write-Host "`n`tPlease Wait - Testing $HosttoScan" -Fore Yellow
-Test-Port -computer $HosttoScan -port 1812,1645,1813,1646 -UDP
-#>
-
-
+# Host List
 $HostList = @(`
-        'MFA-E2PKIISCA01', `
-        'MFA-EPKIISCA01')
+        'TestDC1', `
+        'TestFile01')
 #$HostPortType = "-UDP"
 #$HostPorts = "1812,1645,1813,1646"
 

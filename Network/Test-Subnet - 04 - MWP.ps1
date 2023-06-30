@@ -73,7 +73,7 @@ This will be used to construct an IP address.
             if ($IP -ne $Local.IPAddress) {
                 #get MAC entry from ARP table
                 Try {
-                    $arp = (arp -a $IP | where { $_ -match $IP }).trim() -split "\s+"
+                    $arp = (arp -a $IP | Where-Object { $_ -match $IP }).trim() -split "\s+"
                     $MAC = $arp[1]
                 }
                 Catch {
