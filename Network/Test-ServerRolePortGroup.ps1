@@ -30,7 +30,9 @@
 		[ValidateScript({ Test-Connection -ComputerName $_ -Count 1 -Quiet })]
 		[string[]]$Computername,
 		[Parameter(Mandatory)]
-		[ValidateSet('WinRm', 'Smb', 'Dns', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios')]
+		#[ValidateSet('WinRm','Smb','Dns','ActiveDirectoryGeneral','ActiveDirectoryGlobalCatalog','NetBios')]
+		#[ValidateSet('WinRm', 'Smb', 'Dns', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP')]
+		[ValidateSet('WinRm', 'SMB', 'DNS', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP', 'ADFS', 'SQL', 'WebServer', 'FileServer')]
 		[string[]]$ServerRole
 	)
 	begin {
