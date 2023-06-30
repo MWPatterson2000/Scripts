@@ -5,7 +5,7 @@ $DomainName = (Get-ADDomain).DNSRoot
 $DCList = Get-ADDomainController -Filter * -Server $DomainName | Select-Object Hostname, Site, OperatingSystem
 $DCList = Get-ADDomainController -Filter * -Server $DomainName | Select-Object Hostname, Site, Domain, Forest, Enabled, `
 IsGlobalCatalog, LdapPort, SslPort, IPv4Address, IPv6Address, OperatingSystem
-Get-ADDomainController -Filter * -Server $DomainName | Select-Object Hostname, Site, Domain, Forest, Enabled, `
+Get-ADDomainController -Filter * -Server $DomainName | Select-Object Hostname, Name, Site, Domain, Forest, Enabled, `
     IsGlobalCatalog, LdapPort, SslPort, IPv4Address, IPv6Address, OperatingSystem
 
     # Option 2
