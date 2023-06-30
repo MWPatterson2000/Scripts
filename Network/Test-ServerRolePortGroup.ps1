@@ -36,11 +36,15 @@
 	begin {
 		$PortGroups = @{
 			'WinRm'                        = @{ 'TCP' = 5985 }
-			'Smb'                          = @{ 'TCP' = 445; 'UDP' = 445 }
-			'Dns'                          = @{ 'TCP' = 53; 'UDP' = 53 }
+			'SMB'                          = @{ 'TCP' = 445; 'UDP' = 445 }
+			'DNS'                          = @{ 'TCP' = 53; 'UDP' = 53 }
 			'ActiveDirectoryGeneral'       = @{ 'TCP' = 25, 88, 389, 464, 636, 5722, 9389; 'UDP' = 88, 123, 389, 464 }
 			'ActiveDirectoryGlobalCatalog' = @{ 'TCP' = 3268, 3269 }
 			'NetBios'                      = @{ 'TCP' = 135, 137, 138, 139; 'UDP' = 137, 138, 139 }
+			'RDP'                          = @{ 'TCP' = 3389 }
+			'ADFS'                         = @{ 'TCP' = 80, 443, 49443 }
+			'SQL'                          = @{ 'TCP' = 135, 1433, 1434, 4022; 'UDP' = 1434 }
+			'WebServer'                    = @{ 'TCP' = 80, 443 }
 		}
 	}
 	process {

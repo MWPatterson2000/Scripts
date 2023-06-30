@@ -43,6 +43,9 @@
 			'ActiveDirectoryGlobalCatalog' = @{ 'TCP' = 3268, 3269 }
 			'NetBios'                      = @{ 'TCP' = 135, 137, 138, 139; 'UDP' = 137, 138, 139 }
 			'RDP'                          = @{ 'TCP' = 3389 }
+			'ADFS'                         = @{ 'TCP' = 80, 443, 49443 }
+			'SQL'                          = @{ 'TCP' = 135, 1433, 1434, 4022; 'UDP' = 1434 }
+			'WebServer'                    = @{ 'TCP' = 80, 443 }
 		}
 	}
 	process {
