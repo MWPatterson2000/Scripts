@@ -1,4 +1,4 @@
-﻿<#
+<#
 Name: Group Members - List.ps1
 
 Gets a list of users who are in a list of Groups
@@ -36,18 +36,23 @@ $grpNm = "*$grpNm*"
 # Create Array
 $groupMembers = [System.Collections.ArrayList]::new()
 
-# Import Group list
-$Groups = import-csv ".\Groups.csv"
-#$Groups = import-csv "C:\Temp\Groups.csv"
+# Get AD Groups Matching
+#$Groups = Get-ADGroupMember -identity $ADGroupSource -recursive | select Name, SamAccountName 
+$Groups = Get-AdGroup -filter * | Where-Object {$_.name -like "$grpNm"} | Select-Object name 
 
 foreach ($Group in $Groups) {
     if ($Group -like $grpNm ) {
         [array]$members = Get-ADGroup -Identity $Group.Name | Get-ADGroupMember -Recursive
         foreach ($member in $members) {
-            $userInfo = Get-ADObject -Identity $member -Property * #| Select-Object displayName
+            #$userInfo = Get-ADObject -Identity $member -Property * #| Select-Object displayName
+            $userInfo = Get-ADObject -Identity $member -Property * | Select-Object *
+            #Write-Host $userInfo
             $user = @{}
             $user | Add-Member -Type NoteProperty -Name 'Group Name' -Value $Group.Name
-            $user | Add-Member -Type NoteProperty -Name 'Email' -Value $userInfo.mail
+            $user | Add-Member -Type NoteProperty -Name 'User Name' -Value $userInfo.Name
+            $user | Add-Member -Type NoteProperty -Name 'User DisplayName' -Value $userInfo.DisplayName
+            $user | Add-Member -Type NoteProperty -Name 'User sAMAccountName' -Value $userInfo.sAMAccountName
+            $user | Add-Member -Type NoteProperty -Name 'User Email' -Value $userInfo.mail
             # Add Info to Table
             [void]$groupMembers.Add($user)
         }
@@ -55,6 +60,7 @@ foreach ($Group in $Groups) {
 }
 
 # Export the array as a CSV file
-$groupMembers | Sort-Object 'Group Name', Email | Select-Object 'Group Name', Email | Export-Csv -Path $logPath -NoTypeInformation -Encoding UTF8
+#$groupMembers | Sort-Object 'Group Name', Email | Select-Object 'Group Name', Email | Export-Csv -Path $logPath -NoTypeInformation -Encoding UTF8
+$groupMembers | Sort-Object 'Group Name', 'User Name' | Select-Object 'Group Name', 'User Name', 'User DisplayName', 'User sAMAccountName', 'User Email' | Export-Csv -Path $logPath -NoTypeInformation -Encoding UTF8
 
 #End Script
