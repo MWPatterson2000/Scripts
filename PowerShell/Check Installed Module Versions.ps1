@@ -34,15 +34,16 @@ for ($num = 0 ; $num -le $count ; $num++) {
         #Write-Host "`n" + ($Script:ModulesAR[$num]).Name: + "Online" -ForegroundColor Red
         #$temp = ($Script:ModulesAR[$num]).Name + " - Local Newer"
         #Write-Host $temp -ForegroundColor Yellow
-        Write-Host ("{0} Local Module Newer {1} - {2}" -f $Counter, ($Script:ModulesAR[$num]).Name, ($Script:ModulesAR[$num]).Version) -ForegroundColor Yellow
-        #Write-Host "$CounterLength Local Module Newer ($Script:ModulesAR[$num]).Name - ($Script:ModulesAR[$num]).Version" -ForegroundColor Yellow
+        #Write-Host ("{0} Local Module Newer {1} - {2}" -f $Counter, ($Script:ModulesAR[$num]).Name, ($Script:ModulesAR[$num]).Version) -ForegroundColor Yellow
+        Write-Host ("{0} Local Module Newer {1} - Local:{2}" -f $Counter, ($Script:ModulesAR[$num]).Name, ($Script:ModulesAR[$num]).Version) -ForegroundColor Yellow
         $Script:ModulesAR[$num]
     }
     if (($Script:ModulesAR[$num]).Version -lt ($Script:ModulesAR[$num]).Online) {
         #Write-Host "`n" + ($Script:ModulesAR[$num]).Name: + "Local" #-ForegroundColor Yellow
         #$temp = ($Script:ModulesAR[$num]).Name + " - Online Newer"
         #Write-Host $temp -ForegroundColor Yellow
-        Write-Host ("{0} Online Module Newer {1} - {2} to {3}" -f $Counter, ($Script:ModulesAR[$num]).Name, ($Script:ModulesAR[$num]).Version, ($Script:ModulesAR[$num]).Online) -ForegroundColor Yellow
+        #Write-Host ("{0} Online Module Newer {1} - {2} to {3}" -f $Counter, ($Script:ModulesAR[$num]).Name, ($Script:ModulesAR[$num]).Version, ($Script:ModulesAR[$num]).Online) -ForegroundColor Yellow
+        Write-Host ("{0} Online Module Newer {1} - Local:{2} to Online:{3}" -f $Counter, ($Script:ModulesAR[$num]).Name, ($Script:ModulesAR[$num]).Version, ($Script:ModulesAR[$num]).Online) -ForegroundColor Yellow
         $Script:ModulesAR[$num]
     }
 }
