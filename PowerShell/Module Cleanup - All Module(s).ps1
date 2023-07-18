@@ -36,7 +36,7 @@ foreach ($module in $Script:ModulesAR) {
     if ($ModuleName -ne "Pester") {
         if ($count -gt 1) {
             $count--
-            Write-Host "`tCleaning Up $count Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow
+            #Write-Host "`tCleaning Up $count Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow
             Write-Host ("{0} Uninstalling {1} Previous Version of Module: {2}" -f $Counter, $count, $ModuleName) -ForegroundColor Yellow
             $Latest = Get-InstalledModule $ModuleName
             #Get-InstalledModule $ModuleName -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module #-WhatIf
