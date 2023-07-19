@@ -37,6 +37,6 @@ $grpNm = "*$grpNm*"
 $Groups = Get-AdGroup -filter * -Properties * | Where-Object {$_.name -like "$grpNm"} | Select-Object Name, Description
 
 # Export the array as a CSV file
-$Groups | Sort-Object 'Name' | Select-Object Name, Description | Export-Csv -Path $logPath -NoTypeInformation -Encoding UTF8
+$Groups | Sort-Object Name | Select-Object Name, Description | Export-Csv -Path $logPath -NoTypeInformation -Encoding UTF8
 
 #End Script
