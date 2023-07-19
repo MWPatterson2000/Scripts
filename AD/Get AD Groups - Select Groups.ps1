@@ -20,7 +20,7 @@ function GetADGroupInfo {
 # End Function(s)
 
 # Get Application Name 
-$grpNm = Read-Host -Prompt "Application Name Contains"
+$grpNm = Read-Host -Prompt "AD Group Name Contains"
 
 # Set Variables
 # Get Date & Log Locations
