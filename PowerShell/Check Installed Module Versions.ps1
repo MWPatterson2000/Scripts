@@ -63,9 +63,6 @@ else {
 
 # Find Updated Module(s)
 Write-Host "Checking for Updated Versions of Modules"
-#$i = 0
-$count = @($Script:ModulesAR).Count
-$count = $count - 1
 foreach ($module in $Script:ModulesAR) {
     $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
     if ($module.Version -lt $moduleUpdate.Version) {
