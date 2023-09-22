@@ -34,7 +34,7 @@ function Get-UserVariable ($Name = '*') {
 # End Function(s)
 
 # Clear Screen
-Clear-Host
+#Clear-Host
 
 <#
 # PowerShell 5.x required. The version of PowerShell included with Windows 10
