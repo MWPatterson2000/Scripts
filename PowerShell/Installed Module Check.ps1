@@ -94,8 +94,6 @@ function Get-Differences {
 }
 
 # Get Currnet PowerShell Modules Installed
-#$Script:ModuleReportJ = "C:\PowerShell\Installed\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.json"
-#$Script:ModuleReportC = "C:\PowerShell\Installed\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
 $Script:ModuleReportJ = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.json"
 $Script:ModuleReportC = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
 $Script:ModuleReportS = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules Names.csv"
