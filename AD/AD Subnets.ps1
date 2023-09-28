@@ -1,4 +1,4 @@
-﻿# Get Date & Log Locations
+# Get Date & Log Locations
 $date = get-date -Format "yyyy-MM-dd-HH-mm"
 $logRoot = "C:\"
 $logFolder = "Temp\"
@@ -8,10 +8,11 @@ $logFileName = $date +"-" +$logFile
 $logPath = $logRoot +$logFolder +$date +"-" +$logFile
 
 ## Get a list of all domain controllers in the forest
-$DcList = (Get-ADForest).Domains | ForEach-Object { Get-ADDomainController -Discover -DomainName $_ } | ForEach-Object { Get-ADDomainController -Server $_.Name -filter * } | Select Site, Name, Domain
+$DcList = (Get-ADForest).Domains | ForEach-Object { Get-ADDomainController -Discover -DomainName $_ } | ForEach-Object { Get-ADDomainController -Server $_.Name -filter * } | Select-Object Site, Name, Domain
 
 ## Get all replication subnets from Sites & Services
-$Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select-Object Name, Site, Location, Description
+#$Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select-Object Name, Site, Location, Description, Created, Modified, whenCreated, whenChanged
+$Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select-Object *
 
 ## Create an empty array to build the subnet list
 $ResultsArray = @()
@@ -31,6 +32,10 @@ ForEach ($Subnet in $Subnets) {
     $RA | Add-Member -type NoteProperty -name "DcInSite" -Value $DcInSite
     $RA | Add-Member -type NoteProperty -name "SiteLoc"  -Value $Subnet.Location
     $RA | Add-Member -type NoteProperty -name "SiteDesc" -Value $Subnet.Description
+    $RA | Add-Member -type NoteProperty -name "Created" -Value $Subnet.Created
+    $RA | Add-Member -type NoteProperty -name "Modified" -Value $Subnet.Modified
+    #$RA | Add-Member -type NoteProperty -name "whenCreated" -Value $Subnet.whenCreated
+    #$RA | Add-Member -type NoteProperty -name "whenChanged" -Value $Subnet.whenChanged
 
     $ResultsArray += $RA
 
