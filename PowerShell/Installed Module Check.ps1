@@ -6,7 +6,25 @@
 #$path = "C:\PowerShell\Installed" # Path to store report and JSON files for comparison
 $path = "D:\PowerShell\Installed" # Path to store report and JSON files for comparison
 
-# Function
+# Start Function(s)
+# Clear Varables
+function Get-UserVariable ($Name = '*') {
+    # these variables may exist in certain environments (like ISE, or after use of foreach)
+    $special = 'ps', 'psise', 'psunsupportedconsoleapplications', 'foreach', 'profile'
+
+    $ps = [PowerShell]::Create()
+    $null = $ps.AddScript('$null=$host;Get-Variable') 
+    $reserved = $ps.Invoke() | 
+    Select-Object -ExpandProperty Name
+    $ps.Runspace.Close()
+    $ps.Dispose()
+    Get-Variable -Scope Global | 
+    Where-Object Name -like $Name |
+    Where-Object { $reserved -notcontains $_.Name } |
+    Where-Object { $special -notcontains $_.Name } |
+    Where-Object Name 
+}
+
 # Check for Differences Between Currrent & Previous Modules
 function Get-Differences {
     # Get the Files
@@ -93,6 +111,8 @@ function Get-Differences {
     }
 }
 
+# End Function(s)
+
 # Get Currnet PowerShell Modules Installed
 $Script:ModuleReportJ = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.json"
 $Script:ModuleReportC = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
@@ -111,3 +131,8 @@ $outputCsv = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Update Modules.csv"
 # Compare Currrent & Previous Modules Installed
 Get-Differences
 
+# Clear Variables
+Write-Host "`nScript Cleanup"
+Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
+
+# End
