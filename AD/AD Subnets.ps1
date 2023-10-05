@@ -5,7 +5,8 @@ $logFolder = "Temp\"
 $logFolderPath = $logRoot +$logFolder
 $logFile = "AD-Subnets.csv"
 $logFileName = $date +"-" +$logFile 
-$logPath = $logRoot +$logFolder +$date +"-" +$logFile
+#$logPath = $logRoot +$logFolder +$date +"-" +$logFile
+$logPath = $logRoot +$logFolder +$date +"-" +$env:USERDNSDOMAIN +"-" +$logFile
 
 ## Get a list of all domain controllers in the forest
 $DcList = (Get-ADForest).Domains | ForEach-Object { Get-ADDomainController -Discover -DomainName $_ } | ForEach-Object { Get-ADDomainController -Server $_.Name -filter * } | Select-Object Site, Name, Domain
