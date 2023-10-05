@@ -1,4 +1,4 @@
-﻿<#
+<#
 Name: AD Sites - Undefined Subnets.ps1
 
 This script looks for undefined subnets in the netlogon.log on all DC's and reports them out for X Days.
@@ -8,6 +8,7 @@ scripts@mwpatterson.com
 
 Revision History
     2018-07-19 - Initial Release
+    2023-10-05 - Added Domain Name to File Output
 
 #>
 
@@ -35,7 +36,8 @@ $logFolder = "Temp\"
 $logFolderPath = $logRoot +$logFolder
 $logFile = "Undefined Subnets.csv"
 $logFileName = $date +"-" +$logFile 
-$logPath = $logRoot +$logFolder +$date +"-" +$logFile
+#$logPath = $logRoot +$logFolder +$date +"-" +$logFile
+$logPath = $logRoot +$logFolder +$date +"-" +$env:USERDNSDOMAIN +"-" +$logFile
 #>
 
 # Get DC's
