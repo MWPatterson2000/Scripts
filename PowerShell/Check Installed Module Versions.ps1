@@ -71,9 +71,11 @@ foreach ($module in $Script:ModulesAR) {
         $moduleT | Add-Member -type noteproperty -Name "Name" -value $module.Name
         $moduleT | Add-Member -type noteproperty -Name "Repository" -Value $module.Repository
         $moduleT | Add-Member -type noteproperty -Name "Installed" -Value $module.InstalledDate
-        $moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
+        #$moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
+        $moduleT | Add-Member -type noteproperty -Name "Local" -Value $module.Version
         $moduleT | Add-Member -type noteproperty -Name "Local Published" -Value $module.PublishedDate
-        $moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
+        #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
+        $moduleT | Add-Member -type noteproperty -Name "Online" -Value $moduleUpdate.Version
         $moduleT | Add-Member -type noteproperty -Name "Online Published" -Value $moduleUpdate.PublishedDate
         [void]$Script:modulesUpdated.Add($moduleT)
     }
@@ -82,9 +84,11 @@ foreach ($module in $Script:ModulesAR) {
         $moduleT | Add-Member -type noteproperty -Name "Name" -value $module.Name
         $moduleT | Add-Member -type noteproperty -Name "Repository" -Value $module.Repository
         $moduleT | Add-Member -type noteproperty -Name "Installed" -Value $module.InstalledDate
-        $moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
+        #$moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
+        $moduleT | Add-Member -type noteproperty -Name "Local" -Value $module.Version
         $moduleT | Add-Member -type noteproperty -Name "Local Published" -Value $module.PublishedDate
-        $moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
+        #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
+        $moduleT | Add-Member -type noteproperty -Name "Online" -Value $moduleUpdate.Version
         $moduleT | Add-Member -type noteproperty -Name "Online Published" -Value $moduleUpdate.PublishedDate
         [void]$Script:modulesUpdated.Add($moduleT)
     }
@@ -96,9 +100,11 @@ foreach ($module in $Script:ModulesAR) {
         $moduleT | Add-Member -type noteproperty -Name "Name" -value $module.Name
         $moduleT | Add-Member -type noteproperty -Name "Repository" -Value $module.Repository
         $moduleT | Add-Member -type noteproperty -Name "Installed" -Value $module.InstalledDate
-        $moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
+        #$moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
+        $moduleT | Add-Member -type noteproperty -Name "Local" -Value $module.Version
         $moduleT | Add-Member -type noteproperty -Name "Local Published" -Value $module.PublishedDate
-        $moduleT | Add-Member -type noteproperty -Name "Online Version" -Value "N/A"
+        #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value "N/A"
+        $moduleT | Add-Member -type noteproperty -Name "Online" -Value "N/A"
         $moduleT | Add-Member -type noteproperty -Name "Online Published" -Value "N/A"
         [void]$Script:modulesUpdated.Add($moduleT)
     }
