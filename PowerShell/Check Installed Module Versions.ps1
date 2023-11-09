@@ -51,7 +51,8 @@ function Get-UserVariable ($Name = '*') {
 $Script:modulesUpdated = [System.Collections.ArrayList]::new()
 
 # Get All Versions of PowerShell Modules Installed
-Write-Host "Getting All Versions of PowerShell Module(s) Installed"
+#Write-Host "Getting All Versions of PowerShell Module(s) Installed"
+Write-Host "Getting Count of PowerShell Module(s) Installed - $(Get-Date)"
 $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
 if (-not $Script:ModulesAR) {
     Write-Host ("`tModules found: 0") -ForegroundColor Yellow
