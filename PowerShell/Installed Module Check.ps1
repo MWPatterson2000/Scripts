@@ -4,11 +4,13 @@
 
 # Variables
 #$path = "C:\PowerShell\Installed" # Path to store report and JSON files for comparison
-$path = "D:\PowerShell\Installed" # Path to store report and JSON files for comparison
+$path = 'D:\PowerShell\Installed' # Path to store report and JSON files for comparison
 
 # Start Function(s)
 # Clear Varables
 function Get-UserVariable ($Name = '*') {
+    [CmdletBinding()]
+    #param ()
     # these variables may exist in certain environments (like ISE, or after use of foreach)
     $special = 'ps', 'psise', 'psunsupportedconsoleapplications', 'foreach', 'profile'
 
@@ -27,6 +29,8 @@ function Get-UserVariable ($Name = '*') {
 
 # Check for Differences Between Currrent & Previous Modules
 function Get-Differences {
+    [CmdletBinding()]
+    param ()
     # Get the Files
     #$dir = "C:\PowerShell\Installed\*- Modules.json"
     $dir = "$path\*- Modules.json"
@@ -57,7 +61,7 @@ function Get-Differences {
                         #Write-Host "Previous:"($modulesPrevious[$numP]).Name (($modulesPrevious[$numP]).Version).Major (($modulesPrevious[$numP]).Version).Minor (($modulesPrevious[$numP]).Version).Build (($modulesPrevious[$numP]).Version).Revision
                         #Write-Host "Previous:"$modulesPrevious[$numP]
                         #$tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
-                        $tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + ($modulesCurrent[$numC]).Version
+                        $tempM = 'Updated,' + ($modulesCurrent[$numC]).Name + ',' + ($modulesCurrent[$numC]).Version
                         <#
                         If ((($modulesPrevious[$numP]).Version).Major -eq (($modulesCurrent[$numC]).Version).Major) {
                             If ((($modulesPrevious[$numP]).Version).Minor -eq (($modulesCurrent[$numC]).Version).Minor) {
@@ -97,14 +101,14 @@ function Get-Differences {
             }
             else {
                 Write-Host "`tNew PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
-                $tempM = "New," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
+                $tempM = 'New,' + ($modulesCurrent[$numC]).Name + ',' + (($modulesCurrent[$numC]).Version).Major + '.' + (($modulesCurrent[$numC]).Version).Minor + '.' + (($modulesCurrent[$numC]).Version).Build + '.' + (($modulesCurrent[$numC]).Version).Revision
                 $tempM | Out-File $outputCsv -Append
             }
         }
         for ($numP = 0 ; $numP -le $countP ; $numP++) {
             If (($modulesCurrent).Name -NotContains ($modulesPrevious[$numP]).Name) {
                 Write-Host "`tRemoved PowerShell Module:" ($modulesCurrent[$numP]).Name -ForegroundColor Yellow
-                $tempM = "Removed," + ($modulesPrevious[$numP]).Name + "," + (($modulesPrevious[$numP]).Version).Major + "." + (($modulesPrevious[$numP]).Version).Minor + "." + (($modulesCurrent[$numP]).Version).Build + "." + (($modulesCurrent[$numP]).Version).Revision
+                $tempM = 'Removed,' + ($modulesPrevious[$numP]).Name + ',' + (($modulesPrevious[$numP]).Version).Major + '.' + (($modulesPrevious[$numP]).Version).Minor + '.' + (($modulesCurrent[$numP]).Version).Build + '.' + (($modulesCurrent[$numP]).Version).Revision
                 $tempM | Out-File $outputCsv -Append
             }
         }

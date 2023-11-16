@@ -14,6 +14,8 @@ Revision History
 # Start Function(s)
 # Clear Varables
 function Get-UserVariable ($Name = '*') {
+    [CmdletBinding()]
+    #param ()
     # these variables may exist in certain environments (like ISE, or after use of foreach)
     $special = 'ps', 'psise', 'psunsupportedconsoleapplications', 'foreach', 'profile'
 

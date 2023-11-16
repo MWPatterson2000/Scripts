@@ -16,6 +16,8 @@ Revision History
 # Start Function(s)
 # Clear Varables
 function Get-UserVariable ($Name = '*') {
+    [CmdletBinding()]
+    #param ()
     # these variables may exist in certain environments (like ISE, or after use of foreach)
     $special = 'ps', 'psise', 'psunsupportedconsoleapplications', 'foreach', 'profile'
 
@@ -64,33 +66,33 @@ else {
 }
 
 # Find Updated Module(s)
-Write-Host "Checking for Updated Versions of Modules"
+Write-Host 'Checking for Updated Versions of Modules'
 foreach ($module in $Script:ModulesAR) {
     $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
     if ($module.Version -lt $moduleUpdate.Version) {
         $moduleT = New-Object System.Object
-        $moduleT | Add-Member -type noteproperty -Name "Name" -value $module.Name
-        $moduleT | Add-Member -type noteproperty -Name "Repository" -Value $module.Repository
-        $moduleT | Add-Member -type noteproperty -Name "Installed" -Value $module.InstalledDate
+        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
         #$moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
-        $moduleT | Add-Member -type noteproperty -Name "Local" -Value $module.Version
-        $moduleT | Add-Member -type noteproperty -Name "Local Published" -Value $module.PublishedDate
+        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
         #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
-        $moduleT | Add-Member -type noteproperty -Name "Online" -Value $moduleUpdate.Version
-        $moduleT | Add-Member -type noteproperty -Name "Online Published" -Value $moduleUpdate.PublishedDate
+        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
+        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
         [void]$Script:modulesUpdated.Add($moduleT)
     }
     elseif ($module.Version -gt $moduleUpdate.Version) {
         $moduleT = New-Object System.Object
-        $moduleT | Add-Member -type noteproperty -Name "Name" -value $module.Name
-        $moduleT | Add-Member -type noteproperty -Name "Repository" -Value $module.Repository
-        $moduleT | Add-Member -type noteproperty -Name "Installed" -Value $module.InstalledDate
+        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
         #$moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
-        $moduleT | Add-Member -type noteproperty -Name "Local" -Value $module.Version
-        $moduleT | Add-Member -type noteproperty -Name "Local Published" -Value $module.PublishedDate
+        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
         #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
-        $moduleT | Add-Member -type noteproperty -Name "Online" -Value $moduleUpdate.Version
-        $moduleT | Add-Member -type noteproperty -Name "Online Published" -Value $moduleUpdate.PublishedDate
+        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
+        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
         [void]$Script:modulesUpdated.Add($moduleT)
     }
     elseif (($module.Version -eq $moduleUpdate.Version)) {
@@ -98,15 +100,15 @@ foreach ($module in $Script:ModulesAR) {
     }
     else {
         $moduleT = New-Object System.Object
-        $moduleT | Add-Member -type noteproperty -Name "Name" -value $module.Name
-        $moduleT | Add-Member -type noteproperty -Name "Repository" -Value $module.Repository
-        $moduleT | Add-Member -type noteproperty -Name "Installed" -Value $module.InstalledDate
+        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
         #$moduleT | Add-Member -type noteproperty -Name "Local Version" -Value $module.Version
-        $moduleT | Add-Member -type noteproperty -Name "Local" -Value $module.Version
-        $moduleT | Add-Member -type noteproperty -Name "Local Published" -Value $module.PublishedDate
+        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
         #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value "N/A"
-        $moduleT | Add-Member -type noteproperty -Name "Online" -Value "N/A"
-        $moduleT | Add-Member -type noteproperty -Name "Online Published" -Value "N/A"
+        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value 'N/A'
+        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value 'N/A'
         [void]$Script:modulesUpdated.Add($moduleT)
     }
 }
