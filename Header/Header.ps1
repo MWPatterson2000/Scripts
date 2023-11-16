@@ -41,23 +41,28 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 #<#
 # Hide PowerShell Console
-$Script:showWindowAsync = Add-Type -MemberDefinition @"
+$Script:showWindowAsync = Add-Type -MemberDefinition @'
 [DllImport("user32.dll")]
 public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-"@ -Name "Win32ShowWindowAsync" -Namespace Win32Functions -PassThru
+'@ -Name 'Win32ShowWindowAsync' -Namespace Win32Functions -PassThru
 
 Hide-PowerShell
 #>
+
 
 # Funtions
 # Start Functions
 # Show PowerShell
 Function Show-Powershell() {
+    [CmdletBinding()]
+    param ()
     $null = $showWindowAsync::ShowWindowAsync((Get-Process -Id $pid).MainWindowHandle, 10)
 }
 
 # Hide Show PowerShell
 Function Hide-Powershell() {
+    [CmdletBinding()]
+    param ()
     $null = $showWindowAsync::ShowWindowAsync((Get-Process -Id $pid).MainWindowHandle, 2)
 }
 
@@ -65,6 +70,8 @@ Function Hide-Powershell() {
 # Email Function
 #function send_email ($exportPath, $email) 
 function send_email () {
+    [CmdletBinding()]
+    param ()
     $SmtpClient = new-object system.net.mail.smtpClient 
     $mailmessage = New-Object system.net.mail.mailmessage 
     #    $SmtpClient.EnableSsl = $smtpssl
@@ -87,6 +94,8 @@ function send_email () {
 
 # Clear Varables
 function Get-UserVariable ($Name = '*') {
+    [CmdletBinding()]
+    #param ()
     # these variables may exist in certain environments (like ISE, or after use of foreach)
     $special = 'ps', 'psise', 'psunsupportedconsoleapplications', 'foreach', 'profile'
 
@@ -107,7 +116,7 @@ function Get-UserVariable ($Name = '*') {
 
 # Set Variables
 $today = Get-Date
-$today = $today.ToString("dddd MMMM-dd-yyyy hh:mm tt")
+$today = $today.ToString('dddd MMMM-dd-yyyy hh:mm tt')
 
 <#
 # Get Date & Log Locations
@@ -124,14 +133,14 @@ $logPath = $logRoot +$logFolder +$date +"-" +$logFile
 #$smtpserver = "outlook.office365.com"
 #$smtpport = "587"
 #$smtpssl = "True"
-$smtpserver = "<SMTP Relay Server>"
-$smtpport = "25"
-$smtpssl = "False"
-$emailSubject = "Sample Subject"
+$smtpserver = '<SMTP Relay Server>'
+$smtpport = '25'
+$smtpssl = 'False'
+$emailSubject = 'Sample Subject'
 $emailIsBodyHtml = $true
 #$emailfrom = "Sender <sender@test.local>"
 $emailfrom = "$env:computername <$env:computername@>"
-$email1 = "user1@test.local"
+$email1 = 'user1@test.local'
 #$email2 = "user2@test.local"
 #$emailFile = $logPath
 
