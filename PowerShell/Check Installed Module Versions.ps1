@@ -11,6 +11,7 @@ Revision History
     2023-09-22 - Added Additional Information to Report
     2023-10-10 - Added Local Module Published Date
     2023-11-19 - Converted to Advanced Script
+    2023-12-02 - Added Progress Bar
 
 #>
 
@@ -31,7 +32,7 @@ Begin {
         [CmdletBinding()]
         #param ()
         # these variables may exist in certain environments (like ISE, or after use of foreach)
-        $special = 'ps', 'psise', 'psunsupportedconsoleapplications', 'foreach', 'profile'
+        $special = 'ps', 'psise', 'psunsupportedconsoleModules', 'foreach', 'profile'
 
         $ps = [PowerShell]::Create()
         $null = $ps.AddScript('$null=$host;Get-Variable') 
@@ -70,18 +71,40 @@ Process {
     #Write-Host "Getting All Versions of PowerShell Module(s) Installed"
     Write-Host "Getting Count of PowerShell Module(s) Installed - $(Get-Date)"
     $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
+
+    # Build Variables
+    #$Script:ModulesAR
+    #Write-Host "`tModule(s) Found:" ($Script:ModulesAR).Count
+    #$Script:ModulesCount = $Script:ModulesAR.Count
+    #Write-Host "`tModule(s) Found:" $Script:ModulesCount
+    $Script:counter1 = 0
+
     if (-not $Script:ModulesAR) {
         Write-Host ("`tModules found: 0") -ForegroundColor Yellow
+        # Clear Variables
+        Write-Host "`nScript Cleanup"
+        Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
+        # End
+        #Exit
         return
     }
     else {
-        $ModulesCount = $Script:ModulesAR.Count
-        Write-Host ("`tModules Found: {0}" -f $ModulesCount) -ForegroundColor Yellow
+        $Script:ModulesCount = $Script:ModulesAR.Count
+        Write-Host ("`tModules Found: {0}" -f $Script:ModulesCount) -ForegroundColor Yellow
     }
 
     # Find Updated Module(s)
     Write-Host 'Checking for Updated Versions of Modules'
     foreach ($module in $Script:ModulesAR) {
+        # Build Progress Bar
+        $Script:counter1++
+        $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesCount) * 100
+        If ($Script:percentComplete1 -lt 1) {
+            $Script:percentComplete1 = 1
+        }
+        Write-Progress -Id 1 -Activity 'Getting Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -PercentComplete $Script:percentComplete1
+        #Write-Progress -Id 1 -Activity 'Getting Module' -Status "Module # $Script:counter1" -PercentComplete $Script:percentComplete1 -CurrentOperation "Module $($module.Name)"
+        
         $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
         if ($module.Version -lt $moduleUpdate.Version) {
             $moduleT = New-Object System.Object
@@ -126,6 +149,8 @@ Process {
             [void]$Script:modulesUpdated.Add($moduleT)
         }
     }
+
+    Write-Progress -Id 1 -Activity 'Getting Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
 
     # Write Data
     $Script:modulesUpdated | Format-Table -AutoSize
