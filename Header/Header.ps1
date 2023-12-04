@@ -139,6 +139,7 @@ public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
     $logPath = $logRoot +$logFolder +$date +"-" +$logFile
     #>
 
+    <#
     #Configure Email notification recipient
     #$smtpserver = "outlook.office365.com"
     #$smtpport = "587"
@@ -153,6 +154,7 @@ public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
     $email1 = 'user1@test.local'
     #$email2 = "user2@test.local"
     #$emailFile = $logPath
+    #>
 
     <#
     #File Logging/Output
@@ -162,6 +164,7 @@ public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
     | Out-File $logPath -Append #Append to Log File
     #>
 
+    <#
     # Email Body
     $Body = @"
 <!--<strong>Sample Message $env:USERDOMAIN</strong><br />-->
@@ -170,9 +173,9 @@ Sample Message <span style="background-color:yellow;color:black;"><strong>$env:U
 Generated on : $today<br /><br />
 <br /></font></h5>
 "@
-
     # Send email Notification
     send_email
+    #>
 
 
 
