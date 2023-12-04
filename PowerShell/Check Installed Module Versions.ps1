@@ -102,7 +102,8 @@ Process {
         If ($Script:percentComplete1 -lt 1) {
             $Script:percentComplete1 = 1
         }
-        Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -PercentComplete $Script:percentComplete1
+        #Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -PercentComplete $Script:percentComplete1
+        Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module: $($module.Name) - $Script:counter1 of $Script:ModulesCount" -PercentComplete $Script:percentComplete1
         #Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1" -PercentComplete $Script:percentComplete1 -CurrentOperation "Module $($module.Name)"
         
         $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
