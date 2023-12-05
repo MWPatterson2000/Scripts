@@ -89,11 +89,15 @@ Process {
         # Build Progress Bar
         $Script:counter1++
         $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesCount) * 100
+        $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
         If ($Script:percentComplete1 -lt 1) {
             $Script:percentComplete1 = 1
         }
+        #$Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
         #Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -PercentComplete $Script:percentComplete1
-        Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module: $($module.Name) - $Script:counter1 of $Script:ModulesCount" -PercentComplete $Script:percentComplete1
+        #Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module: $($module.Name) - $Script:counter1 of $Script:ModulesCount" -PercentComplete $Script:percentComplete1
+        #Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module: $($module.Name) - $Script:counter1 of $Script:ModulesCount - $Script:percentComplete1d%" -PercentComplete $Script:percentComplete1
+        Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
         #Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1" -PercentComplete $Script:percentComplete1 -CurrentOperation "Module $($module.Name)"
 
         #$i++
