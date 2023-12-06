@@ -63,7 +63,7 @@ Begin {
     #>
 
     # Build Array for Output
-    $Script:modulesUpdated = [System.Collections.ArrayList]::new()
+    $Script:UpdatedModules = [System.Collections.ArrayList]::new()
 }
 
 Process {
@@ -90,7 +90,7 @@ Process {
         return
     }
     else {
-        $Script:ModulesCount = $Script:ModulesAR.Count
+        $Script:ModulesCount = @($Script:ModulesAR).Count
         Write-Host ("`tModules Found: {0}" -f $Script:ModulesCount) -ForegroundColor Yellow
     }
 
@@ -123,7 +123,7 @@ Process {
             #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
             $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
             $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-            [void]$Script:modulesUpdated.Add($moduleT)
+            [void]$Script:UpdatedModules.Add($moduleT)
         }
         elseif ($module.Version -gt $moduleUpdate.Version) {
             $moduleT = New-Object System.Object
@@ -136,7 +136,7 @@ Process {
             #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value $moduleUpdate.Version
             $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
             $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-            [void]$Script:modulesUpdated.Add($moduleT)
+            [void]$Script:UpdatedModules.Add($moduleT)
         }
         elseif (($module.Version -eq $moduleUpdate.Version)) {
             # No Ouput Needed
@@ -152,14 +152,14 @@ Process {
             #$moduleT | Add-Member -type noteproperty -Name "Online Version" -Value "N/A"
             $moduleT | Add-Member -type noteproperty -Name 'Online' -Value 'N/A'
             $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value 'N/A'
-            [void]$Script:modulesUpdated.Add($moduleT)
+            [void]$Script:UpdatedModules.Add($moduleT)
         }
     }
-
+    # Close Progress Bar
     Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
 
     # Write Data
-    $Script:modulesUpdated | Format-Table -AutoSize
+    $Script:UpdatedModules | Format-Table -AutoSize
 
 }
 
