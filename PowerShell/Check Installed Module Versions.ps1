@@ -79,6 +79,7 @@ Process {
     #Write-Host "`tModule(s) Found:" $Script:ModulesCount
     $Script:counter1 = 0
 
+    # Check to see if Modules Found
     if (-not $Script:ModulesAR) {
         Write-Host ("`tModules found: 0") -ForegroundColor Yellow
         # Clear Variables
