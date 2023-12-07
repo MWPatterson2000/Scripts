@@ -80,7 +80,7 @@ Process {
     #Write-Host "PowerShell Module Maintenance Script - $(Get-Date)"
     Write-Host 'PowerShell Module Maintenance Script'
     Write-Host ''
-    Write-Host 'This Script will Copy All Installed Modules to Backup Location'
+    Write-Host 'This Script will Copy All Installed Modules to Backup Location:'
     Write-Host "`tModules from: $moduleSource" -ForegroundColor Yellow
     Write-Host "`tModules to: $moduleDestination" -ForegroundColor Yellow
     Write-Host 'This Script will Check for Updates of Installed Module(s)'
