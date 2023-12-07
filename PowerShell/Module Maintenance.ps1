@@ -91,7 +91,7 @@ Process {
 
 
     # Get All Versions of PowerShell Modules Installed
-    Write-Host 'Getting Count of PowerShell Module(s) Installed'
+    Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
     $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
 
 

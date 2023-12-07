@@ -61,7 +61,7 @@ Process {
     #>
 
     # Get All Versions of PowerShell Modules Installed
-    Write-Host "Getting Count of PowerShell Module(s) Installed - $(Get-Date)"
+    Write-Host "Getting List & Count of PowerShell Module(s) Installed - $(Get-Date)"
     $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
     if (-not $Script:ModulesAR) {
         Write-Host ("`tModules found: 0") -ForegroundColor Yellow
