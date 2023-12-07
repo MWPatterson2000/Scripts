@@ -28,6 +28,9 @@ Param(
 )
 
 Begin {
+    # Clear Screen
+    #Clear-Host
+        
     # Build Variables
     $moduleSource = 'C:\Program Files\WindowsPowerShell\Modules'
     $moduleDestination = 'D:\PowerShell\Modules'
@@ -74,10 +77,18 @@ Begin {
 
 Process {
     # Build Header
-    Write-Host 'PowerShell Module Maintenance Script'
+    Write-Host "PowerShell Module Maintenance Script - $(Get-Date)"
+    Write-Host ''
+    Write-Host 'This Script will Copy All Installed Modules to Backup Location'
+    Write-Host "`tModules from: $moduleSource" -ForegroundColor Yellow
+    Write-Host "`tModules to: $moduleDestination" -ForegroundColor Yellow
+    Write-Host 'This Script will Check for Updates of Installed Module(s)'
+    Write-Host 'This Script will Remove Old Versions of Installed Module(s)'
+    Write-Host ''
+
 
     # Get All Versions of PowerShell Modules Installed
-    Write-Host "Getting Count of PowerShell Module(s) Installed - $(Get-Date)"
+    Write-Host 'Getting Count of PowerShell Module(s) Installed'
     $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
 
 
@@ -103,7 +114,7 @@ Process {
     # Copy Modules Folder
     Write-Host 'Copy All Versions of PowerShell Module(s) Installed'
     robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
-    
+
 
     # Find Updated Module(s)
     Write-Host 'Checking for Updated Versions of Modules'
@@ -177,7 +188,7 @@ Process {
     # Build Variables
     $Script:counter1 = 0
     $Script:UpdatedModulesCount = @($Script:UpdatedModules).Count
-    
+
     # Cleanup old versions of PowerShell Modules
     if ($Script:UpdatedModulesCount -gt 0) {
         Write-Host 'Checking for Old Version(s) of Module(s)'
@@ -193,7 +204,7 @@ Process {
             Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
             $ModuleName = $module.Name
-            $count = (Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
+            $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
             if ($ModuleName -ne 'Pester') {
                 if ($count -gt 1) {
                     $count--
