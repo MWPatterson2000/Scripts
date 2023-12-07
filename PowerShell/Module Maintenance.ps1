@@ -30,10 +30,10 @@ Param(
 Begin {
     # Clear Screen
     #Clear-Host
-        
+
     # Build Variables
-    $moduleSource = 'C:\Program Files\WindowsPowerShell\Modules'
-    $moduleDestination = 'D:\PowerShell\Modules'
+    $moduleSource = 'C:\Program Files\WindowsPowerShell\Modules' # Dwfault Location for All Users
+    $moduleDestination = 'D:\PowerShell\Modules' # Destination Location for Backup
 
     # Start Function(s)
     # Clear Varables
@@ -77,13 +77,16 @@ Begin {
 
 Process {
     # Build Header
-    Write-Host "PowerShell Module Maintenance Script - $(Get-Date)"
+    #Write-Host "PowerShell Module Maintenance Script - $(Get-Date)"
+    Write-Host 'PowerShell Module Maintenance Script'
     Write-Host ''
     Write-Host 'This Script will Copy All Installed Modules to Backup Location'
     Write-Host "`tModules from: $moduleSource" -ForegroundColor Yellow
     Write-Host "`tModules to: $moduleDestination" -ForegroundColor Yellow
     Write-Host 'This Script will Check for Updates of Installed Module(s)'
     Write-Host 'This Script will Remove Old Versions of Installed Module(s)'
+    #Write-Host ''
+    Write-Host "Start Time - $(Get-Date)"
     Write-Host ''
 
 
@@ -202,13 +205,13 @@ Process {
                 $Script:percentComplete1 = 1
             }
             Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
-
+            
             $ModuleName = $module.Name
             $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
             if ($ModuleName -ne 'Pester') {
                 if ($count -gt 1) {
                     $count--
-                    Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter, $count, $ModuleName) -ForegroundColor Yellow
+                    Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
                     $Latest = Get-InstalledModule $ModuleName
                     Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
                 }
@@ -226,5 +229,6 @@ End {
     Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
 
     # End
+    Write-Host "End Time - $(Get-Date)"
     Exit
 }
