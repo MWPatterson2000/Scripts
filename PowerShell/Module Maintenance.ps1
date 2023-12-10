@@ -231,6 +231,7 @@ End {
     Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
 
     # End
+    Write-Host ''
     Write-Host "End Time - $(Get-Date)"
     Exit
 }
