@@ -178,7 +178,7 @@ Process {
     $Script:UpdatedModulesCount = @($Script:UpdatedModules).Count
 
     # Display Updates Found
-    Write-Host ("`tUpdated Found: {0}" -f $Script:UpdatedModulesCount) -ForegroundColor Yellow
+    Write-Host ("`tUpdates Found: {0}" -f $Script:UpdatedModulesCount) -ForegroundColor Yellow
     #Write-Host ''
     # Write Data
     $Script:UpdatedModules | Format-Table -AutoSize
