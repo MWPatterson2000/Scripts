@@ -174,6 +174,9 @@ Process {
         Write-Host 'This Script will Copy All Installed Modules to Backup Location:'
         Write-Host "`tModules from: $moduleSource" -ForegroundColor Yellow
         Write-Host "`tModules to: $moduleDestination" -ForegroundColor Yellow
+        Write-Host 'This Script will Copy All Installed Scripts to Backup Location:'
+        Write-Host "`tModules from: $scriptsSource" -ForegroundColor Yellow
+        Write-Host "`tModules to: $scriptsDestination" -ForegroundColor Yellow
     }
     Write-Host 'This Script will Check for Updates of Installed Module(s)'
     if ($Update -eq $true) {
