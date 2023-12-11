@@ -57,12 +57,12 @@
     .PARAMETER moduleDestination
     Destination folder for copying the PowerShell Module(s) out to
 
-    .PARAMETER scriptsSource
+    .PARAMETER scriptSource
     Default All Users: "$env:ProgramFiles\PowerShell\Scripts"
     Default All Users: "$env:ProgramFiles\WindowsPowerShell\Scripts"
     Current User: "$home\Documents\PowerShell\Scripts"
 
-    .PARAMETER scriptsDestination
+    .PARAMETER scriptDestination
     Destination folder for copying the PowerShell Scripts(s) out to
 
     .EXAMPLE
@@ -108,8 +108,8 @@ Param(
     #[string]$moduleSource = "$env:ProgramFiles\PowerShell\Modules", # Default Location for All Users ?
     #[string]$moduleSource = "$home\Documents\PowerShell\Modules", # Default Locaion for Current User
     [string]$moduleDestination = 'D:\PowerShell\Modules', # Destination Location for Backup
-    [string]$scriptsSource = "$env:ProgramFiles\WindowsPowerShell\Scripts", # Default Location for All Users
-    [string]$scriptsDestination = 'D:\PowerShell\Scripts' # Destination Location for Backup
+    [string]$scriptSource = "$env:ProgramFiles\WindowsPowerShell\Scripts", # Default Location for All Users
+    [string]$scriptDestination = 'D:\PowerShell\Scripts' # Destination Location for Backup
 
 )
 
@@ -172,11 +172,11 @@ Process {
     Write-Host ''
     if ($Backup -eq $true) {
         Write-Host 'This Script will Copy All Installed Modules to Backup Location:'
-        Write-Host "`tModules from: $moduleSource" -ForegroundColor Yellow
-        Write-Host "`tModules to: $moduleDestination" -ForegroundColor Yellow
+        Write-Host "`tModule(s) from: $moduleSource" -ForegroundColor Yellow
+        Write-Host "`tModule(s) to: $moduleDestination" -ForegroundColor Yellow
         Write-Host 'This Script will Copy All Installed Scripts to Backup Location:'
-        Write-Host "`tModules from: $scriptsSource" -ForegroundColor Yellow
-        Write-Host "`tModules to: $scriptsDestination" -ForegroundColor Yellow
+        Write-Host "`tScript(s) from: $scriptSource" -ForegroundColor Yellow
+        Write-Host "`tScript(s) to: $scriptDestination" -ForegroundColor Yellow
     }
     Write-Host 'This Script will Check for Updates of Installed Module(s)'
     if ($Update -eq $true) {
