@@ -78,9 +78,9 @@ Begin {
 Process {
     # Build Header
     #Write-Host "PowerShell Module Maintenance Script - $(Get-Date)"
+    Write-Host "`tStart Time - $(Get-Date)" -ForegroundColor Yellow
+    #Write-Host ''
     Write-Host 'PowerShell Module Maintenance Script'
-    Write-Host ''
-    Write-Host "Start Time - $(Get-Date)"
     Write-Host ''
     Write-Host 'This Script will Copy All Installed Modules to Backup Location:'
     Write-Host "`tModules from: $moduleSource" -ForegroundColor Yellow
@@ -173,6 +173,13 @@ Process {
     Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
 
 
+    # Build Variables
+    $Script:counter1 = 0
+    $Script:UpdatedModulesCount = @($Script:UpdatedModules).Count
+
+    # Display Updates Found
+    Write-Host ("`tUpdated Found: {0}" -f $Script:UpdatedModulesCount) -ForegroundColor Yellow
+    #Write-Host ''
     # Write Data
     $Script:UpdatedModules | Format-Table -AutoSize
 
@@ -187,10 +194,6 @@ Process {
         }
     }
 
-
-    # Build Variables
-    $Script:counter1 = 0
-    $Script:UpdatedModulesCount = @($Script:UpdatedModules).Count
 
     # Cleanup old versions of PowerShell Modules
     if ($Script:UpdatedModulesCount -gt 0) {
@@ -232,6 +235,6 @@ End {
 
     # End
     Write-Host ''
-    Write-Host "End Time - $(Get-Date)"
+    Write-Host "`tEnd Time - $(Get-Date)" -ForegroundColor Yellow
     Exit
 }
