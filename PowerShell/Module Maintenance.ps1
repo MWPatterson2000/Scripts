@@ -51,27 +51,22 @@
     Source folder for copying the PowerShell Modules out from
     Default All Users: 'C:\Program Files\WindowsPowerShell\Modules'
     Default All Users: "$env:ProgramFiles\PowerShell\Modules"
+    Default All Users: "$env:ProgramFiles\WindowsPowerShell\Modules"
     Current User: "$home\Documents\PowerShell\Modules"
 
-
     .PARAMETER moduleDestination
-    Destination folder for copying the PowerShell Modules out to
+    Destination folder for copying the PowerShell Module(s) out to
+
+    .PARAMETER scriptsSource
+    Default All Users: "$env:ProgramFiles\PowerShell\Scripts"
+    Default All Users: "$env:ProgramFiles\WindowsPowerShell\Scripts"
+    Current User: "$home\Documents\PowerShell\Scripts"
+
+    .PARAMETER scriptsDestination
+    Destination folder for copying the PowerShell Scripts(s) out to
 
     .EXAMPLE
     <scriptName.ps1 -Parameter1 "Value1" -Parameter2 "Value2" -Parameter3 "Value3a,Value3b,Value3c"
-#>
-
-<#
-Name: 
-
-
-
-
-
-
-Revision History
-
-
 #>
 
 [CmdletBinding()]
@@ -108,10 +103,13 @@ Param(
     [ValidateSet($true, $false)]
     [string[]]$Cleanup = $true,
 
-    [string]$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules', # Default Location for All Users
-    #[string]$moduleSource = "$env:ProgramFiles\PowerShell\Modules", # Default Location for All Users
+    #[string]$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules', # Default Location for All Users
+    [string]$moduleSource = "$env:ProgramFiles\WindowsPowerShell\Modules", # Default Location for All Users
+    #[string]$moduleSource = "$env:ProgramFiles\PowerShell\Modules", # Default Location for All Users ?
     #[string]$moduleSource = "$home\Documents\PowerShell\Modules", # Default Locaion for Current User
-    [string]$moduleDestination = 'D:\PowerShell\Modules' # Destination Location for Backup
+    [string]$moduleDestination = 'D:\PowerShell\Modules', # Destination Location for Backup
+    [string]$scriptsSource = "$env:ProgramFiles\WindowsPowerShell\Scripts", # Default Location for All Users
+    [string]$scriptsDestination = 'D:\PowerShell\Scripts' # Destination Location for Backup
 
 )
 
@@ -215,6 +213,9 @@ Process {
     if ($Backup -eq $true) {
         Write-Host 'Copy All Versions of PowerShell Module(s) Installed'
         robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
+        Write-Host 'Copy All Versions of PowerShell Script(s) Installed'
+        robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
+
     }
 
     # Find Updated Module(s)
