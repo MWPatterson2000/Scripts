@@ -169,7 +169,7 @@ Process {
             [void]$Script:UpdatedModules.Add($moduleT)
         }
     }
-
+    # Close Progress Bar
     Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
 
 
