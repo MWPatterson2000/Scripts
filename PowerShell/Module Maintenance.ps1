@@ -6,7 +6,7 @@
 .COPYRIGHT 
 .APPLICATION Module Maintenance.ps1
 .FEATURE 
-.TAGS 
+.TAGS PowerShell, Modules
 .LICENSEURI 
 .PROJECTURI https://github.com/MWPatterson2000/Scripts/blob/main/PowerShell/Module%20Maintenance.ps1
 .RELEASENOTES
@@ -21,31 +21,33 @@
 #>
 <#
     .SYNOPSIS
-    This script to List All Installd PowerShell Modules that have a different version Online or no matching Online version
+    This script to List All Installed PowerShell Modules that have a different version Online or no matching Online version
     Allows the User to Update & Cleanup Old Versions of PowerShell Module(s) on the Client
     
     .DESCRIPTION
-    This will read a Azure Tenant and report on the Microsoft 365 CIS Benmarks
+    This Script will do the following:
+        Get a List All Installed PowerShell Module(s)
+        Check for Updates to Installed PowerShell Module(s)
+        Copy the Installed PowerShell Module(s) to a Backup Location
+        Copy the Installed PowerShell Script(s) to a Backup Location
+        Update the Installed PowerShell Module(s)
+        Remove Old Duplicate Version(s) of PowerShell Module(s)
 
     .PARAMETER Time
     Used to show the time the process starts and stops
-    $true
-    $false
+    $true / $false
     
     .PARAMETER Backup
     Used to Copy the PowerShell Modules out to an alternate location
-    $true
-    $false
+    $true / $false
 
     .PARAMETER Update
     Used to Update the PowerShell Modules 
-    $true
-    $false
+    $true / $false
 
     .PARAMETER Cleanup
     Used to Cleanup Duplicate Modules to reduce Disk Space as well as get rid of depreciated commands
-    $true
-    $false
+    $true / $false
     
     .PARAMETER moduleSource
     Source folder for copying the PowerShell Modules out from
@@ -66,15 +68,19 @@
     Destination folder for copying the PowerShell Scripts(s) out to
 
     .EXAMPLE
+    Do Not Display Star & End Time
     & '.\Module Maintenance.ps1' -Time $false
 
     .EXAMPLE
+    Do Not Backup Modules & Scripts
     & '.\Module Maintenance.ps1' -Backup $false
 
     .EXAMPLE
+    Do Not Update Installed Modules
     & '.\Module Maintenance.ps1' -Update $false
 
     .EXAMPLE
+    Do Not Cleanup Duplicate Modules
     & '.\Module Maintenance.ps1' -Cleanup $false
 #>
 
