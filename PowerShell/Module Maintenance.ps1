@@ -66,7 +66,16 @@
     Destination folder for copying the PowerShell Scripts(s) out to
 
     .EXAMPLE
-    <scriptName.ps1 -Parameter1 "Value1" -Parameter2 "Value2" -Parameter3 "Value3a,Value3b,Value3c"
+    & '.\Module Maintenance.ps1' -Time $false
+
+    .EXAMPLE
+    & '.\Module Maintenance.ps1' -Backup $false
+
+    .EXAMPLE
+    & '.\Module Maintenance.ps1' -Update $false
+
+    .EXAMPLE
+    & '.\Module Maintenance.ps1' -Cleanup $false
 #>
 
 [CmdletBinding()]
@@ -83,8 +92,6 @@ Param(
         ValueFromPipelineByPropertyName = $true,
         Position = 0)]
     [ValidateNotNullOrEmpty()]
-    [string]$Path,
-    [string]$Filter = '*.*'
     #>
 
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
