@@ -126,7 +126,7 @@ Param(
 
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
     [ValidateSet($true, $false)]
-    [bool]$Time = $true,
+    [bool]$Time = $false,
 
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
     [ValidateSet($true, $false)]
