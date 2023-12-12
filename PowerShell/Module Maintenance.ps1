@@ -79,7 +79,7 @@
         LICENSEURI 
         PROJECTURI 
         RELEASENOTES
-            2021-10-21 - Initial Release
+            2021-09-21 - Initial Release
             2023-09-22 - Added Additional Information to Report
             2023-10-10 - Added Local Module Published Date
             2023-11-19 - Converted to Advanced Script
@@ -88,15 +88,15 @@
             2023-12-11 - Added Parameters
 
         Change Log:
-        Date            Version     By                  Notes
-        -------------------------------------------------------
-        2023-10-21      1.0         Mike Patterson      Initial release
-        2023-09-22      1.1         Mike Patterson      Added Additional Information to Report
-        2023-10-10      1.2         Mike Patterson      Added Local Module Published Date
-        2023-11-19      1.3         Mike Patterson      Converted to Advanced Script
-        2023-12-02      1.4         Mike Patterson      Added Progress Bar
-        2023-12-06      1.5         Mike Patterson      Combined other scripts into a Single Script
-        2023-12-11      1.6         Mike Patterson      Added Parameters
+        Date            Version         By                  Notes
+        ----------------------------------------------------------
+        2023-09-21      2023.09.21      Mike Patterson      Initial release
+        2023-09-22      2023.09.22      Mike Patterson      Added Additional Information to Report
+        2023-10-10      2023.10.10      Mike Patterson      Added Local Module Published Date
+        2023-11-19      2023.11.19      Mike Patterson      Converted to Advanced Script
+        2023-12-02      2023.12.02      Mike Patterson      Added Progress Bar
+        2023-12-06      2023.12.06      Mike Patterson      Combined other scripts into a Single Script
+        2023-12-11      2023.12.11      Mike Patterson      Added Parameters
         
 
 
