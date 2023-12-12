@@ -1,102 +1,100 @@
 <#
-    .SYNOPSIS
-        This script allows for easy PowerShell Module Maintenance.
-        This script to List All Installed PowerShell Modules that have a different version Online or no matching Online version.
-        Allows the User to Update & Cleanup Old Versions of PowerShell Module(s) on the Client
-        
-    .DESCRIPTION
-        This Script will do the following:
-            Get a List All Installed PowerShell Module(s)
-            Check for Updates to Installed PowerShell Module(s)
-            Copy the Installed PowerShell Module(s) to a Backup Location
-            Copy the Installed PowerShell Script(s) to a Backup Location
-            Update the Installed PowerShell Module(s)
-            Remove Old Duplicate Version(s) of PowerShell Module(s)
-        
-    .PARAMETER Time
-        Used to show the time the process starts and stops
-        $true / $false
-        
-    .PARAMETER Backup
-        Used to Copy the PowerShell Modules out to an alternate location
-        $true / $false
+.SYNOPSIS
+    This script allows for easy PowerShell Module Maintenance for Installed Modules.
 
-    .PARAMETER Update
-        Used to Update the PowerShell Modules 
-        $true / $false
+.DESCRIPTION
+    This Script will do the following:
+        Get a List All Installed PowerShell Module(s)
+        Check for Updates to Installed PowerShell Module(s)
+        Copy the Installed PowerShell Module(s) to a Backup Location
+        Copy the Installed PowerShell Script(s) to a Backup Location
+        Update the Installed PowerShell Module(s)
+        Remove Old Duplicate Version(s) of PowerShell Module(s)
 
-    .PARAMETER Cleanup
-        Used to Cleanup Duplicate Modules to reduce Disk Space as well as get rid of depreciated commands
-        $true / $false
-    
+.PARAMETER Time
+    Used to show the time the process starts and stops
+    $true / $false
+
+.PARAMETER Backup
+    Used to Copy the PowerShell Modules out to an alternate location
+    $true / $false
+
+.PARAMETER Update
+    Used to Update the PowerShell Modules 
+    $true / $false
+
+.PARAMETER Cleanup
+    Used to Cleanup Duplicate Modules to reduce Disk Space as well as get rid of depreciated commands
+    $true / $false
+
     .PARAMETER moduleSource
-        Source folder for copying the PowerShell Modules out from
-        Default All Users: 'C:\Program Files\WindowsPowerShell\Modules'
-        Default All Users: "$env:ProgramFiles\PowerShell\Modules"
-        Default All Users: "$env:ProgramFiles\WindowsPowerShell\Modules"
-        Current User: "$home\Documents\PowerShell\Modules"
+    Source folder for copying the PowerShell Modules out from
+    Default All Users: 'C:\Program Files\WindowsPowerShell\Modules'
+    Default All Users: "$env:ProgramFiles\PowerShell\Modules"
+    Default All Users: "$env:ProgramFiles\WindowsPowerShell\Modules"
+    Current User: "$home\Documents\PowerShell\Modules"
 
-    .PARAMETER moduleDestination
-        Destination folder for copying the PowerShell Module(s) out to
+.PARAMETER moduleDestination
+    Destination folder for copying the PowerShell Module(s) out to
 
-    .PARAMETER scriptSource
-        Default All Users: "$env:ProgramFiles\PowerShell\Scripts"
-        Default All Users: "$env:ProgramFiles\WindowsPowerShell\Scripts"
-        Current User: "$home\Documents\PowerShell\Scripts"
+.PARAMETER scriptSource
+    Default All Users: "$env:ProgramFiles\PowerShell\Scripts"
+    Default All Users: "$env:ProgramFiles\WindowsPowerShell\Scripts"
+    Current User: "$home\Documents\PowerShell\Scripts"
 
-    .PARAMETER scriptDestination
-        Destination folder for copying the PowerShell Scripts(s) out to
+.PARAMETER scriptDestination
+    Destination folder for copying the PowerShell Scripts(s) out to
 
-    .EXAMPLE
-        & '.\Module Maintenance.ps1' -Time $false
-        Do Not Display Start & End Time
+.EXAMPLE
+    & '.\Module Maintenance.ps1' -Time $false
+    Do Not Display Start & End Time
 
-    .EXAMPLE
-        & '.\Module Maintenance.ps1' -Backup $false
-        Do Not Backup Modules & Scripts
+.EXAMPLE
+    & '.\Module Maintenance.ps1' -Backup $false
+    Do Not Backup Modules & Scripts
 
-    .EXAMPLE
-        & '.\Module Maintenance.ps1' -Update $false
-        Do Not Update Installed Modules
+.EXAMPLE
+    & '.\Module Maintenance.ps1' -Update $false
+    Do Not Update Installed Modules
 
-    .EXAMPLE
-        & '.\Module Maintenance.ps1' -Cleanup $false
-        Do Not Cleanup Duplicate Modules
+.EXAMPLE
+    & '.\Module Maintenance.ps1' -Cleanup $false
+    Do Not Cleanup Duplicate Modules
 
-    .LINK
-        https://github.com/MWPatterson2000/Scripts/blob/main/PowerShell/Module%20Maintenance.ps1
+.LINK
+    https://github.com/MWPatterson2000/Scripts/blob/main/PowerShell/Module%20Maintenance.ps1
 
-    .NOTES
-        VERSION 2023.12.11
-        GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
-        AUTHOR Michael Patterson
-        CONTACT scripts@mwpatterson.com
-        COMPANYNAME 
-        COPYRIGHT 
-        APPLICATION Module Maintenance.ps1
-        FEATURE 
-        TAGS PowerShell, Modules
-        LICENSEURI 
-        PROJECTURI 
-        RELEASENOTES
-            2021-09-21 - Initial Release
-            2023-09-22 - Added Additional Information to Report
-            2023-10-10 - Added Local Module Published Date
-            2023-11-19 - Converted to Advanced Script
-            2023-12-02 - Added Progress Bar
-            2023-12-06 - Combined other scripts into a Single Script
-            2023-12-11 - Added Parameters
+.NOTES
+    VERSION 2023.12.11
+    GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
+    AUTHOR Michael Patterson
+    CONTACT scripts@mwpatterson.com
+    COMPANYNAME 
+    COPYRIGHT 
+    APPLICATION Module Maintenance.ps1
+    FEATURE 
+    TAGS PowerShell, Modules
+    LICENSEURI 
+    PROJECTURI 
+    RELEASENOTES
+        2021-09-21 - Initial Release
+        2023-09-22 - Added Additional Information to Report
+        2023-10-10 - Added Local Module Published Date
+        2023-11-19 - Converted to Advanced Script
+        2023-12-02 - Added Progress Bar
+        2023-12-06 - Combined other scripts into a Single Script
+        2023-12-11 - Added Parameters
 
-        Change Log:
-        Date            Version         By                  Notes
-        ----------------------------------------------------------
-        2023-09-21      2023.09.21      Mike Patterson      Initial release
-        2023-09-22      2023.09.22      Mike Patterson      Added Additional Information to Report
-        2023-10-10      2023.10.10      Mike Patterson      Added Local Module Published Date
-        2023-11-19      2023.11.19      Mike Patterson      Converted to Advanced Script
-        2023-12-02      2023.12.02      Mike Patterson      Added Progress Bar
-        2023-12-06      2023.12.06      Mike Patterson      Combined other scripts into a Single Script
-        2023-12-11      2023.12.11      Mike Patterson      Added Parameters
+    Change Log:
+    Date            Version         By                  Notes
+    ----------------------------------------------------------
+    2023-09-21      2023.09.21      Mike Patterson      Initial release
+    2023-09-22      2023.09.22      Mike Patterson      Added Additional Information to Report
+    2023-10-10      2023.10.10      Mike Patterson      Added Local Module Published Date
+    2023-11-19      2023.11.19      Mike Patterson      Converted to Advanced Script
+    2023-12-02      2023.12.02      Mike Patterson      Added Progress Bar
+    2023-12-06      2023.12.06      Mike Patterson      Combined other scripts into a Single Script
+    2023-12-11      2023.12.11      Mike Patterson      Added Parameters
         
 
 
