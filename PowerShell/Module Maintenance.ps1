@@ -61,6 +61,14 @@
     & '.\Module Maintenance.ps1' -Cleanup $false
     Do Not Cleanup Duplicate Modules
 
+.EXAMPLE
+    & '.\Module Maintenance.ps1' -Time $false -Backup $false -Update $false -Cleanup $false
+    Do Not do the following:
+        Display Start & End Time
+        Backup Modules & Scripts
+        Update Installed Modules
+        Cleanup Duplicate Modules
+
 .LINK
     https://github.com/MWPatterson2000/Scripts/blob/main/PowerShell/Module%20Maintenance.ps1
 
