@@ -143,9 +143,11 @@ Param(
     #[string]$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules', # Default Location for All Users
     [string]$moduleSource = "$env:ProgramFiles\WindowsPowerShell\Modules", # Default Location for All Users
     #[string]$moduleSource = "$env:ProgramFiles\PowerShell\Modules", # Default Location for All Users ?
+    #[string]$moduleSource = "$env:ProgramFiles\PowerShell\7\Modules", # Default Location for All Users ?
     #[string]$moduleSource = "$home\Documents\PowerShell\Modules", # Default Locaion for Current User
     [string]$moduleDestination = 'D:\PowerShell\Modules', # Destination Location for Backup
     [string]$scriptSource = "$env:ProgramFiles\WindowsPowerShell\Scripts", # Default Location for All Users
+    #[string]$scriptSource = "$env:ProgramFiles\PowerShell\Scripts", # Default Location for All Users ?
     [string]$scriptDestination = 'D:\PowerShell\Scripts' # Destination Location for Backup
 
 )
