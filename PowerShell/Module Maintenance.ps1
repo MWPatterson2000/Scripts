@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    This script allows for easy PowerShell Module Maintenance for Installed Modules.
+    This script allows for easy PowerShell Module Maintenance for Installed Module(s).
 
 .DESCRIPTION
     This Script will do the following:
@@ -12,19 +12,19 @@
         Remove Old Duplicate Version(s) of PowerShell Module(s)
 
 .PARAMETER Time
-    Used to show the time the process starts and stops
+    Used to Show the Time when the Process Starts and Stops
     $true / $false
 
 .PARAMETER Backup
-    Used to Copy the PowerShell Modules out to an alternate location
+    Used to Copy the PowerShell Module(s) out to an Alternate Location
     $true / $false
 
 .PARAMETER Update
-    Used to Update the PowerShell Modules 
+    Used to Update the PowerShell Module(s)
     $true / $false
 
 .PARAMETER Cleanup
-    Used to Cleanup Duplicate Modules to reduce Disk Space as well as get rid of depreciated commands
+    Used to Cleanup Duplicate Module(s) to Reduce Disk Space as well as get rid of Depreciated Commands
     $true / $false
 
     .PARAMETER moduleSource
