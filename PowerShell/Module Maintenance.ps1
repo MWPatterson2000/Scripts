@@ -27,7 +27,7 @@
     Used to Cleanup Duplicate Module(s) to Reduce Disk Space as well as get rid of Depreciated Commands
     $true / $false
 
-    .PARAMETER moduleSource
+.PARAMETER moduleSource
     Source folder for copying the PowerShell Modules out from
     Default All Users: 'C:\Program Files\WindowsPowerShell\Modules'
     Default All Users: "$env:ProgramFiles\PowerShell\Modules"
@@ -73,7 +73,19 @@
     https://github.com/MWPatterson2000/Scripts/blob/main/PowerShell/Module%20Maintenance.ps1
 
 .NOTES
-    VERSION 2023.12.11
+    Change Log:
+    Date            Version         By                  Notes
+    ----------------------------------------------------------
+    2023-09-21      2023.09.21      Mike Patterson      Initial release
+    2023-09-22      2023.09.22      Mike Patterson      Added Additional Information to Report
+    2023-10-10      2023.10.10      Mike Patterson      Added Local Module Published Date
+    2023-11-19      2023.11.19      Mike Patterson      Converted to Advanced Script
+    2023-12-02      2023.12.02      Mike Patterson      Added Progress Bar
+    2023-12-06      2023.12.06      Mike Patterson      Combined other scripts into a Single Script
+    2023-12-11      2023.12.11      Mike Patterson      Added Parameters
+    2023-12-13      2023.12.13      Mike Patterson      Fixed Cleanup Variable Name
+    
+    VERSION 2023.12.13
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -94,18 +106,6 @@
         2023-12-11 - Added Parameters
         2023-12-13 - Fixed Cleanup Variable Name
 
-    Change Log:
-    Date            Version         By                  Notes
-    ----------------------------------------------------------
-    2023-09-21      2023.09.21      Mike Patterson      Initial release
-    2023-09-22      2023.09.22      Mike Patterson      Added Additional Information to Report
-    2023-10-10      2023.10.10      Mike Patterson      Added Local Module Published Date
-    2023-11-19      2023.11.19      Mike Patterson      Converted to Advanced Script
-    2023-12-02      2023.12.02      Mike Patterson      Added Progress Bar
-    2023-12-06      2023.12.06      Mike Patterson      Combined other scripts into a Single Script
-    2023-12-11      2023.12.11      Mike Patterson      Added Parameters
-    2023-12-13      2023.12.13      Mike Patterson      Fixed Cleanup Variable Name
-    
 
 
 #>
