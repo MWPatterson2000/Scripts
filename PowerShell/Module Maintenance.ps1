@@ -92,6 +92,7 @@
         2023-12-02 - Added Progress Bar
         2023-12-06 - Combined other scripts into a Single Script
         2023-12-11 - Added Parameters
+        2023-12-13 - Fixed Cleanup Variable Name
 
     Change Log:
     Date            Version         By                  Notes
