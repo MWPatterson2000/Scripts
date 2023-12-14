@@ -103,6 +103,7 @@
     2023-12-02      2023.12.02      Mike Patterson      Added Progress Bar
     2023-12-06      2023.12.06      Mike Patterson      Combined other scripts into a Single Script
     2023-12-11      2023.12.11      Mike Patterson      Added Parameters
+    2023-12-13      2023.12.13      Mike Patterson      Fixed Cleanup Variable Name
     
 
 
@@ -330,16 +331,28 @@ Process {
         Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
         #Update-Module
         foreach ($module in $Script:UpdatedModules) {
+            # Build Progress Bar
+            $Script:counter1++
+            $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesCount) * 100
+            $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
+            If ($Script:percentComplete1 -lt 1) {
+                $Script:percentComplete1 = 1
+            }
+            #Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+
             if ($null -ne $module.Online) {
-                Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
+                #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
+                Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
                 Update-Module -Name $module.Name
             }
         }
+        # Close Progress Bar
+        Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
     }
 
 
     # Cleanup old versions of PowerShell Modules
-    if ($Clean -eq $true) {
+    if ($Cleanup -eq $true) {
         if ($Script:UpdatedModulesCount -gt 0) {
             Write-Host 'Checking for Old Version(s) of Module(s)'
             #foreach ($module in $Script:ModulesAR) {
@@ -383,5 +396,7 @@ End {
         Write-Host ''
         Write-Host "`tEnd Time - $(Get-Date)" -ForegroundColor Yellow
     }
+    # Memory Cleanup
+    [System.GC]::Collect()
     Exit
 }
