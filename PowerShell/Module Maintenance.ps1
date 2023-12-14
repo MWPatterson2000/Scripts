@@ -353,6 +353,8 @@ Process {
 
 
     # Cleanup old versions of PowerShell Modules
+    # Build Variables
+    $Script:counter1 = 0
     if ($Cleanup -eq $true) {
         if ($Script:UpdatedModulesCount -gt 0) {
             Write-Host 'Checking for Old Version(s) of Module(s)'
