@@ -125,7 +125,6 @@ Param(
         Position = 0)]
     [ValidateNotNullOrEmpty()]
     #>
-
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
     [ValidateSet($true, $false)]
     [bool]$Time = $false,
