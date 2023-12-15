@@ -97,17 +97,6 @@
     LICENSEURI 
     PROJECTURI 
     RELEASENOTES
-        2021-09-21 - Initial Release
-        2023-09-22 - Added Additional Information to Report
-        2023-10-10 - Added Local Module Published Date
-        2023-11-19 - Converted to Advanced Script
-        2023-12-02 - Added Progress Bar
-        2023-12-06 - Combined other scripts into a Single Script
-        2023-12-11 - Added Parameters
-        2023-12-13 - Fixed Cleanup Variable Name
-
-
-
 #>
 
 [CmdletBinding()]
