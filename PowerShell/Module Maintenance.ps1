@@ -333,7 +333,7 @@ Process {
         foreach ($module in $Script:UpdatedModules) {
             # Build Progress Bar
             $Script:counter1++
-            $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesCount) * 100
+            $Script:percentComplete1 = ($Script:counter1 / $Script:UpdatedModulesCount) * 100
             $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
             If ($Script:percentComplete1 -lt 1) {
                 $Script:percentComplete1 = 1
@@ -342,12 +342,12 @@ Process {
 
             if ($null -ne $module.Online) {
                 #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
-                Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
                 Update-Module -Name $module.Name
             }
         }
         # Close Progress Bar
-        Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
+        Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:UpdatedModulesCount" -Completed
     }
 
 
@@ -366,7 +366,7 @@ Process {
                 If ($Script:percentComplete1 -lt 1) {
                     $Script:percentComplete1 = 1
                 }
-                Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
             
                 $ModuleName = $module.Name
                 $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
@@ -383,7 +383,7 @@ Process {
                 else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
             }
             # Close Progress Bar
-            Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
+            Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
         }
     }
 }
