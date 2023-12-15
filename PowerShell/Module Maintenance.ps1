@@ -126,19 +126,19 @@ Param(
     [ValidateNotNullOrEmpty()]
     #>
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [ValidateSet($true, $false)]
+    #[ValidateSet($true, $false)]
     [bool]$Time = $false,
 
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [ValidateSet($true, $false)]
+    #[ValidateSet($true, $false)]
     [bool]$Backup = $true,
 
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [ValidateSet($true, $false)]
+    #[ValidateSet($true, $false)]
     [bool]$Update = $true,
 
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [ValidateSet($true, $false)]
+    #[ValidateSet($true, $false)]
     [bool]$Cleanup = $true,
 
     #[string]$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules', # Default Location for All Users
