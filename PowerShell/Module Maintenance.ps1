@@ -363,7 +363,7 @@ Process {
                     if ($count -gt 1) {
                         $count--
                         #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
-                        Write-Host ("`tUninstalling {0} Previous Version of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
+                        Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
                         #Write-Host "`nUninstalling $count Previous Version of Module: $ModuleName" -ForegroundColor Yellow
                         $Latest = Get-InstalledModule $ModuleName
                         Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
