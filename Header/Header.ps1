@@ -1,15 +1,40 @@
 ﻿<#
-Name: .ps1
+.SYNOPSIS
+    
 
-This script is for .
+.DESCRIPTION
+    
 
-Michael Patterson
-Mike.Patterson@mfa.net
+.PARAMETER
 
-Revision History
-    YYYY-MM-DD - Initial Release
 
+.EXAMPLE
+
+
+.LINK
+    https://github.com/MWPatterson2000/Scripts/
+
+.NOTES
+    Change Log:
+    Date            Version         By                  Notes
+    ----------------------------------------------------------
+    2023-09-21      2023.09.21      Mike Patterson      Initial release
+
+    
+    VERSION 2023.12.13
+    GUID 
+    AUTHOR Michael Patterson
+    CONTACT scripts@mwpatterson.com
+    COMPANYNAME 
+    COPYRIGHT 
+    APPLICATION 
+    FEATURE 
+    TAGS 
+    LICENSEURI 
+    PROJECTURI 
+    RELEASENOTES
 #>
+
 [CmdletBinding()]
 [Alias()]
 [OutputType([int])]
