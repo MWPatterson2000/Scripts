@@ -1,0 +1,1 @@
+systeminfo | Select-String 'System Boot Time'
