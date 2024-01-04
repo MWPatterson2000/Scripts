@@ -76,16 +76,17 @@
     Change Log:
     Date            Version         By                  Notes
     ----------------------------------------------------------
-    2023-09-21      2023.09.21      Mike Patterson      Initial release
-    2023-09-22      2023.09.22      Mike Patterson      Added Additional Information to Report
-    2023-10-10      2023.10.10      Mike Patterson      Added Local Module Published Date
-    2023-11-19      2023.11.19      Mike Patterson      Converted to Advanced Script
-    2023-12-02      2023.12.02      Mike Patterson      Added Progress Bar
-    2023-12-06      2023.12.06      Mike Patterson      Combined other scripts into a Single Script
-    2023-12-11      2023.12.11      Mike Patterson      Added Parameters
-    2023-12-13      2023.12.13      Mike Patterson      Fixed Cleanup Variable Name
+    2023-09-21      1.23.09.21      Mike Patterson      Initial release
+    2023-09-22      1.23.09.22      Mike Patterson      Added Additional Information to Report
+    2023-10-10      1.23.10.10      Mike Patterson      Added Local Module Published Date
+    2023-11-19      1.23.11.19      Mike Patterson      Converted to Advanced Script
+    2023-12-02      1.23.12.02      Mike Patterson      Added Progress Bar
+    2023-12-06      1.23.12.06      Mike Patterson      Combined other scripts into a Single Script
+    2023-12-11      1.23.12.11      Mike Patterson      Added Parameters
+    2023-12-13      1.23.12.13      Mike Patterson      Fixed Cleanup Variable Name
+    2024-01-03      1.24.01.03      Mike Patterson      Script Cleanup & Version Changes
     
-    VERSION 2023.12.13
+    VERSION 1.24.01.03
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -384,7 +385,7 @@ End {
 
     # End
     if ($Time -eq $true) {
-        Write-Host ''
+        #Write-Host ''
         Write-Host "`tEnd Time - $(Get-Date)" -ForegroundColor Yellow
     }
     # Memory Cleanup
