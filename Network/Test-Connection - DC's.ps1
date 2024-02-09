@@ -18,10 +18,10 @@
     Change Log:
     Date            Version         By                  Notes
     ----------------------------------------------------------
-    2023-09-21      2023.09.21      Mike Patterson      Initial release
+    2024-02-09      2024.02.09      Mike Patterson      Initial release
 
     
-    VERSION 2023.12.13
+    VERSION 1.2024.02.09
     GUID 
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
