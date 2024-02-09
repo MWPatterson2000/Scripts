@@ -21,7 +21,7 @@
     2023-09-21      2023.09.21      Mike Patterson      Initial release
 
     
-    VERSION 2023.12.13
+    VERSION 1.2023.12.13
     GUID 
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
