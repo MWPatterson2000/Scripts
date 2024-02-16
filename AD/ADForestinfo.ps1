@@ -48,7 +48,7 @@ $FSMOSchema = $ForestInfo.SchemaMaster
 $ADRecBinSupport = 'feature not supported'
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # AD RecycleBin
-if ($ffl -like 'Windows2008R2Forest' -or $ffl -like 'Windows2012Forest' -or $ffl -like 'Windows2012R2Forest' -or $ffl -like 'Windows2016Forest' -or $ffl -like 'Windows2019Forest' -or $ffl -like 'Windows2022Forest') {
+if ($ffl -like 'Windows2008R2Forest' -or $ffl -like 'Windows2012Forest' -or $ffl -like 'Windows2012R2Forest' -or $ffl -like 'Windows2016Forest' -or $ffl -like 'Windows2019Forest' -or $ffl -like 'Windows2022Forest' -or $ffl -like 'Windows2025Forest') {
     $ADRecBin = (Get-ADOptionalFeature -Server $forest -Identity 766ddcd8-acd0-445e-f3b9-a7f9b6744f2a).EnabledScopes | Measure-Object
     if ($ADRecBin.Count -ne 0 ) {
         $ADRecBinSupport = 'Enabled'
@@ -374,8 +374,9 @@ $allDomains | ForEach-Object {
                 5 { $Domainmode = 'Windows Server 2012 Domain' }
                 6 { $Domainmode = 'Windows Server 2012 R2 Domain' }
                 7 { $Domainmode = 'Windows Server 2016 Domain' }
-                8 { $Domainmode = 'Windows Server 2019 Domain' }
-                #9 { $Domainmode = "Windows Server 2022 Domain" }
+                #8 { $Domainmode = 'Windows Server 2019 Domain' } # Not used, No Changes
+                #9 { $Domainmode = "Windows Server 2022 Domain" } # Not used, No Changes
+                10 { $Domainmode = 'Windows Server 2025 Domain' }
                 default { $Domainmode = 'Unknown' + '-' + $domaindetails.DomainMode }
             }
             $member | Add-Member -MemberType NoteProperty -Name 'DomainMode' -Value $DomainMode

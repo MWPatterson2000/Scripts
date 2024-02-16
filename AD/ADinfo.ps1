@@ -220,9 +220,9 @@ Process {
     #$domain = Get-ADDomain | Format-Table Forest
     # Get Forest Info & FSMO roles individually
     $Forest = Get-ADForest
+    $ADForest = $Forest.ForestMode
     $SchemaMaster = $Forest.SchemaMaster
     $DomainNamingMaster = $Forest.DomainNamingMaster
-    $ADForest = $Forest.ForestMode
     # Get Domain Info & FSMO roles individually
     $Domain = Get-ADDomain
     $ADDomain = $Domain.DomainMode
