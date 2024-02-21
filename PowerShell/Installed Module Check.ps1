@@ -72,7 +72,8 @@ Begin {
                             #Write-Host "Previous:"($modulesPrevious[$numP]).Name (($modulesPrevious[$numP]).Version).Major (($modulesPrevious[$numP]).Version).Minor (($modulesPrevious[$numP]).Version).Build (($modulesPrevious[$numP]).Version).Revision
                             #Write-Host "Previous:"$modulesPrevious[$numP]
                             #$tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
-                            $tempM = 'Updated,' + ($modulesCurrent[$numC]).Name + ',' + ($modulesCurrent[$numC]).Version
+                            #$tempM = 'Updated,' + ($modulesCurrent[$numC]).Name + ',' + ($modulesCurrent[$numC]).Version
+                            $tempM = 'Updated,' + ($modulesCurrent[$numC]).Name + ',' + (($modulesCurrent[$numC]).Version).Major + '.' + (($modulesCurrent[$numC]).Version).Minor + '.' + (($modulesCurrent[$numC]).Version).Build + '.' + (($modulesCurrent[$numC]).Version).Revision
                             <#
                         If ((($modulesPrevious[$numP]).Version).Major -eq (($modulesCurrent[$numC]).Version).Major) {
                             If ((($modulesPrevious[$numP]).Version).Minor -eq (($modulesCurrent[$numC]).Version).Minor) {
@@ -103,22 +104,25 @@ Begin {
                             else {
                                 #Write-Host "Current:"$modulesCurrent[$numC]
                                 #Write-Host "Previous:"$modulesPrevious[$numP]
-                                Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
-                                #$tempM = "Updated," + ($modulesCurrent[$numC]).Name + "," + (($modulesCurrent[$numC]).Version).Major + "." + (($modulesCurrent[$numC]).Version).Minor + "." + (($modulesCurrent[$numC]).Version).Build + "." + (($modulesCurrent[$numC]).Version).Revision
+                                #Write-Host "`tUpdated PowerShell Module:" ($modulesCurrent[$numC]).Name ($modulesCurrent[$numC]).Version -ForegroundColor Yellow
+                                Write-Host "`tUpdated Module:" ($modulesCurrent[$numC]).Name ($modulesCurrent[$numC]).Version -ForegroundColor Yellow
+                                $tempM = 'Updated,' + ($modulesCurrent[$numC]).Name + ',' + (($modulesCurrent[$numC]).Version).Major + '.' + (($modulesCurrent[$numC]).Version).Minor + '.' + (($modulesCurrent[$numC]).Version).Build + '.' + (($modulesCurrent[$numC]).Version).Revision
                                 $tempM | Out-File $outputCsv -Append
                             }
                         }
                     }
                 }
                 else {
-                    Write-Host "`tNew PowerShell Module:" ($modulesCurrent[$numC]).Name -ForegroundColor Yellow
+                    #Write-Host "`tNew PowerShell Module:" ($modulesCurrent[$numC]).Name ($modulesCurrent[$numC]).Version -ForegroundColor Yellow
+                    Write-Host "`tNew Module:" ($modulesCurrent[$numC]).Name ($modulesCurrent[$numC]).Version -ForegroundColor Yellow
                     $tempM = 'New,' + ($modulesCurrent[$numC]).Name + ',' + (($modulesCurrent[$numC]).Version).Major + '.' + (($modulesCurrent[$numC]).Version).Minor + '.' + (($modulesCurrent[$numC]).Version).Build + '.' + (($modulesCurrent[$numC]).Version).Revision
                     $tempM | Out-File $outputCsv -Append
                 }
             }
             for ($numP = 0 ; $numP -le $countP ; $numP++) {
                 If (($modulesCurrent).Name -NotContains ($modulesPrevious[$numP]).Name) {
-                    Write-Host "`tRemoved PowerShell Module:" ($modulesCurrent[$numP]).Name -ForegroundColor Yellow
+                    #Write-Host "`tRemoved PowerShell Module:" ($modulesCurrent[$numP]).Name -ForegroundColor Yellow
+                    Write-Host "`tRemoved Module:" ($modulesCurrent[$numP]).Name -ForegroundColor Yellow
                     $tempM = 'Removed,' + ($modulesPrevious[$numP]).Name + ',' + (($modulesPrevious[$numP]).Version).Major + '.' + (($modulesPrevious[$numP]).Version).Minor + '.' + (($modulesCurrent[$numP]).Version).Build + '.' + (($modulesCurrent[$numP]).Version).Revision
                     $tempM | Out-File $outputCsv -Append
                 }

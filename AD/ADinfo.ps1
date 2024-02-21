@@ -237,7 +237,7 @@ Process {
     $ADVer = Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object objectVersion
     $ADNUM = $ADVer -replace '@{objectVersion=', '' -replace '}', ''
     If ($ADNum -eq '90') { $srv = 'Windows Server 2025' }
-    ElseIf ($ADNum -eq '88') { $srv = 'Windows Server 2019/Windows Server 2022' }
+    ElseIf ($ADNum -eq '88') { $srv = 'Windows Server 2019/2022' }
     ElseIf ($ADNum -eq '87') { $srv = 'Windows Server 2016' }
     ElseIf ($ADNum -eq '69') { $srv = 'Windows Server 2012 R2' }
     ElseIf ($ADNum -eq '56') { $srv = 'Windows Server 2012' }
