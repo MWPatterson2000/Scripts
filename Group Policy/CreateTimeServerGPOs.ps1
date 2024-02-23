@@ -155,7 +155,7 @@ $DomainName = $DomainInfo.Name
 $ForestName = $DomainInfo.Forest.Name
 
 # Get AD Distinguished Name
-$DomainDistinguishedName = $DomainInfo.GetDirectoryEntry() | select -ExpandProperty DistinguishedName  
+$DomainDistinguishedName = $DomainInfo.GetDirectoryEntry() | Select-Object -ExpandProperty DistinguishedName  
 
 If ($DomainName -eq $ForestName) {
   $IsForestRoot = $True
@@ -321,14 +321,14 @@ Function Create-Policy {
     }
 #>
     $WMIFilterADObject = Get-ADObject -Filter 'objectClass -eq "msWMI-Som"' -Properties "msWMI-Name", "msWMI-Parm1", "msWMI-Parm2" | 
-    Where { $_."msWMI-Name" -eq "$msWMIName" }
+    Where-Object { $_."msWMI-Name" -eq "$msWMIName" }
     #$WMIFilterADObject
     #$WMIFilterADObject | gm �Force
     #ConvertTo-WmiFilter $WMIFilterADObject
   }
 
   $ExistingGPO = get-gpo $GPOName -ea "SilentlyContinue"
-  If ($ExistingGPO -eq $NULL) {
+  If ($NULL -eq $ExistingGPO) {
     write-Verbose "Creating the $GPOName Group Policy Object..."
 
     If ($WhatIfPreference -eq $False) {
