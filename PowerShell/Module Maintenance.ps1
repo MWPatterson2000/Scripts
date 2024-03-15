@@ -223,11 +223,9 @@ Process {
     }
     #Write-Host ''
 
-
     # Get All Versions of PowerShell Modules Installed
     Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
     $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
-
 
     # Build Variables
     $Script:counter1 = 0
@@ -246,7 +244,6 @@ Process {
         $Script:ModulesCount = @($Script:ModulesAR).Count
         Write-Host ("`tModules Found: {0}" -f $Script:ModulesCount) -ForegroundColor Yellow
     }
-
 
     # Copy Modules Folder
     if ($Backup -eq $true) {
@@ -332,7 +329,6 @@ Process {
     # Close Progress Bar
     Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
 
-
     # Build Variables
     $Script:counter1 = 0
     $Script:ModulesNoChangesCount = @($Script:ModulesNoChanges).Count
@@ -384,7 +380,6 @@ Process {
             Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:ModulesUpdatedCount" -Completed
         }
     }
-
 
     # Cleanup old versions of PowerShell Modules
     # Build Variables
