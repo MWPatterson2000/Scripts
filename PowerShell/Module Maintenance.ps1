@@ -85,7 +85,7 @@
     2023-12-11      1.23.1211       Mike Patterson      Added Parameters
     2023-12-13      1.23.1213       Mike Patterson      Fixed Cleanup Variable Name
     2024-01-03      1.24.0103       Mike Patterson      Script Cleanup & Version Changes
-    2024-03-14      1.24.0314       Mike Patterson      Added Reporting for Local Only and Local Newer
+    2024-03-14      1.24.0314       Mike Patterson      Added Reporting for Local Only and Local Newer, renamed variables
     
     VERSION 1.24.0314
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
@@ -189,9 +189,10 @@ Begin {
     #>
 
     # Build Array for Output
-    $Script:UpdatedModules = [System.Collections.ArrayList]::new()
-    $Script:LocalModulesNewer = [System.Collections.ArrayList]::new()
-    $Script:LocalModulesOnly = [System.Collections.ArrayList]::new()
+    $Script:ModulesUpdated = [System.Collections.ArrayList]::new()
+    $Script:ModulesLocalNewer = [System.Collections.ArrayList]::new()
+    $Script:ModulesLocalOnly = [System.Collections.ArrayList]::new()
+    $Script:ModulesNoChanges = [System.Collections.ArrayList]::new()
 }
 
 Process {
@@ -277,7 +278,7 @@ Process {
             $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
             $moduleT | Add-Member -type noteproperty -Name 'Online' -Value 'N/A'
             $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value 'N/A'
-            [void]$Script:LocalModulesOnly.Add($moduleT)
+            [void]$Script:ModulesLocalOnly.Add($moduleT)
         }
         if ($null -ne $moduleUpdate) {
             if ($module.Version -lt $moduleUpdate.Version) {
@@ -289,7 +290,7 @@ Process {
                 $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
                 $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
                 $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-                [void]$Script:UpdatedModules.Add($moduleT)
+                [void]$Script:ModulesUpdated.Add($moduleT)
             }
             elseif ($module.Version -gt $moduleUpdate.Version) {
                 $moduleT = New-Object System.Object
@@ -300,10 +301,18 @@ Process {
                 $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
                 $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
                 $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-                [void]$Script:LocalModulesNewer.Add($moduleT)
+                [void]$Script:ModulesLocalNewer.Add($moduleT)
             }
             elseif (($module.Version -eq $moduleUpdate.Version)) {
-                # No Ouput Needed
+                $moduleT = New-Object System.Object
+                $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+                $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+                $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
+                $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+                $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
+                $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
+                $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
+                [void]$Script:ModulesNoChanges.Add($moduleT)
             }
             else {
                 # No Ouput Needed
@@ -316,31 +325,36 @@ Process {
 
     # Build Variables
     $Script:counter1 = 0
-    $Script:LocalModulesOnlyCount = @($Script:LocalModulesOnly).Count
-    $Script:LocalModulesNewerCount = @($Script:LocalModulesNewer).Count
-    $Script:UpdatedModulesCount = @($Script:UpdatedModules).Count
+    $Script:ModulesNoChangesCount = @($Script:ModulesNoChanges).Count
+    $Script:ModulesLocalOnlyCount = @($Script:ModulesLocalOnly).Count
+    $Script:ModulesLocalNewerCount = @($Script:ModulesLocalNewer).Count
+    $Script:ModulesUpdatedCount = @($Script:ModulesUpdated).Count
 
+    # Display No Changes
+    Write-Host ("`tNo Changes: {0}" -f $Script:ModulesNoChangesCount) -ForegroundColor Yellow
+    #$Script:ModulesNoChanges | Format-Table -AutoSize
+    
     # Display Local Only
-    Write-Host ("`tLocal Only: {0}" -f $Script:LocalModulesOnlyCount) -ForegroundColor Yellow
-    $Script:LocalModulesOnly | Format-Table -AutoSize
+    Write-Host ("`tLocal Only: {0}" -f $Script:ModulesLocalOnlyCount) -ForegroundColor Yellow
+    $Script:ModulesLocalOnly | Format-Table -AutoSize
     
     # Display Local Modules Newer
-    Write-Host ("`tLocal Newer: {0}" -f $Script:LocalModulesNewerCount) -ForegroundColor Yellow
-    $Script:LocalModulesNewer | Format-Table -AutoSize
+    Write-Host ("`tLocal Newer: {0}" -f $Script:ModulesLocalNewerCount) -ForegroundColor Yellow
+    $Script:ModulesLocalNewer | Format-Table -AutoSize
 
     # Display Updates Found
-    Write-Host ("`tUpdates Found: {0}" -f $Script:UpdatedModulesCount) -ForegroundColor Yellow
-    $Script:UpdatedModules | Format-Table -AutoSize
+    Write-Host ("`tUpdates Found: {0}" -f $Script:ModulesUpdatedCount) -ForegroundColor Yellow
+    $Script:ModulesUpdated | Format-Table -AutoSize
 
     # Update Modules
-    if ($Script:UpdatedModulesCount -gt 0) {
+    if ($Script:ModulesUpdatedCount -gt 0) {
         if ($Update -eq $true) {
             Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
             #Update-Module
-            foreach ($module in $Script:UpdatedModules) {
+            foreach ($module in $Script:ModulesUpdated) {
                 # Build Progress Bar
                 $Script:counter1++
-                $Script:percentComplete1 = ($Script:counter1 / $Script:UpdatedModulesCount) * 100
+                $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
                 $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
                 If ($Script:percentComplete1 -lt 1) {
                     $Script:percentComplete1 = 1
@@ -349,12 +363,12 @@ Process {
 
                 if ($null -ne $module.Online) {
                     #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
-                    Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                    Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
                     Update-Module -Name $module.Name
                 }
             }
             # Close Progress Bar
-            Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:UpdatedModulesCount" -Completed
+            Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:ModulesUpdatedCount" -Completed
         }
     }
 
@@ -363,18 +377,18 @@ Process {
     # Build Variables
     $Script:counter1 = 0
     if ($Cleanup -eq $true) {
-        if ($Script:UpdatedModulesCount -gt 0) {
+        if ($Script:ModulesUpdatedCount -gt 0) {
             Write-Host 'Checking for Old Version(s) of Module(s)'
             #foreach ($module in $Script:ModulesAR) {
-            foreach ($module in $Script:UpdatedModules) {
+            foreach ($module in $Script:ModulesUpdated) {
                 # Build Progress Bar
                 $Script:counter1++
-                $Script:percentComplete1 = ($Script:counter1 / $Script:UpdatedModulesCount) * 100
+                $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
                 $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
                 If ($Script:percentComplete1 -lt 1) {
                     $Script:percentComplete1 = 1
                 }
-                Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
             
                 $ModuleName = $module.Name
                 $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
