@@ -86,8 +86,9 @@
     2023-12-13      1.23.1213       Mike Patterson      Fixed Cleanup Variable Name
     2024-01-03      1.24.0103       Mike Patterson      Script Cleanup & Version Changes
     2024-03-14      1.24.0314       Mike Patterson      Added Reporting for Local Only and Local Newer, renamed variables
+    2024-03-15      1.24.0315       Mike Patterson      Changes to Single Table Output of changes
     
-    VERSION 1.24.0314
+    VERSION 1.24.0315
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -95,7 +96,7 @@
     COPYRIGHT 
     APPLICATION Module Maintenance.ps1
     FEATURE 
-    TAGS PowerShell, Modules
+    TAGS PowerShell, Modules, Update
     LICENSEURI 
     PROJECTURI 
     RELEASENOTES
@@ -189,6 +190,7 @@ Begin {
     #>
 
     # Build Array for Output
+    $Script:ModulesList = [System.Collections.ArrayList]::new()
     $Script:ModulesUpdated = [System.Collections.ArrayList]::new()
     $Script:ModulesLocalNewer = [System.Collections.ArrayList]::new()
     $Script:ModulesLocalOnly = [System.Collections.ArrayList]::new()
@@ -271,6 +273,7 @@ Process {
         $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
         if ($null -eq $moduleUpdate) {
             $moduleT = New-Object System.Object
+            $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Local Only'
             $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
             $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
             $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
@@ -279,10 +282,12 @@ Process {
             $moduleT | Add-Member -type noteproperty -Name 'Online' -Value 'N/A'
             $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value 'N/A'
             [void]$Script:ModulesLocalOnly.Add($moduleT)
+            [void]$Script:ModulesList.Add($moduleT)
         }
         if ($null -ne $moduleUpdate) {
             if ($module.Version -lt $moduleUpdate.Version) {
                 $moduleT = New-Object System.Object
+                $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Updated'
                 $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
                 $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
                 $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
@@ -291,9 +296,11 @@ Process {
                 $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
                 $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
                 [void]$Script:ModulesUpdated.Add($moduleT)
+                [void]$Script:ModulesList.Add($moduleT)
             }
             elseif ($module.Version -gt $moduleUpdate.Version) {
                 $moduleT = New-Object System.Object
+                $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Local Newer'
                 $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
                 $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
                 $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
@@ -302,9 +309,11 @@ Process {
                 $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
                 $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
                 [void]$Script:ModulesLocalNewer.Add($moduleT)
+                [void]$Script:ModulesList.Add($moduleT)
             }
             elseif (($module.Version -eq $moduleUpdate.Version)) {
                 $moduleT = New-Object System.Object
+                $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Same'
                 $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
                 $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
                 $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
@@ -313,6 +322,7 @@ Process {
                 $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
                 $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
                 [void]$Script:ModulesNoChanges.Add($moduleT)
+                #[void]$Script:ModulesList.Add($moduleT)
             }
             else {
                 # No Ouput Needed
@@ -336,15 +346,18 @@ Process {
     
     # Display Local Only
     Write-Host ("`tLocal Only: {0}" -f $Script:ModulesLocalOnlyCount) -ForegroundColor Yellow
-    $Script:ModulesLocalOnly | Format-Table -AutoSize
+    #$Script:ModulesLocalOnly | Format-Table -AutoSize
     
     # Display Local Modules Newer
     Write-Host ("`tLocal Newer: {0}" -f $Script:ModulesLocalNewerCount) -ForegroundColor Yellow
-    $Script:ModulesLocalNewer | Format-Table -AutoSize
+    #$Script:ModulesLocalNewer | Format-Table -AutoSize
 
     # Display Updates Found
     Write-Host ("`tUpdates Found: {0}" -f $Script:ModulesUpdatedCount) -ForegroundColor Yellow
-    $Script:ModulesUpdated | Format-Table -AutoSize
+    #$Script:ModulesUpdated | Format-Table -AutoSize 
+    
+    # Write Table
+    $Script:ModulesList | Sort-Object State, Name | Format-Table -AutoSize 
 
     # Update Modules
     if ($Script:ModulesUpdatedCount -gt 0) {
