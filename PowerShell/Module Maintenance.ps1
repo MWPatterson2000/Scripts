@@ -76,17 +76,18 @@
     Change Log:
     Date            Version         By                  Notes
     ----------------------------------------------------------
-    2023-09-21      1.23.09.21      Mike Patterson      Initial release
-    2023-09-22      1.23.09.22      Mike Patterson      Added Additional Information to Report
-    2023-10-10      1.23.10.10      Mike Patterson      Added Local Module Published Date
-    2023-11-19      1.23.11.19      Mike Patterson      Converted to Advanced Script
-    2023-12-02      1.23.12.02      Mike Patterson      Added Progress Bar
-    2023-12-06      1.23.12.06      Mike Patterson      Combined other scripts into a Single Script
-    2023-12-11      1.23.12.11      Mike Patterson      Added Parameters
-    2023-12-13      1.23.12.13      Mike Patterson      Fixed Cleanup Variable Name
-    2024-01-03      1.24.01.03      Mike Patterson      Script Cleanup & Version Changes
+    2023-09-21      1.23.0921       Mike Patterson      Initial release
+    2023-09-22      1.23.0922       Mike Patterson      Added Additional Information to Report
+    2023-10-10      1.23.1010       Mike Patterson      Added Local Module Published Date
+    2023-11-19      1.23.1119       Mike Patterson      Converted to Advanced Script
+    2023-12-02      1.23.1202       Mike Patterson      Added Progress Bar
+    2023-12-06      1.23.1206       Mike Patterson      Combined other scripts into a Single Script
+    2023-12-11      1.23.1211       Mike Patterson      Added Parameters
+    2023-12-13      1.23.1213       Mike Patterson      Fixed Cleanup Variable Name
+    2024-01-03      1.24.0103       Mike Patterson      Script Cleanup & Version Changes
+    2024-03-14      1.24.0314       Mike Patterson      Added Reporting for Local Only and Local Newer
     
-    VERSION 1.24.01.03
+    VERSION 1.24.0314
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -189,6 +190,8 @@ Begin {
 
     # Build Array for Output
     $Script:UpdatedModules = [System.Collections.ArrayList]::new()
+    $Script:LocalModulesNewer = [System.Collections.ArrayList]::new()
+    $Script:LocalModulesOnly = [System.Collections.ArrayList]::new()
 }
 
 Process {
@@ -252,7 +255,8 @@ Process {
     }
 
     # Find Updated Module(s)
-    Write-Host 'Checking for Updated Versions of Modules'
+    #Write-Host 'Checking for Updated Versions of Modules'
+    Write-Host 'Checking for Module Changes'
     foreach ($module in $Script:ModulesAR) {
         # Build Progress Bar
         $Script:counter1++
@@ -264,32 +268,7 @@ Process {
         Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
         
         $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
-        if ($module.Version -lt $moduleUpdate.Version) {
-            $moduleT = New-Object System.Object
-            $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-            $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-            $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-            $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-            $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-            $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
-            $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-            [void]$Script:UpdatedModules.Add($moduleT)
-        }
-        elseif ($module.Version -gt $moduleUpdate.Version) {
-            $moduleT = New-Object System.Object
-            $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-            $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-            $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-            $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-            $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-            $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
-            $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-            [void]$Script:UpdatedModules.Add($moduleT)
-        }
-        elseif (($module.Version -eq $moduleUpdate.Version)) {
-            # No Ouput Needed
-        }
-        else {
+        if ($null -eq $moduleUpdate) {
             $moduleT = New-Object System.Object
             $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
             $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
@@ -298,7 +277,37 @@ Process {
             $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
             $moduleT | Add-Member -type noteproperty -Name 'Online' -Value 'N/A'
             $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value 'N/A'
-            [void]$Script:UpdatedModules.Add($moduleT)
+            [void]$Script:LocalModulesOnly.Add($moduleT)
+        }
+        if ($null -ne $moduleUpdate) {
+            if ($module.Version -lt $moduleUpdate.Version) {
+                $moduleT = New-Object System.Object
+                $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+                $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+                $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
+                $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+                $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
+                $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
+                $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
+                [void]$Script:UpdatedModules.Add($moduleT)
+            }
+            elseif ($module.Version -gt $moduleUpdate.Version) {
+                $moduleT = New-Object System.Object
+                $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+                $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+                $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
+                $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+                $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
+                $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
+                $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
+                [void]$Script:LocalModulesNewer.Add($moduleT)
+            }
+            elseif (($module.Version -eq $moduleUpdate.Version)) {
+                # No Ouput Needed
+            }
+            else {
+                # No Ouput Needed
+            }
         }
     }
     # Close Progress Bar
@@ -307,37 +316,46 @@ Process {
 
     # Build Variables
     $Script:counter1 = 0
+    $Script:LocalModulesOnlyCount = @($Script:LocalModulesOnly).Count
+    $Script:LocalModulesNewerCount = @($Script:LocalModulesNewer).Count
     $Script:UpdatedModulesCount = @($Script:UpdatedModules).Count
+
+    # Display Local Only
+    Write-Host ("`tLocal Only: {0}" -f $Script:LocalModulesOnlyCount) -ForegroundColor Yellow
+    $Script:LocalModulesOnly | Format-Table -AutoSize
+    
+    # Display Local Modules Newer
+    Write-Host ("`tLocal Newer: {0}" -f $Script:LocalModulesNewerCount) -ForegroundColor Yellow
+    $Script:LocalModulesNewer | Format-Table -AutoSize
 
     # Display Updates Found
     Write-Host ("`tUpdates Found: {0}" -f $Script:UpdatedModulesCount) -ForegroundColor Yellow
-    #Write-Host ''
-    # Write Data
     $Script:UpdatedModules | Format-Table -AutoSize
 
-
     # Update Modules
-    if ($Update -eq $true) {
-        Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
-        #Update-Module
-        foreach ($module in $Script:UpdatedModules) {
-            # Build Progress Bar
-            $Script:counter1++
-            $Script:percentComplete1 = ($Script:counter1 / $Script:UpdatedModulesCount) * 100
-            $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
-            If ($Script:percentComplete1 -lt 1) {
-                $Script:percentComplete1 = 1
-            }
-            #Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+    if ($Script:UpdatedModulesCount -gt 0) {
+        if ($Update -eq $true) {
+            Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
+            #Update-Module
+            foreach ($module in $Script:UpdatedModules) {
+                # Build Progress Bar
+                $Script:counter1++
+                $Script:percentComplete1 = ($Script:counter1 / $Script:UpdatedModulesCount) * 100
+                $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
+                If ($Script:percentComplete1 -lt 1) {
+                    $Script:percentComplete1 = 1
+                }
+                #Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
-            if ($null -ne $module.Online) {
-                #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
-                Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
-                Update-Module -Name $module.Name
+                if ($null -ne $module.Online) {
+                    #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
+                    Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:UpdatedModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                    Update-Module -Name $module.Name
+                }
             }
+            # Close Progress Bar
+            Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:UpdatedModulesCount" -Completed
         }
-        # Close Progress Bar
-        Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:UpdatedModulesCount" -Completed
     }
 
 
