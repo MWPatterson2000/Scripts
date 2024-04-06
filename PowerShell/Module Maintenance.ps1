@@ -215,7 +215,6 @@ Process {
     if ($Time -eq $true) {
         Write-Host "`tStart Time - $(Get-Date)" -ForegroundColor Yellow
     }
-    #Write-Host ''
     Write-Host 'PowerShell Module Maintenance Script'
     Write-Host ''
     if ($Backup -eq $true) {
@@ -229,19 +228,15 @@ Process {
         Write-Host "`tScript(s) from: $scriptSource" -ForegroundColor Yellow
         Write-Host "`tScript(s) to: $scriptDestination" -ForegroundColor Yellow
     }
-    Write-Host 'This Script will Check for Updates of Installed Module(s)'
+    Write-Host 'This Script will Check for Updates of Installed Module(s) & Script(s)'
     if ($Update -eq $true) {
-        Write-Host 'This Script will Update the Installed Module(s)'
+        Write-Host 'This Script will Update the Installed Module(s) & Script(s)'
     }
     if ($Clean -eq $true) {
-        Write-Host 'This Script will Remove Old Versions of Installed Module(s)'
+        Write-Host 'This Script will Remove Old Versions of Installed Module(s) & Script(s)'
     }
-    #Write-Host ''
 
     # Get All Versions of PowerShell Module(s) & Script(s) Installed
-    #Write-Host 'Getting List & Count of the following Installed'
-    #Write-Host "`tModule(s)"
-    #Write-Host "`tScript(s)"
     Write-Host 'Getting List & Count of PowerShell Installed: Module(s) & Script(s)'
 
     # Get All Versions of PowerShell Modules Installed
@@ -292,7 +287,6 @@ Process {
     # Modules
     if ($Script:ModulesCount -gt 0) {
         # Find Updated Module(s)
-        #Write-Host 'Checking for Updated Versions of Modules'
         Write-Host 'Checking for Module Changes'
         foreach ($module in $Script:ModulesAR) {
             # Build Progress Bar
@@ -397,7 +391,6 @@ Process {
         if ($Script:ModulesUpdatedCount -gt 0) {
             if ($Update -eq $true) {
                 Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
-                #Update-Module
                 foreach ($module in $Script:ModulesUpdated) {
                     # Build Progress Bar
                     $Script:counter1++
@@ -427,7 +420,6 @@ Process {
         if ($Cleanup -eq $true) {
             if ($Script:ModulesUpdatedCount -gt 0) {
                 Write-Host 'Checking for Old Version(s) of Module(s)'
-                #foreach ($module in $Script:ModulesAR) {
                 foreach ($module in $Script:ModulesUpdated) {
                     # Build Progress Bar
                     $Script:counter1++
@@ -462,7 +454,6 @@ Process {
     # Scripts
     if ($Script:ScriptsCount -gt 0) {
         # Find Updated Script(s)
-        #Write-Host 'Checking for Updated Versions of Scripts'
         Write-Host 'Checking for Script Changes'
         foreach ($script in $Script:ScriptsAR) {
             # Build Progress Bar
@@ -567,7 +558,6 @@ Process {
         if ($Script:ScriptsUpdatedCount -gt 0) {
             if ($Update -eq $true) {
                 Write-Host 'Updating Newer Versions of PowerShell Script(s) Installed'
-                #Update-Script
                 foreach ($script in $Script:ScriptsUpdated) {
                     # Build Progress Bar
                     $Script:counter2++
@@ -597,7 +587,6 @@ Process {
         if ($Cleanup -eq $true) {
             if ($Script:ScriptsUpdatedCount -gt 0) {
                 Write-Host 'Checking for Old Version(s) of Script(s)'
-                #foreach ($script in $Script:ScriptsAR) {
                 foreach ($script in $Script:ScriptsUpdated) {
                     # Build Progress Bar
                     $Script:counter2++
@@ -635,7 +624,7 @@ End {
     Write-Host "`nScript Cleanup"
     Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
 
-    # End
+    # Write Ent Time
     if ($Time -eq $true) {
         #Write-Host ''
         Write-Host "`tEnd Time - $(Get-Date)" -ForegroundColor Yellow
@@ -644,6 +633,7 @@ End {
     # Memory Cleanup
     [System.GC]::Collect()
 
+    # End
     #Exit
     return
 }
