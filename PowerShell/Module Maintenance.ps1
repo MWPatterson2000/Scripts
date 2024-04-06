@@ -7,9 +7,11 @@
         Get a List All Installed PowerShell Module(s)
         Check for Updates to Installed PowerShell Module(s)
         Copy the Installed PowerShell Module(s) to a Backup Location
+        Copy the Installed PowerShell 7 Module(s) to a Backup Location
         Copy the Installed PowerShell Script(s) to a Backup Location
         Update the Installed PowerShell Module(s)
         Remove Old Duplicate Version(s) of PowerShell Module(s)
+        Remove Old Duplicate Version(s) of PowerShell Script(s)
 
 .PARAMETER Time
     Used to Show the Time when the Process Starts and Stops
@@ -88,6 +90,7 @@
     2024-03-14      1.24.0314       Mike Patterson      Added Reporting for Local Only and Local Newer, renamed variables
     2024-03-15      1.24.0315       Mike Patterson      Changes to Single Table Output of changes
     2024-04-05      1.24.0405       Mike Patterson      Copied Module processing to Script processing
+    2024-04-06      1.24.0406       Mike Patterson      Copy PowerShell 7 Modules out, Notes Added, Cleanup
     
     VERSION 1.24.0405
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
@@ -137,9 +140,10 @@ Param(
     #[string]$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules', # Default Location for All Users
     [string]$moduleSource = "$env:ProgramFiles\WindowsPowerShell\Modules", # Default Location for All Users
     #[string]$moduleSource = "$env:ProgramFiles\PowerShell\Modules", # Default Location for All Users ?
-    #[string]$moduleSource = "$env:ProgramFiles\PowerShell\7\Modules", # Default Location for All Users ?
     #[string]$moduleSource = "$home\Documents\PowerShell\Modules", # Default Locaion for Current User
     [string]$moduleDestination = 'D:\PowerShell\Modules', # Destination Location for Backup
+    [string]$moduleSource7 = "$env:ProgramFiles\PowerShell\7\Modules", # Default Location for All Users ?
+    [string]$moduleDestination7 = 'D:\PowerShell\Modules7', # Destination Location for Backup
     [string]$scriptSource = "$env:ProgramFiles\WindowsPowerShell\Scripts", # Default Location for All Users
     #[string]$scriptSource = "$env:ProgramFiles\PowerShell\Scripts", # Default Location for All Users ?
     [string]$scriptDestination = 'D:\PowerShell\Scripts' # Destination Location for Backup
@@ -191,11 +195,13 @@ Begin {
     #>
 
     # Build Array for Output
+    # Modules
     $Script:ModulesList = [System.Collections.ArrayList]::new()
     $Script:ModulesUpdated = [System.Collections.ArrayList]::new()
     $Script:ModulesLocalNewer = [System.Collections.ArrayList]::new()
     $Script:ModulesLocalOnly = [System.Collections.ArrayList]::new()
     $Script:ModulesNoChanges = [System.Collections.ArrayList]::new()
+    # Scripts
     $Script:ScriptsList = [System.Collections.ArrayList]::new()
     $Script:ScriptsUpdated = [System.Collections.ArrayList]::new()
     $Script:ScriptsLocalNewer = [System.Collections.ArrayList]::new()
@@ -216,6 +222,9 @@ Process {
         Write-Host 'This Script will Copy All Installed Modules to Backup Location:'
         Write-Host "`tModule(s) from: $moduleSource" -ForegroundColor Yellow
         Write-Host "`tModule(s) to: $moduleDestination" -ForegroundColor Yellow
+        Write-Host 'This Script will Copy All Installed PowerShell 7 Modules to Backup Location:'
+        Write-Host "`tModule(s) from: $moduleSource7" -ForegroundColor Yellow
+        Write-Host "`tModule(s) to: $moduleDestination7" -ForegroundColor Yellow
         Write-Host 'This Script will Copy All Installed Scripts to Backup Location:'
         Write-Host "`tScript(s) from: $scriptSource" -ForegroundColor Yellow
         Write-Host "`tScript(s) to: $scriptDestination" -ForegroundColor Yellow
@@ -229,12 +238,18 @@ Process {
     }
     #Write-Host ''
 
+    # Get All Versions of PowerShell Module(s) & Script(s) Installed
+    #Write-Host 'Getting List & Count of the following Installed'
+    #Write-Host "`tModule(s)"
+    #Write-Host "`tScript(s)"
+    Write-Host 'Getting List & Count of PowerShell Installed: Module(s) & Script(s)'
+
     # Get All Versions of PowerShell Modules Installed
-    Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
+    #Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
     $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
 
     # Get All Versions of PowerShell Scripts Installed
-    Write-Host 'Getting List & Count of PowerShell Script(s) Installed'
+    #Write-Host 'Getting List & Count of PowerShell Script(s) Installed'
     $Script:ScriptsAR = Get-InstalledScript | Select-Object * | Sort-Object Name
 
     # Build Variables
@@ -245,9 +260,14 @@ Process {
     if ((-not $Script:ModulesAR) -and (-not $Script:ScriptsAR)) {
         Write-Host ("`tModule(s) found: 0") -ForegroundColor Yellow
         Write-Host ("`tScript(s) found: 0") -ForegroundColor Yellow
+
         # Clear Variables
         Write-Host "`nScript Cleanup"
         Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
+
+        # Memory Cleanup
+        [System.GC]::Collect()
+
         # End
         #Exit
         return
@@ -263,9 +283,10 @@ Process {
     if ($Backup -eq $true) {
         Write-Host 'Copy All Versions of PowerShell Module(s) Installed'
         robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
+        Write-Host 'Copy All Versions of PowerShell 7 Module(s) Installed'
+        robocopy $moduleSource7 $moduleDestination7  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
         Write-Host 'Copy All Versions of PowerShell Script(s) Installed'
         robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
-
     }
 
     # Modules
@@ -281,6 +302,7 @@ Process {
             If ($Script:percentComplete1 -lt 1) {
                 $Script:percentComplete1 = 1
             }
+            # Write Progress Bar
             Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
             $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
@@ -384,10 +406,12 @@ Process {
                     If ($Script:percentComplete1 -lt 1) {
                         $Script:percentComplete1 = 1
                     }
+                    # Write Progress Bar
                     #Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
                     if ($null -ne $module.Online) {
                         #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
+                        # Write Progress Bar
                         Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
                         Update-Module -Name $module.Name
                     }
@@ -412,6 +436,7 @@ Process {
                     If ($Script:percentComplete1 -lt 1) {
                         $Script:percentComplete1 = 1
                     }
+                    # Write Progress Bar
                     Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
                     $ModuleName = $module.Name
@@ -447,6 +472,7 @@ Process {
             If ($Script:percentComplete1 -lt 1) {
                 $Script:percentComplete1 = 1
             }
+            # Write Progress Bar
             Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter2 of $Script:ScriptsCount - Module: $($script.Name)" -PercentComplete $Script:percentComplete1
 
             $scriptUpdate = Find-Script -Name $script.Name -ErrorAction SilentlyContinue
@@ -550,10 +576,12 @@ Process {
                     If ($Script:percentComplete1 -lt 1) {
                         $Script:percentComplete1 = 1
                     }
+                    # Write Progress Bar
                     #Write-Progress -Id 1 -Activity 'Updating Script' -Status "$Script:percentComplete1d% - $Script:counter2 of $Script:ScriptsCount - Script: $($script.Name)" -PercentComplete $Script:percentComplete1
 
                     if ($null -ne $script.Online) {
                         #Write-Host "`tUpdating Script: $($script.Name)" -ForegroundColor Yellow
+                        # Write Progress Bar
                         Write-Progress -Id 1 -Activity 'Updating Script' -Status "$Script:percentComplete1d% - $Script:counter2 of $Script:ScriptsUpdatedCount - Script: $($script.Name)" -PercentComplete $Script:percentComplete1
                         Update-Script -Name $script.Name
                     }
@@ -578,6 +606,7 @@ Process {
                     If ($Script:percentComplete1 -lt 1) {
                         $Script:percentComplete1 = 1
                     }
+                    # Write Progress Bar
                     Write-Progress -Id 1 -Activity 'Cleanup Script' -Status "$Script:percentComplete1d% - $Script:counter2 of $Script:ScriptsUpdatedCount - Script: $($script.Name)" -PercentComplete $Script:percentComplete1
 
                     $scriptName = $script.Name
@@ -611,7 +640,10 @@ End {
         #Write-Host ''
         Write-Host "`tEnd Time - $(Get-Date)" -ForegroundColor Yellow
     }
+
     # Memory Cleanup
     [System.GC]::Collect()
-    Exit
+
+    #Exit
+    return
 }
