@@ -1,5 +1,14 @@
 <#
-    Allows the User to Check for PowerShell Module Changes on the Client
+Name: Installed Module Check.ps1
+
+Allows the User to Check for PowerShell Module Changes on the Client
+
+Michael Patterson
+scripts@mwpatterson.com
+
+Revision History
+    2023-10-24 - Initial Release
+
 #>
 
 [CmdletBinding()]
