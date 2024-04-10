@@ -207,6 +207,14 @@ Begin {
     $Script:ScriptsLocalNewer = [System.Collections.ArrayList]::new()
     $Script:ScriptsLocalOnly = [System.Collections.ArrayList]::new()
     $Script:ScriptsNoChanges = [System.Collections.ArrayList]::new()
+    <# WIP
+    # PSResources
+    $Script:PSResourcesList = [System.Collections.ArrayList]::new()
+    $Script:PSResourcesUpdated = [System.Collections.ArrayList]::new()
+    $Script:PSResourcesLocalNewer = [System.Collections.ArrayList]::new()
+    $Script:PSResourcesLocalOnly = [System.Collections.ArrayList]::new()
+    $Script:PSResourcesNoChanges = [System.Collections.ArrayList]::new()
+    #>
 }
 
 Process {
@@ -247,9 +255,15 @@ Process {
     #Write-Host 'Getting List & Count of PowerShell Script(s) Installed'
     $Script:ScriptsAR = Get-InstalledScript | Select-Object * | Sort-Object Name
 
+    # WIP
+    # Get All Versions of PowerShell Resources Installed
+    #Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
+    #$Script:PSResourcesAR = Get-InstalledPSResource | Select-Object * | Sort-Object Name
+
     # Build Variables
-    $Script:counter1 = 0
-    $Script:counter2 = 0
+    $Script:counter1 = 0 # Modules
+    $Script:counter2 = 0 # Scripts
+    #$Script:counter3 = 0 # PSResources
 
     # Check to see if Modules & Scripts Found
     if ((-not $Script:ModulesAR) -and (-not $Script:ScriptsAR)) {
