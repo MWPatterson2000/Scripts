@@ -640,7 +640,6 @@ End {
 
     # Write Ent Time
     if ($Time -eq $true) {
-        #Write-Host ''
         Write-Host "`tEnd Time - $(Get-Date)" -ForegroundColor Yellow
     }
 
