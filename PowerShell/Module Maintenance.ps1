@@ -588,6 +588,7 @@ Process {
                         #Write-Host "`tUpdating Script: $($script.Name)" -ForegroundColor Yellow
                         # Write Progress Bar
                         Write-Progress -Id 1 -Activity 'Updating Script' -Status "$Script:percentComplete1d% - $Script:counter2 of $Script:ScriptsUpdatedCount - Script: $($script.Name)" -PercentComplete $Script:percentComplete1
+                        Write-Host ("`tUpdating Script: {0}" -f $script.Name) -ForegroundColor Yellow
                         Update-Script -Name $script.Name
                     }
                 }
