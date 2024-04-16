@@ -202,12 +202,20 @@ Begin {
     $Script:ModulesLocalNewer = [System.Collections.ArrayList]::new()
     $Script:ModulesLocalOnly = [System.Collections.ArrayList]::new()
     $Script:ModulesNoChanges = [System.Collections.ArrayList]::new()
+    $Script:ModulesNoChangesCount = 0
+    $Script:ModulesLocalOnlyCount = 0
+    $Script:ModulesLocalNewerCount = 0
+    $Script:ModulesUpdatedCount = 0
     # Scripts
     $Script:ScriptsList = [System.Collections.ArrayList]::new()
     $Script:ScriptsUpdated = [System.Collections.ArrayList]::new()
     $Script:ScriptsLocalNewer = [System.Collections.ArrayList]::new()
     $Script:ScriptsLocalOnly = [System.Collections.ArrayList]::new()
     $Script:ScriptsNoChanges = [System.Collections.ArrayList]::new()
+    $Script:ScriptsNoChangesCount = 0
+    $Script:ScriptsLocalOnlyCount = 0
+    $Script:ScriptsLocalNewerCount = 0
+    $Script:ScriptsUpdatedCount = 0
     <# WIP
     # PSResources
     $Script:PSResourcesList = [System.Collections.ArrayList]::new()
@@ -376,7 +384,7 @@ Process {
         # Close Progress Bar
         Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
 
-        # Build Variables
+        # Build Variables - Modules
         $Script:counter1 = 0
         $Script:ModulesNoChangesCount = @($Script:ModulesNoChanges).Count
         $Script:ModulesLocalOnlyCount = @($Script:ModulesLocalOnly).Count
@@ -384,19 +392,19 @@ Process {
         $Script:ModulesUpdatedCount = @($Script:ModulesUpdated).Count
 
         # Display No Changes
-        Write-Host ("`tNo Changes: {0}" -f $Script:ModulesNoChangesCount) -ForegroundColor Yellow
+        #Write-Host ("`tNo Changes: {0}" -f $Script:ModulesNoChangesCount) -ForegroundColor Yellow
         #$Script:ModulesNoChanges | Format-Table -AutoSize
 
         # Display Local Only
-        Write-Host ("`tLocal Only: {0}" -f $Script:ModulesLocalOnlyCount) -ForegroundColor Yellow
+        #Write-Host ("`tLocal Only: {0}" -f $Script:ModulesLocalOnlyCount) -ForegroundColor Yellow
         #$Script:ModulesLocalOnly | Format-Table -AutoSize
 
         # Display Local Modules Newer
-        Write-Host ("`tLocal Newer: {0}" -f $Script:ModulesLocalNewerCount) -ForegroundColor Yellow
+        #Write-Host ("`tLocal Newer: {0}" -f $Script:ModulesLocalNewerCount) -ForegroundColor Yellow
         #$Script:ModulesLocalNewer | Format-Table -AutoSize
 
         # Display Updates Found
-        Write-Host ("`tUpdates Found: {0}" -f $Script:ModulesUpdatedCount) -ForegroundColor Yellow
+        #Write-Host ("`tUpdates Found: {0}" -f $Script:ModulesUpdatedCount) -ForegroundColor Yellow
         #$Script:ModulesUpdated | Format-Table -AutoSize 
 
         # Write Table
@@ -480,7 +488,7 @@ Process {
         # Close Progress Bar
         Write-Progress -Id 1 -Activity 'Checking Script' -Status "Script # $Script:counter2 of $Script:ScriptsCount" -Completed
 
-        # Build Variables
+        # Build Variables - Scripts
         $Script:counter2 = 0
         $Script:ScriptsNoChangesCount = @($Script:ScriptsNoChanges).Count
         $Script:ScriptsLocalOnlyCount = @($Script:ScriptsLocalOnly).Count
@@ -488,24 +496,41 @@ Process {
         $Script:ScriptsUpdatedCount = @($Script:ScriptsUpdated).Count
 
         # Display No Changes
-        Write-Host ("`tNo Changes: {0}" -f $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
+        #Write-Host ("`tNo Changes: {0}" -f $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
         #$Script:ScriptsNoChanges | Format-Table -AutoSize
 
         # Display Local Only
-        Write-Host ("`tLocal Only: {0}" -f $Script:ScriptsLocalOnlyCount) -ForegroundColor Yellow
+        #Write-Host ("`tLocal Only: {0}" -f $Script:ScriptsLocalOnlyCount) -ForegroundColor Yellow
         #$Script:ScriptsLocalOnly | Format-Table -AutoSize
 
         # Display Local Scripts Newer
-        Write-Host ("`tLocal Newer: {0}" -f $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
+        #Write-Host ("`tLocal Newer: {0}" -f $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
         #$Script:ScriptsLocalNewer | Format-Table -AutoSize
 
         # Display Updates Found
-        Write-Host ("`tUpdates Found: {0}" -f $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
+        #Write-Host ("`tUpdates Found: {0}" -f $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
         #$Script:ScriptsUpdated | Format-Table -AutoSize 
 
         # Write Table
         $Script:ScriptsList | Sort-Object State, Name | Format-Table -AutoSize 
     }
+
+    # Write Output
+    # Display No Changes
+    Write-Host ("`tNo Changes `tModules: {0} `tScripts: {1}" -f $Script:ModulesNoChangesCount, $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
+    #$Script:ModulesNoChanges | Format-Table -AutoSize
+
+    # Display Local Only
+    Write-Host ("`tLocal Only `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalOnlyCount, $Script:ScriptsLocalOnlyCount) -ForegroundColor Yellow
+    #$Script:ModulesLocalOnly | Format-Table -AutoSize
+
+    # Display Local Modules Newer
+    Write-Host ("`tLocal Newer: `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalNewerCount, $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
+    #$Script:ModulesLocalNewer | Format-Table -AutoSize
+
+    # Display Updates Found
+    Write-Host ("`tUpdates Found: `tModules: {0} `tScripts: {1}" -f $Script:ModulesUpdatedCount, $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
+    #$Script:ModulesUpdated | Format-Table -AutoSize 
 
     # Update Modules
     if ($Script:ModulesCount -gt 0) {

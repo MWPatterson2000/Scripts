@@ -216,9 +216,13 @@ End {
     # Clear Variables
     Write-Host "`nScript Cleanup"
     Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
-    
+
+    # Memory Cleanup
+    [System.GC]::Collect()
+
     # End
-    Exit
+    #Exit
+    return
 }
     
 # End
