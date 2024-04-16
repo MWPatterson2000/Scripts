@@ -91,8 +91,9 @@
     2024-03-15      1.24.0315       Mike Patterson      Changes to Single Table Output of changes
     2024-04-05      1.24.0405       Mike Patterson      Copied Module processing to Script processing
     2024-04-06      1.24.0406       Mike Patterson      Copy PowerShell 7 Modules out, Notes Added, Cleanup
+    2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together
     
-    VERSION 1.24.0405
+    VERSION 1.24.0416
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -298,7 +299,7 @@ Process {
         robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
     }
 
-    # Modules
+    # Find Updated Modules
     if ($Script:ModulesCount -gt 0) {
         # Find Updated Module(s)
         Write-Host 'Checking for Module Changes'
@@ -400,73 +401,9 @@ Process {
 
         # Write Table
         $Script:ModulesList | Sort-Object State, Name | Format-Table -AutoSize 
-
-        # Update Modules
-        if ($Script:ModulesUpdatedCount -gt 0) {
-            if ($Update -eq $true) {
-                Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
-                foreach ($module in $Script:ModulesUpdated) {
-                    # Build Progress Bar
-                    $Script:counter1++
-                    $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
-                    $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
-                    If ($Script:percentComplete1 -lt 1) {
-                        $Script:percentComplete1 = 1
-                    }
-                    # Write Progress Bar
-                    #Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
-
-                    if ($null -ne $module.Online) {
-                        #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
-                        # Write Progress Bar
-                        Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
-                        Write-Host ("`tUpdating Module: {0}" -f $module.Name) -ForegroundColor Yellow
-                        Update-Module -Name $module.Name
-                    }
-                }
-                # Close Progress Bar
-                Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:ModulesUpdatedCount" -Completed
-            }
-        }
-
-        # Cleanup old versions of PowerShell Modules
-        # Build Variables
-        $Script:counter1 = 0
-        if ($Cleanup -eq $true) {
-            if ($Script:ModulesUpdatedCount -gt 0) {
-                Write-Host 'Checking for Old Version(s) of Module(s)'
-                foreach ($module in $Script:ModulesUpdated) {
-                    # Build Progress Bar
-                    $Script:counter1++
-                    $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
-                    $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
-                    If ($Script:percentComplete1 -lt 1) {
-                        $Script:percentComplete1 = 1
-                    }
-                    # Write Progress Bar
-                    Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
-
-                    $ModuleName = $module.Name
-                    $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
-                    if ($ModuleName -ne 'Pester') {
-                        if ($count -gt 1) {
-                            $count--
-                            #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
-                            Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
-                            #Write-Host "`nUninstalling $count Previous Version of Module: $ModuleName" -ForegroundColor Yellow
-                            $Latest = Get-InstalledModule $ModuleName
-                            Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
-                        }
-                    }
-                    else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
-                }
-                # Close Progress Bar
-                Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
-            }
-        }
     }
 
-    # Scripts
+    # Find Updated Scripts
     if ($Script:ScriptsCount -gt 0) {
         # Find Updated Script(s)
         Write-Host 'Checking for Script Changes'
@@ -568,7 +505,77 @@ Process {
 
         # Write Table
         $Script:ScriptsList | Sort-Object State, Name | Format-Table -AutoSize 
+    }
 
+    # Update Modules
+    if ($Script:ModulesCount -gt 0) {
+        # Update Modules
+        if ($Script:ModulesUpdatedCount -gt 0) {
+            if ($Update -eq $true) {
+                Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
+                foreach ($module in $Script:ModulesUpdated) {
+                    # Build Progress Bar
+                    $Script:counter1++
+                    $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
+                    $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
+                    If ($Script:percentComplete1 -lt 1) {
+                        $Script:percentComplete1 = 1
+                    }
+                    # Write Progress Bar
+                    #Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+
+                    if ($null -ne $module.Online) {
+                        #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
+                        # Write Progress Bar
+                        Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                        Write-Host ("`tUpdating Module: {0}" -f $module.Name) -ForegroundColor Yellow
+                        Update-Module -Name $module.Name
+                    }
+                }
+                # Close Progress Bar
+                Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:ModulesUpdatedCount" -Completed
+            }
+        }
+
+        # Cleanup old versions of PowerShell Modules
+        # Build Variables
+        $Script:counter1 = 0
+        if ($Cleanup -eq $true) {
+            if ($Script:ModulesUpdatedCount -gt 0) {
+                Write-Host 'Checking for Old Version(s) of Module(s)'
+                foreach ($module in $Script:ModulesUpdated) {
+                    # Build Progress Bar
+                    $Script:counter1++
+                    $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
+                    $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
+                    If ($Script:percentComplete1 -lt 1) {
+                        $Script:percentComplete1 = 1
+                    }
+                    # Write Progress Bar
+                    Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+
+                    $ModuleName = $module.Name
+                    $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
+                    if ($ModuleName -ne 'Pester') {
+                        if ($count -gt 1) {
+                            $count--
+                            #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
+                            Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
+                            #Write-Host "`nUninstalling $count Previous Version of Module: $ModuleName" -ForegroundColor Yellow
+                            $Latest = Get-InstalledModule $ModuleName
+                            Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
+                        }
+                    }
+                    else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
+                }
+                # Close Progress Bar
+                Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
+            }
+        }
+    }
+
+    # Update Scripts
+    if ($Script:ScriptsCount -gt 0) {
         # Update Scripts
         if ($Script:ScriptsUpdatedCount -gt 0) {
             if ($Update -eq $true) {
