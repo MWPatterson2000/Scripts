@@ -420,6 +420,7 @@ Process {
                         #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
                         # Write Progress Bar
                         Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                        Write-Host ("`tUpdating Module: {0}" -f $module.Name) -ForegroundColor Yellow
                         Update-Module -Name $module.Name
                     }
                 }
