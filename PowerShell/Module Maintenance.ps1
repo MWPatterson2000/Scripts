@@ -526,7 +526,7 @@ Process {
     #$Script:ModulesNoChanges | Format-Table -AutoSize
 
     # Display Local Newer
-    Write-Host ("`tLocal Newer: `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalNewerCount, $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
+    Write-Host ("`tLocal Newer `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalNewerCount, $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
     #$Script:ModulesLocalNewer | Format-Table -AutoSize
 
     # Display Local Only
@@ -534,7 +534,7 @@ Process {
     #$Script:ModulesLocalOnly | Format-Table -AutoSize
 
     # Display Updates Found
-    Write-Host ("`tUpdates Found: `tModules: {0} `tScripts: {1}" -f $Script:ModulesUpdatedCount, $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
+    Write-Host ("`tUpdates Found `tModules: {0} `tScripts: {1}" -f $Script:ModulesUpdatedCount, $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
     #$Script:ModulesUpdated | Format-Table -AutoSize 
 
     # Write Tables Out
