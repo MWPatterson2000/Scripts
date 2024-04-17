@@ -301,13 +301,13 @@ Process {
     if ($Backup -eq $true) {
         Write-Host 'Copy All Versions of Installed Module(s) & Scripts'
         #Write-Host 'Copy All Versions of PowerShell Module(s) Installed'
-        Write-Host "`tPowerShell Module(s) Installed" -ForegroundColor Yellow
+        Write-Host "`tPowerShell Module(s)" -ForegroundColor Yellow
         robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
         #Write-Host 'Copy All Versions of PowerShell 7 Module(s) Installed'
-        Write-Host "`tPowerShell 7 Module(s) Installed" -ForegroundColor Yellow
+        Write-Host "`tPowerShell 7 Module(s)" -ForegroundColor Yellow
         robocopy $moduleSource7 $moduleDestination7  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
         #Write-Host 'Copy All Versions of PowerShell Script(s) Installed'
-        Write-Host "`tPowerShell Script(s) Installed" -ForegroundColor Yellow
+        Write-Host "`tPowerShell Script(s)" -ForegroundColor Yellow
         robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
     }
 
