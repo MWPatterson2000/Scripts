@@ -302,13 +302,16 @@ Process {
         Write-Host 'Copy All Versions of Installed Module(s) & Scripts'
         #Write-Host 'Copy All Versions of PowerShell Module(s) Installed'
         Write-Host "`tPowerShell Module(s)" -ForegroundColor Yellow
-        robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
+        #robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS
+        $temp = robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS
         #Write-Host 'Copy All Versions of PowerShell 7 Module(s) Installed'
         Write-Host "`tPowerShell 7 Module(s)" -ForegroundColor Yellow
-        robocopy $moduleSource7 $moduleDestination7  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
+        #robocopy $moduleSource7 $moduleDestination7  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS
+        $temp = robocopy $moduleSource7 $moduleDestination7  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS
         #Write-Host 'Copy All Versions of PowerShell Script(s) Installed'
         Write-Host "`tPowerShell Script(s)" -ForegroundColor Yellow
-        robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
+        #robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS
+        $temp = robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS
     }
 
     # Check for Changes
