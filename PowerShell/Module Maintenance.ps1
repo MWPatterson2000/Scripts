@@ -311,10 +311,13 @@ Process {
         robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
     }
 
+    # Check for Changes
+    Write-Host 'Checking for Changes'
     # Find Updated Modules
     if ($Script:ModulesCount -gt 0) {
         # Find Updated Module(s)
-        Write-Host 'Checking for Module Changes'
+        #Write-Host 'or Module Changes'
+        Write-Host "`tModule(s)" -ForegroundColor Yellow
         foreach ($module in $Script:ModulesAR) {
             # Build Progress Bar
             $Script:counter1++
@@ -418,7 +421,8 @@ Process {
     # Find Updated Scripts
     if ($Script:ScriptsCount -gt 0) {
         # Find Updated Script(s)
-        Write-Host 'Checking for Script Changes'
+        #Write-Host 'Checking for Script Changes'
+        Write-Host "`tScript(s)" -ForegroundColor Yellow
         foreach ($script in $Script:ScriptsAR) {
             # Build Progress Bar
             $Script:counter2++
