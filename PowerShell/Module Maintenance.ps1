@@ -91,7 +91,7 @@
     2024-03-15      1.24.0315       Mike Patterson      Changes to Single Table Output of changes
     2024-04-05      1.24.0405       Mike Patterson      Copied Module processing to Script processing
     2024-04-06      1.24.0406       Mike Patterson      Copy PowerShell 7 Modules out, Notes Added, Cleanup
-    2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together
+    2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together, Output
     
     VERSION 1.24.0416
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
@@ -299,11 +299,15 @@ Process {
 
     # Copy Modules Folder
     if ($Backup -eq $true) {
-        Write-Host 'Copy All Versions of PowerShell Module(s) Installed'
+        Write-Host 'Copy All Versions of Installed Module(s) & Scripts'
+        #Write-Host 'Copy All Versions of PowerShell Module(s) Installed'
+        Write-Host "`tPowerShell Module(s) Installed" -ForegroundColor Yellow
         robocopy $moduleSource $moduleDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
-        Write-Host 'Copy All Versions of PowerShell 7 Module(s) Installed'
+        #Write-Host 'Copy All Versions of PowerShell 7 Module(s) Installed'
+        Write-Host "`tPowerShell 7 Module(s) Installed" -ForegroundColor Yellow
         robocopy $moduleSource7 $moduleDestination7  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
-        Write-Host 'Copy All Versions of PowerShell Script(s) Installed'
+        #Write-Host 'Copy All Versions of PowerShell Script(s) Installed'
+        Write-Host "`tPowerShell Script(s) Installed" -ForegroundColor Yellow
         robocopy $scriptSource $scriptDestination  /S /R:1 /W:1 /XO /XC /MT:24 /ZB /XF /NC /NS /NFL /NDL /NP /NJH /NJS 
     }
 
@@ -408,7 +412,7 @@ Process {
         #$Script:ModulesUpdated | Format-Table -AutoSize 
 
         # Write Table
-        $Script:ModulesList | Sort-Object State, Name | Format-Table -AutoSize 
+        #$Script:ModulesList | Sort-Object State, Name | Format-Table -AutoSize 
     }
 
     # Find Updated Scripts
@@ -512,25 +516,37 @@ Process {
         #$Script:ScriptsUpdated | Format-Table -AutoSize 
 
         # Write Table
-        $Script:ScriptsList | Sort-Object State, Name | Format-Table -AutoSize 
+        #$Script:ScriptsList | Sort-Object State, Name | Format-Table -AutoSize
     }
 
     # Write Output
+    Write-Host 'Change Information'
     # Display No Changes
     Write-Host ("`tNo Changes `tModules: {0} `tScripts: {1}" -f $Script:ModulesNoChangesCount, $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
     #$Script:ModulesNoChanges | Format-Table -AutoSize
+
+    # Display Local Newer
+    Write-Host ("`tLocal Newer: `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalNewerCount, $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
+    #$Script:ModulesLocalNewer | Format-Table -AutoSize
 
     # Display Local Only
     Write-Host ("`tLocal Only `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalOnlyCount, $Script:ScriptsLocalOnlyCount) -ForegroundColor Yellow
     #$Script:ModulesLocalOnly | Format-Table -AutoSize
 
-    # Display Local Modules Newer
-    Write-Host ("`tLocal Newer: `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalNewerCount, $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
-    #$Script:ModulesLocalNewer | Format-Table -AutoSize
-
     # Display Updates Found
     Write-Host ("`tUpdates Found: `tModules: {0} `tScripts: {1}" -f $Script:ModulesUpdatedCount, $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
     #$Script:ModulesUpdated | Format-Table -AutoSize 
+
+    # Write Tables Out
+    # Write Table - Modules
+    if ($Script:ModulesCount -gt 0) {
+        $Script:ModulesList | Sort-Object State, Name | Format-Table -AutoSize
+    }
+    
+    # Write Table - Scripts
+    if ($Script:ScriptsCount -gt 0) {
+        $Script:ScriptsList | Sort-Object State, Name | Format-Table -AutoSize
+    }
 
     # Update Modules
     if ($Script:ModulesCount -gt 0) {
