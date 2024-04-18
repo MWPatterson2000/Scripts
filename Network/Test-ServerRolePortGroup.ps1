@@ -31,23 +31,19 @@
 		[string[]]$Computername,
 		[Parameter(Mandatory)]
 		#[ValidateSet('WinRm','Smb','Dns','ActiveDirectoryGeneral','ActiveDirectoryGlobalCatalog','NetBios')]
-		#[ValidateSet('WinRm', 'Smb', 'Dns', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP')]
-		[ValidateSet('WinRm', 'SMB', 'DNS', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP', 'ADFS', 'SQL', 'WebServer', 'FileServer')]
+		[ValidateSet('WinRm', 'Smb', 'Dns', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP', 'Clustering')]
 		[string[]]$ServerRole
 	)
 	begin {
 		$PortGroups = @{
 			'WinRm'                        = @{ 'TCP' = 5985 }
-			'SMB'                          = @{ 'TCP' = 445; 'UDP' = 445 }
-			'DNS'                          = @{ 'TCP' = 53; 'UDP' = 53 }
+			'Smb'                          = @{ 'TCP' = 445; 'UDP' = 445 }
+			'Dns'                          = @{ 'TCP' = 53; 'UDP' = 53 }
 			'ActiveDirectoryGeneral'       = @{ 'TCP' = 25, 88, 389, 464, 636, 5722, 9389; 'UDP' = 88, 123, 389, 464 }
 			'ActiveDirectoryGlobalCatalog' = @{ 'TCP' = 3268, 3269 }
 			'NetBios'                      = @{ 'TCP' = 135, 137, 138, 139; 'UDP' = 137, 138, 139 }
 			'RDP'                          = @{ 'TCP' = 3389 }
-			'ADFS'                         = @{ 'TCP' = 80, 443, 49443 }
-			'SQL'                          = @{ 'TCP' = 135, 1433, 1434, 4022; 'UDP' = 1434 }
-			'WebServer'                    = @{ 'TCP' = 80, 443 }
-			'FileServer'                   = @{ 'TCP' = 135, 139, 445; 'UDP' = 137, 138 }
+			'Clustering'				   = @{ 'TCP' = 135, 443, 464, 3343; 'UDP' = 137, 464, 3343 }
 		}
 	}
 	process {
@@ -175,3 +171,8 @@ function Test-Port {
 		}
 	}
 }
+
+# Run Test
+#Test-ServerRolePortGroup -Computername 'MFA-DC01','MFA-DC02' -ServerRole NetBIOS,WinRm,Dns
+Test-ServerRolePortGroup -Computername 'MFA-DC01', 'MFA-DC02' -ServerRole WinRm, Smb, Dns, ActiveDirectoryGeneral, ActiveDirectoryGlobalCatalog, NetBios, RDP | Format-Table -AutoSize
+
