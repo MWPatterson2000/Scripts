@@ -31,7 +31,7 @@
 		[string[]]$Computername,
 		[Parameter(Mandatory)]
 		#[ValidateSet('WinRm','Smb','Dns','ActiveDirectoryGeneral','ActiveDirectoryGlobalCatalog','NetBios')]
-		[ValidateSet('WinRm', 'Smb', 'Dns', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP')]
+		[ValidateSet('WinRm', 'Smb', 'Dns', 'ActiveDirectoryGeneral', 'ActiveDirectoryGlobalCatalog', 'NetBios', 'RDP', 'Clustering')]
 		[string[]]$ServerRole
 	)
 	begin {
@@ -43,6 +43,7 @@
 			'ActiveDirectoryGlobalCatalog' = @{ 'TCP' = 3268, 3269 }
 			'NetBios'                      = @{ 'TCP' = 135, 137, 138, 139; 'UDP' = 137, 138, 139 }
 			'RDP'                          = @{ 'TCP' = 3389 }
+			'Clustering'				   = @{ 'TCP' = 135, 443, 464, 3343; 'UDP' = 137, 464, 3343 }
 		}
 	}
 	process {
