@@ -92,8 +92,9 @@
     2024-04-05      1.24.0405       Mike Patterson      Copied Module processing to Script processing
     2024-04-06      1.24.0406       Mike Patterson      Copy PowerShell 7 Modules out, Notes Added, Cleanup
     2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together, Output
+    2024-10-17      1.24.1017       Mike Patterson      Added Checks for Preview Updates & Update Logic
     
-    VERSION 1.24.0416
+    VERSION 1.24.1017
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -137,6 +138,10 @@ Param(
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
     #[ValidateSet($true, $false)]
     [bool]$Cleanup = $true,
+
+    [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
+    #[ValidateSet($true, $false)]
+    [bool]$PreviewUpdate = $false,
 
     #[string]$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules', # Default Location for All Users
     [string]$moduleSource = "$env:ProgramFiles\WindowsPowerShell\Modules", # Default Location for All Users
@@ -199,6 +204,7 @@ Begin {
     # Modules
     $Script:ModulesList = [System.Collections.ArrayList]::new()
     $Script:ModulesUpdated = [System.Collections.ArrayList]::new()
+    $Script:ModulesUpdatedPreview = [System.Collections.ArrayList]::new()
     $Script:ModulesLocalNewer = [System.Collections.ArrayList]::new()
     $Script:ModulesLocalOnly = [System.Collections.ArrayList]::new()
     $Script:ModulesNoChanges = [System.Collections.ArrayList]::new()
@@ -209,6 +215,7 @@ Begin {
     # Scripts
     $Script:ScriptsList = [System.Collections.ArrayList]::new()
     $Script:ScriptsUpdated = [System.Collections.ArrayList]::new()
+    $Script:ScriptsUpdatedPreview = [System.Collections.ArrayList]::new()
     $Script:ScriptsLocalNewer = [System.Collections.ArrayList]::new()
     $Script:ScriptsLocalOnly = [System.Collections.ArrayList]::new()
     $Script:ScriptsNoChanges = [System.Collections.ArrayList]::new()
@@ -332,6 +339,7 @@ Process {
             # Write Progress Bar
             Write-Progress -Id 1 -Activity 'Checking Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
+            # Check Release Modules
             $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
             if ($null -eq $moduleUpdate) {
                 $moduleT = New-Object System.Object
@@ -390,6 +398,56 @@ Process {
                     # No Ouput Needed
                 }
             }
+
+            # Check Pre-Release Modules
+            if ($module.Version -like '*preview*') {
+                $moduleUpdatePreRelease = Find-Module -Name $module.Name -AllowPrerelease -ErrorAction SilentlyContinue
+                #Write-Host 'Preview Module'
+                if ($null -ne $moduleUpdatePreRelease) {
+                    if ($module.Version -lt $moduleUpdatePreRelease.Version) {
+                        $moduleT = New-Object System.Object
+                        $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Updated'
+                        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+                        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+                        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
+                        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+                        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
+                        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdatePreRelease.Version
+                        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdatePreRelease.PublishedDate
+                        [void]$Script:ModulesUpdatedPreview.Add($moduleT)
+                        [void]$Script:ModulesList.Add($moduleT)
+                    }
+                    elseif ($module.Version -gt $moduleUpdatePreRelease.Version) {
+                        $moduleT = New-Object System.Object
+                        $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Local Newer'
+                        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+                        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+                        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
+                        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+                        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
+                        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdatePreRelease.Version
+                        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdatePreRelease.PublishedDate
+                        [void]$Script:ModulesLocalNewer.Add($moduleT)
+                        [void]$Script:ModulesList.Add($moduleT)
+                    }
+                    elseif (($module.Version -eq $moduleUpdatePreRelease.Version)) {
+                        $moduleT = New-Object System.Object
+                        $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Same'
+                        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
+                        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
+                        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
+                        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
+                        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
+                        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdatePreRelease.Version
+                        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdatePreRelease.PublishedDate
+                        [void]$Script:ModulesNoChanges.Add($moduleT)
+                        #[void]$Script:ModulesList.Add($moduleT)
+                    }
+                    else {
+                        # No Ouput Needed
+                    }
+                }
+            }
         }
         # Close Progress Bar
         Write-Progress -Id 1 -Activity 'Checking Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
@@ -400,6 +458,7 @@ Process {
         $Script:ModulesLocalOnlyCount = @($Script:ModulesLocalOnly).Count
         $Script:ModulesLocalNewerCount = @($Script:ModulesLocalNewer).Count
         $Script:ModulesUpdatedCount = @($Script:ModulesUpdated).Count
+        $Script:ModulesUpdatedPreviewCount = @($Script:ModulesUpdatedPreview).Count
 
         # Display No Changes
         #Write-Host ("`tNo Changes: {0}" -f $Script:ModulesNoChangesCount) -ForegroundColor Yellow
@@ -505,6 +564,7 @@ Process {
         $Script:ScriptsLocalOnlyCount = @($Script:ScriptsLocalOnly).Count
         $Script:ScriptsLocalNewerCount = @($Script:ScriptsLocalNewer).Count
         $Script:ScriptsUpdatedCount = @($Script:ScriptsUpdated).Count
+        $Script:ScriptsUpdatedPreviewCount = @($Script:ScriptsUpdatedPreview).Count
 
         # Display No Changes
         #Write-Host ("`tNo Changes: {0}" -f $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
@@ -529,21 +589,25 @@ Process {
     # Write Output
     Write-Host 'Change Information'
     # Display No Changes
-    Write-Host ("`tNo Changes `tModules: {0} `tScripts: {1}" -f $Script:ModulesNoChangesCount, $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
+    Write-Host ("`tNo Changes `t`tModules: {0} `tScripts: {1}" -f $Script:ModulesNoChangesCount, $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
     #$Script:ModulesNoChanges | Format-Table -AutoSize
 
     # Display Local Newer
-    Write-Host ("`tLocal Newer `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalNewerCount, $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
+    Write-Host ("`tLocal Newer `t`tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalNewerCount, $Script:ScriptsLocalNewerCount) -ForegroundColor Yellow
     #$Script:ModulesLocalNewer | Format-Table -AutoSize
 
     # Display Local Only
-    Write-Host ("`tLocal Only `tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalOnlyCount, $Script:ScriptsLocalOnlyCount) -ForegroundColor Yellow
+    Write-Host ("`tLocal Only `t`tModules: {0} `tScripts: {1}" -f $Script:ModulesLocalOnlyCount, $Script:ScriptsLocalOnlyCount) -ForegroundColor Yellow
     #$Script:ModulesLocalOnly | Format-Table -AutoSize
 
     # Display Updates Found
-    Write-Host ("`tUpdates Found `tModules: {0} `tScripts: {1}" -f $Script:ModulesUpdatedCount, $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
+    Write-Host ("`tUpdates `t`tModules: {0} `tScripts: {1}" -f $Script:ModulesUpdatedCount, $Script:ScriptsUpdatedCount) -ForegroundColor Yellow
     #$Script:ModulesUpdated | Format-Table -AutoSize 
 
+    # Display Preview Updates Found
+    Write-Host ("`tUpdates - Preview `tModules: {0} `tScripts: {1}" -f $Script:ModulesUpdatedPreviewCount, $Script:ScriptsUpdatedPreviewCount) -ForegroundColor Yellow
+    #$Script:ModulesUpdated | Format-Table -AutoSize 
+    
     # Write Tables Out
     # Write Table - Modules
     if ($Script:ModulesCount -gt 0) {
@@ -557,7 +621,10 @@ Process {
 
     # Update Modules
     if ($Script:ModulesCount -gt 0) {
-        # Update Modules
+
+        # Update Modules - Normal
+        # Build Variables
+        $Script:counter1 = 0
         if ($Script:ModulesUpdatedCount -gt 0) {
             if ($Update -eq $true) {
                 Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
@@ -620,11 +687,81 @@ Process {
                 Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
             }
         }
+
+        # Update Modules - Preview
+        # Build Variables
+        $Script:counter1 = 0
+        if ($Script:ModulesUpdatedPreviewCount -gt 0) {
+            if ($Update -eq $true) {
+                Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed - Preview'
+                foreach ($module in $Script:ModulesUpdatedPreview) {
+                    # Build Progress Bar
+                    $Script:counter1++
+                    $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedPreviewCount) * 100
+                    $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
+                    If ($Script:percentComplete1 -lt 1) {
+                        $Script:percentComplete1 = 1
+                    }
+                    # Write Progress Bar
+                    #Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+
+                    if ($null -ne $module.Online -and $module.Local -like '*preview*' -and $module.Online -like '*preview*') {
+                        #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
+                        # Write Progress Bar
+                        Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedPreviewCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+                        Write-Host ("`tUpdating Module: {0}" -f $module.Name) -ForegroundColor Yellow
+                        #Update-Module -Name $module.Name
+                        Install-Module -Name $module.Name -AllowPrerelease -Force
+                    }
+                }
+                # Close Progress Bar
+                Write-Progress -Id 1 -Activity 'Updating Module' -Status "Module # $Script:counter1 of $Script:ModulesUpdatedPreviewCount" -Completed
+            }
+        }
+
+        # Cleanup old versions of PowerShell Modules
+        # Build Variables
+        $Script:counter1 = 0
+        if ($Cleanup -eq $true) {
+            if ($Script:ModulesUpdatedPreviewCount -gt 0) {
+                Write-Host 'Checking for Old Version(s) of Module(s) - Preview'
+                foreach ($module in $Script:ModulesUpdatedPreview) {
+                    # Build Progress Bar
+                    $Script:counter1++
+                    $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedPreviewCount) * 100
+                    $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
+                    If ($Script:percentComplete1 -lt 1) {
+                        $Script:percentComplete1 = 1
+                    }
+                    # Write Progress Bar
+                    Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedPreviewCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
+
+                    $ModuleName = $module.Name
+                    $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
+                    if ($ModuleName -ne 'Pester') {
+                        if ($count -gt 1) {
+                            $count--
+                            #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
+                            Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
+                            #Write-Host "`nUninstalling $count Previous Version of Module: $ModuleName" -ForegroundColor Yellow
+                            $Latest = Get-InstalledModule $ModuleName
+                            Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
+                        }
+                    }
+                    else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
+                }
+                # Close Progress Bar
+                Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
+            }
+        }
     }
+
+    #$Script:ScriptsUpdatedPreview
 
     # Update Scripts
     if ($Script:ScriptsCount -gt 0) {
-        # Update Scripts
+        # Build Variables
+        $Script:counter2 = 0
         if ($Script:ScriptsUpdatedCount -gt 0) {
             if ($Update -eq $true) {
                 Write-Host 'Updating Newer Versions of PowerShell Script(s) Installed'
@@ -657,6 +794,7 @@ Process {
         $Script:counter2 = 0
         if ($Cleanup -eq $true) {
             if ($Script:ScriptsUpdatedCount -gt 0) {
+                <#
                 Write-Host 'Checking for Old Version(s) of Script(s)'
                 foreach ($script in $Script:ScriptsUpdated) {
                     # Build Progress Bar
@@ -685,6 +823,7 @@ Process {
                 }
                 # Close Progress Bar
                 Write-Progress -Id 1 -Activity 'Cleanup Script' -Status "Script # $Script:counter2 of $Script:ScriptsCount" -Completed
+                #>
             }
         }
     }
