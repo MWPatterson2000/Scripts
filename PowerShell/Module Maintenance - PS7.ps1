@@ -226,18 +226,23 @@ Process {
         Write-Host 'This Script will Remove Old Versions of Installed Resource(s)'
     }
 
-    # Get All Versions of PowerShell Module(s) & Script(s) Installed
-    Write-Host 'Getting List & Count of PowerShell Installed: Resource(s)'
+    # Get All Versions of PowerShell Modules Installed
+    #Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
+    $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
+
+    # Get All Versions of PowerShell Scripts Installed
+    #Write-Host 'Getting List & Count of PowerShell Script(s) Installed'
+    $Script:ScriptsAR = Get-InstalledScript | Select-Object * | Sort-Object Name
 
     # Get All Versions of PowerShell Resources Installed
-    Write-Host 'Getting List & Count of PowerShell Resource(s) Installed'
+    #Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
     $Script:PSResourcesAR = Get-InstalledPSResource | Select-Object * | Sort-Object Name
 
     # Build Variables
     $Script:counter3 = 0 # PSResources
 
     # Check to see if Modules & Scripts Found
-    if (-not $Script:PSResourcesAR) {
+    if ((-not $Script:ModulesAR) -and (-not $Script:ScriptsAR) -and (-not $Script:PSResourcesAR)) {
         Write-Host ("`tResource(s)) found: 0") -ForegroundColor Yellow
 
         # Clear Variables
@@ -252,8 +257,12 @@ Process {
         return
     }
     else {
+        $Script:ModulesCount = @($Script:ModulesAR).Count
+        Write-Host ("`tModule(s) Found: {0}" -f $Script:ModulesCount) -ForegroundColor Yellow
+        $Script:ScriptsCount = @($Script:ScriptsAR).Count
+        Write-Host ("`tScript(s) Found: {0}" -f $Script:ScriptsCount) -ForegroundColor Yellow
         $Script:ResourcesCount = @($Script:PSResourcesAR).Count
-        Write-Host ("`tResource(s) Found: {0}" -f $Script:ModulesCount) -ForegroundColor Yellow
+        Write-Host ("`tResource(s) Found: {0}" -f $Script:ResourcesCount) -ForegroundColor Yellow
     }
 
     # Check for Changes
@@ -262,7 +271,7 @@ Process {
     if ($Script:ModulesCount -gt 0) {
         # Find Updated Module(s)
         #Write-Host 'or Module Changes'
-        Write-Host "`tResource(s)" -ForegroundColor Yellow
+        Write-Host "`tModule(s)" -ForegroundColor Yellow
         foreach ($module in $Script:ModulesAR) {
             # Build Progress Bar
             $Script:counter1++
@@ -690,6 +699,128 @@ Process {
             }
         }
     }
+    
+    #<#
+    # Update Resources
+    if ($Script:ResourcesCount -gt 0) {
+
+        # Update Resources - Normal
+        Write-Host 'Checking for Updates to PSResources'
+        $temp = Update-PSResource
+
+        # Get List of Installed & Updated Resources
+        $Script:PSResourcesARUpdate = Get-InstalledPSResource | Select-Object * | Sort-Object Name
+        # Get Updated Count of Resources
+        $Script:ResourcesCountUpdate = @($Script:PSResourcesARUpdate).Count
+        # Cleanup old versions of PowerShell Resources
+        # Build Variables
+        $Script:counter1 = 0
+        if ($Cleanup -eq $true) {
+            Write-Host 'Checking for Old Version(s) of Module(s)'
+            foreach ($resource in $Script:PSResourcesAR) {
+                # Build Progress Bar
+                $Script:counter1++
+                $Script:percentComplete1 = ($Script:counter1 / $Script:ResourcesCountUpdate) * 100
+                $Script:percentComplete1d = '{0:N2}' -f $Script:percentComplete1
+                If ($Script:percentComplete1 -lt 1) {
+                    $Script:percentComplete1 = 1
+                }
+                # Write Progress Bar
+                Write-Progress -Id 1 -Activity 'Cleanup Resources' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ResourcesCountUpdate - Module: $($resource.Name)" -PercentComplete $Script:percentComplete1
+
+                $resourceName = $resource.Name
+                $count = @(Get-InstalledPSResource $resourceName).Count # Slower Option
+                if ($resourceName -ne 'Pester') {
+                    if ($count -gt 1) {
+                        $count--
+                        #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $resourceName) -ForegroundColor Yellow
+                        Write-Host ("`tUninstalling {0} Previous Version(s) of Resources: {1}" -f $count, $resourceName) -ForegroundColor Yellow
+                        #Write-Host "`nUninstalling $count Previous Version of Module: $resourceName" -ForegroundColor Yellow
+                        $Latest = Get-InstalledPSResource $resourceName | Sort-Object -Property Version -Descending -Top 1 #| ForEach-Object Version
+                        #Get-InstalledPSResource $resourceName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
+                        #Get-InstalledPSResource $resourceName | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-PSResource -Name $resourceName -Version $_.Version -Confirm:$false
+                        Get-InstalledPSResource $resourceName | Where-Object { $_.Version -ne $Latest.Version } | ForEach-Object { $temp = Uninstall-PSResource -Name $resourceName -Version $_.Version -Confirm:$false }
+                    }
+                }
+                else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Resources: $resourceName" -ForegroundColor Yellow }
+                
+                # Resource Path
+                $resourcePath = "$($resource.InstalledLocation)\$($resource.Name)\$($resource.Version)"
+                # Check for Empty Folder for Resource Path
+                if (Get-ChildItem -Path $resourcePath -File) {
+                    #Write-Output 'The folder contains files.'
+                }
+                else { 
+                    #Write-Output 'The folder does not contain any files.'
+                    Remove-Item -Path $resourcePath -Recurse -Force
+                }
+
+                # Close Progress Bar
+                Write-Progress -Id 1 -Activity 'Cleanup Resources' -Status "Resource # $Script:counter1 of $Script:ModulesCount" -Completed
+            }
+        }
+    }
+    #>
+
+    <#
+    # Copied from https://github.com/JamesKehr/Update-PsResourceWithClean
+    # all modules from the PSGallery
+    $allMods = Get-InstalledPSResource | Where-Object Repository -eq 'PSGallery'
+
+    # group the modules by name and filter out modules with more than one entry
+    [array]$modGroups = $allMods | Group-Object -Property Name
+
+    # perform the cleanup
+    foreach ($m in $modGroups) {
+        # get the mod name
+        $modName = $m.Name
+
+        # update the module
+        Write-Host "Updating $modName."
+        Update-PSResource -Name $modName -Force -Confirm:$false
+
+        # get an update of all versions of the module
+        $allVersions = Get-PSResource -Name $modName
+
+        if ($allVersions.Count -gt 1) {
+            Write-Host "Cleaning up old versions of $modName."
+
+            # get the newest version of the module
+            $newestVersion = $allVersions | Sort-Object -Property Version -Descending -Top 1 | ForEach-Object Version
+
+            # older versions
+            [array]$oldVersions = $allMods | Where-Object { $_.Name -eq $modName -and $_.Version -ne $newestVersion }
+
+            # remove old versions
+            $oldVersions | ForEach-Object { Uninstall-PSResource -Name $modName -Version $_.Version -Confirm:$false }
+
+            # there should only be one version of the module left
+            if ( (Get-InstalledPSResource $modName).Count -gt 1 ) {
+                Write-Host -ForegroundColor Red "Failed to cleanup $modName."
+            }
+            else {
+                Write-Host -ForegroundColor Green "$modName was successfully cleaned up."
+                # Resource Path
+                $resourcePath = "$($oldVersions.InstalledLocation)\$($oldVersions.Name)\$($oldVersions.Version)"
+                # Check for Folder for Resource Path
+                if (Test-Path $resourcePath) {
+                    #Write-Output 'The folder exists.'
+                    # Check for Empty Folder for Resource Path
+                    if (Get-ChildItem -Path $resourcePath -File) {
+                        #Write-Output 'The folder contains files.'
+                        Remove-Item -Path $resourcePath -Recurse -Force
+                    }
+                    else { 
+                        #Write-Output 'The folder does not contain any files.'
+                    }
+                }
+                else {
+                    #Write-Output 'The folder does not exist.'
+                }
+            }
+        }
+    }
+    #>
 
     #$Script:ScriptsUpdatedPreview
 
