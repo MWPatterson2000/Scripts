@@ -157,7 +157,7 @@ switch ($SchemaVersionExchange.rangeUpper) {
     17000 { $Sc_ex_name = 'Exchange 2019 RTM/CU1' }
     17001 { $Sc_ex_name = 'Exchange 2019 CU2-CU7' }
     17002 { $Sc_ex_name = 'Exchange 2019 CU8-CU9' }
-    17003 { $Sc_ex_name = 'Exchange 2019 CU10-CU14' }
+    17003 { $Sc_ex_name = 'Exchange 2019 CU10-CU15/Exchange SE RTM' }
     default { $Sc_ex_name = 'Unknown Exchange' }
 }
 
