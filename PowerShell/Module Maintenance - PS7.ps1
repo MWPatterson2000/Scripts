@@ -160,12 +160,22 @@ Begin {
     # Clear Screen
     #Clear-Host
 
+    # Memory monitoring function
+    function Show-MemoryUsage {
+        param([string]$Label = 'Current')
+        $memMB = [System.GC]::GetTotalMemory($false) / 1MB
+        Write-Host "`t[$Label] Memory Usage: $([Math]::Round($memMB, 2)) MB" -ForegroundColor DarkGray
+    }
+
+    # Display initial memory usage
+    Show-MemoryUsage 'Start'
+
     # Build Variables
     #$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules' # Default Location for All Users
     #$moduleDestination = 'D:\PowerShell\Modules' # Destination Location for Backup
 
     # Start Function(s)
-    # Clear Varables
+    # Clear Variables
     function Get-UserVariable ($Name = '*') {
         [CmdletBinding()]
         #param ()
@@ -898,18 +908,26 @@ Process {
 End {
     # Clear Variables
     Write-Host "`nScript Cleanup"
-    Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
+    Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue -Force
 
-    # Write Ent Time
+    # Write End Time
     if ($Time -eq $true) {
         Write-Host "`tEnd Time - $(Get-Date)" -ForegroundColor Yellow
     }
 
-    # Memory Cleanup
+    # Memory Cleanup - Aggressive collection for PS7 memory release
+    Write-Host "`tCleaning up memory..." -ForegroundColor Cyan
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
 
-    # End
-    #Exit
-    return
+    # Display Final Memory Usage
+    $memAfter = [System.GC]::GetTotalMemory($true) / 1MB
+    Write-Host "`tFinal Memory Usage: $([Math]::Round($memAfter, 2)) MB" -ForegroundColor Cyan
+
+    Write-Host "`tScript Completed Successfully" -ForegroundColor Green
+    
+    # Force process exit to ensure memory is released in PS7
+    #[System.Environment]::Exit(0)
 }
