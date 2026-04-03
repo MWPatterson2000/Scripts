@@ -1,4 +1,22 @@
 {
+    "15.3.1750.17": {
+        "Name": "Exchange Server SE CU1 Mar26SU",
+        "ReleaseDate": "2026-03-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5043125",
+        "SupportStatus": "Current",
+        "Description": "March 2026 Security Update"
+    },
+    "15.3.1750.16": {
+        "Name": "Exchange Server SE CU1 Feb26SU",
+        "ReleaseDate": "2026-02-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5042156",
+        "SupportStatus": "Current",
+        "Description": "February 2026 Security Update"
+    },
     "15.3.1750.15": {
         "Name": "Exchange Server SE CU1 Jan26SU",
         "ReleaseDate": "2026-01-13",
@@ -48,6 +66,26 @@
         "KB": "N/A",
         "SupportStatus": "Current",
         "Description": "Initial Release"
+    },
+    "15.2.1258.36": {
+        "Name": "Exchange Server 2019 CU15 Mar26SU",
+        "ReleaseDate": "2026-03-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5043126",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "March 2026 Security Update (Post-EOS)"
+    },
+    "15.2.1258.35": {
+        "Name": "Exchange Server 2019 CU15 Feb26SU",
+        "ReleaseDate": "2026-02-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5042155",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "February 2026 Security Update (Post-EOS)"
     },
     "15.2.1258.34": {
         "Name": "Exchange Server 2019 CU15 Jan26SU",
@@ -239,6 +277,26 @@
         "UpdateType": "RTM",
         "KB": "N/A",
         "SupportStatus": "Out of Support"
+    },
+    "15.1.2507.49": {
+        "Name": "Exchange Server 2016 CU23 Mar26SU",
+        "ReleaseDate": "2026-03-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5043127",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "March 2026 Security Update (Post-EOS)"
+    },
+    "15.1.2507.48": {
+        "Name": "Exchange Server 2016 CU23 Feb26SU",
+        "ReleaseDate": "2026-02-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5042154",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "February 2026 Security Update (Post-EOS)"
     },
     "15.1.2507.47": {
         "Name": "Exchange Server 2016 CU23 Jan26SU",
