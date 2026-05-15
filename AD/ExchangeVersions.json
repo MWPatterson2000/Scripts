@@ -1,4 +1,13 @@
 {
+    "15.3.1750.19": {
+        "Name": "Exchange Server SE CU1 May26SU",
+        "ReleaseDate": "2026-05-13",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5045087",
+        "SupportStatus": "Current",
+        "Description": "May 2026 Security Update"
+    },
     "15.3.1750.18": {
         "Name": "Exchange Server SE CU1 Apr26SU",
         "ReleaseDate": "2026-04-15",
@@ -75,6 +84,16 @@
         "KB": "N/A",
         "SupportStatus": "Current",
         "Description": "Initial Release"
+    },
+    "15.2.1258.38": {
+        "Name": "Exchange Server 2019 CU15 May26SU",
+        "ReleaseDate": "2026-05-13",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5045088",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "May 2026 Security Update (Post-EOS)"
     },
     "15.2.1258.37": {
         "Name": "Exchange Server 2019 CU15 Apr26SU",
