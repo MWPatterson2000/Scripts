@@ -1,4 +1,13 @@
 {
+    "15.3.1750.20": {
+        "Name": "Exchange Server SE CU1 Jun26SU",
+        "ReleaseDate": "2026-06-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5046076",
+        "SupportStatus": "Current",
+        "Description": "June 2026 Security Update"
+    },
     "15.3.1750.19": {
         "Name": "Exchange Server SE CU1 May26SU",
         "ReleaseDate": "2026-05-13",
@@ -84,6 +93,16 @@
         "KB": "N/A",
         "SupportStatus": "Current",
         "Description": "Initial Release"
+    },
+    "15.2.1258.39": {
+        "Name": "Exchange Server 2019 CU15 Jun26SU",
+        "ReleaseDate": "2026-06-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5046077",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "June 2026 Security Update (Post-EOS)"
     },
     "15.2.1258.38": {
         "Name": "Exchange Server 2019 CU15 May26SU",
@@ -306,7 +325,17 @@
         "SecurityRelease": false,
         "UpdateType": "Cumulative Update",
         "KB": "KB4338228",
-        "SupportStatus": "Out of Support"
+        "Support1": {
+        "Name": "Exchange Server 2016 CU23 Jun26SU",
+        "ReleaseDate": "2026-06-10",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5046078",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "June 2026 Security Update (Post-EOS)"
+    },
+    "15.1.2507.5Status": "Out of Support"
     },
     "15.2.66.40": {
         "Name": "Exchange Server 2019 RTM",
