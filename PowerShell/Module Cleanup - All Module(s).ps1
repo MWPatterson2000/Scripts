@@ -10,6 +10,7 @@ Revision History
     2021-10-21 - Initial Release
     2023-11-19 - Converted to Advanced Script
     2023-12-02 - Added Progress Bar
+    2026-07-31 - Streamlined cleanup logic to gather installed versions once and reduce duplicate processing
 
 #>
 

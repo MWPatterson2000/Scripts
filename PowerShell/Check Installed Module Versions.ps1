@@ -12,6 +12,7 @@ Revision History
     2023-10-10 - Added Local Module Published Date
     2023-11-19 - Converted to Advanced Script
     2023-12-02 - Added Progress Bar
+    2026-07-31 - Reduced duplicate inventory reads and object materialization to lower memory overhead and improve throughput
 
 #>
 

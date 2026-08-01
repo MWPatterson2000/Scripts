@@ -8,6 +8,7 @@ scripts@mwpatterson.com
 
 Revision History
     2023-10-24 - Initial Release
+    2026-07-31 - Reduced repeated snapshot reads and object materialization to lower memory overhead and improve comparison performance
 
 #>
 

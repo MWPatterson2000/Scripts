@@ -1,5 +1,13 @@
 <#
-    Allows the user to check to PowerShell Module Changes in the PSGallery
+    Name: All PSGallery Module Check.ps1
+
+    Allows the user to check PowerShell module changes in the PSGallery and compare snapshots more efficiently.
+
+    Michael Patterson
+    scripts@mwpatterson.com
+
+    Revision History
+    2026-07-31 - Reduced repeated inventory reads and duplicate object materialization to lower memory overhead and improve throughput
 #>
 [CmdletBinding()]
 [Alias()]
