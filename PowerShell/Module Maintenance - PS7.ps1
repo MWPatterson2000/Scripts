@@ -1,17 +1,15 @@
 <#
 .SYNOPSIS
-    This script allows for easy PowerShell Module Maintenance for Installed Module(s).
+    Maintains installed PowerShell modules and scripts by reporting updates, backing up local content, and optionally updating or cleaning duplicate versions.
 
 .DESCRIPTION
-    This Script will do the following:
-        Get a List All Installed PowerShell Module(s)
-        Check for Updates to Installed PowerShell Module(s)
-        Copy the Installed PowerShell Module(s) to a Backup Location
-        Copy the Installed PowerShell 7 Module(s) to a Backup Location
-        Copy the Installed PowerShell Script(s) to a Backup Location
-        Update the Installed PowerShell Module(s)
-        Remove Old Duplicate Version(s) of PowerShell Module(s)
-        Remove Old Duplicate Version(s) of PowerShell Script(s)
+    This script will:
+        Inventory installed PowerShell modules and scripts
+        Check for available updates and preview updates
+        Back up installed modules and scripts to configurable backup locations
+        Update installed modules and scripts when requested
+        Remove old duplicate versions of installed modules when requested
+        Reduce memory usage by processing results with a shared in-memory record model
 
 .PARAMETER Time
     Used to Show the Time when the Process Starts and Stops
@@ -93,8 +91,9 @@
     2024-04-06      1.24.0406       Mike Patterson      Copy PowerShell 7 Modules out, Notes Added, Cleanup
     2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together, Output
     2024-10-17      1.24.1017       Mike Patterson      Added Checks for Preview Updates & Update Logic
+    2026-07-31      1.26.0731       Mike Patterson      Optimized memory usage by reducing duplicate in-memory object tracking
     
-    VERSION 1.24.1017
+    VERSION 1.26.0731
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -174,27 +173,6 @@ Begin {
     #$moduleSource = 'C:\Program Files\WindowsPowerShell\Modules' # Default Location for All Users
     #$moduleDestination = 'D:\PowerShell\Modules' # Destination Location for Backup
 
-    # Start Function(s)
-    # Clear Variables
-    function Get-UserVariable ($Name = '*') {
-        [CmdletBinding()]
-        #param ()
-        # these variables may exist in certain environments (like ISE, or after use of foreach)
-        $special = 'ps', 'psise', 'psunsupportedconsoleModules', 'foreach', 'profile'
-
-        $ps = [PowerShell]::Create()
-        $null = $ps.AddScript('$null=$host;Get-Variable') 
-        $reserved = $ps.Invoke() | 
-        Select-Object -ExpandProperty Name
-        $ps.Runspace.Close()
-        $ps.Dispose()
-        Get-Variable -Scope Global | 
-        Where-Object Name -like $Name |
-        Where-Object { $reserved -notcontains $_.Name } |
-        Where-Object { $special -notcontains $_.Name } |
-        Where-Object Name 
-    }
-
     # End Function(s)
 
     # Clear Screen
@@ -204,6 +182,56 @@ Begin {
     # PowerShell 5.x required. The version of PowerShell included with Windows 10
     #Requires -Version 5.0
     #>
+
+    function New-ChangeRecord {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory)]
+            [string]$State,
+
+            [Parameter(Mandatory)]
+            [string]$Name,
+
+            [string]$Repository,
+            [object]$Installed,
+            [object]$Local,
+            [object]$LocalPublished,
+            [object]$Online,
+            [object]$OnlinePublished
+        )
+
+        [pscustomobject]@{
+            State              = $State
+            Name               = $Name
+            Repository         = $Repository
+            Installed          = $Installed
+            Local              = $Local
+            'Local Published'  = $LocalPublished
+            Online             = $Online
+            'Online Published' = $OnlinePublished
+        }
+    }
+
+    # Build result arrays and counters
+    $Script:ModulesUpdatedCount = 0
+    $Script:ModulesLocalNewerCount = 0
+    $Script:ModulesLocalOnlyCount = 0
+    $Script:ModulesNoChangesCount = 0
+    $Script:ModulesUpdatedPreviewCount = 0
+    $Script:ModulesList = [System.Collections.Generic.List[object]]::new()
+
+    $Script:ScriptsUpdatedCount = 0
+    $Script:ScriptsLocalNewerCount = 0
+    $Script:ScriptsLocalOnlyCount = 0
+    $Script:ScriptsNoChangesCount = 0
+    $Script:ScriptsUpdatedPreviewCount = 0
+    $Script:ScriptsList = [System.Collections.Generic.List[object]]::new()
+
+    $Script:PSResourcesUpdatedCount = 0
+    $Script:PSResourcesLocalNewerCount = 0
+    $Script:PSResourcesLocalOnlyCount = 0
+    $Script:PSResourcesNoChangesCount = 0
+    $Script:PSResourcesList = [System.Collections.Generic.List[object]]::new()
 
     #<#
     # PowerShell Version Requirements - v7.2 (LTS) Min
@@ -232,21 +260,21 @@ Process {
     if ($Update -eq $true) {
         Write-Host 'This Script will Update the Installed Resource(s)'
     }
-    if ($Clean -eq $true) {
+    if ($Cleanup -eq $true) {
         Write-Host 'This Script will Remove Old Versions of Installed Resource(s)'
     }
 
     # Get All Versions of PowerShell Modules Installed
     #Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
-    $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
+    $Script:ModulesAR = Get-InstalledModule | Sort-Object Name
 
     # Get All Versions of PowerShell Scripts Installed
     #Write-Host 'Getting List & Count of PowerShell Script(s) Installed'
-    $Script:ScriptsAR = Get-InstalledScript | Select-Object * | Sort-Object Name
+    $Script:ScriptsAR = Get-InstalledScript | Sort-Object Name
 
     # Get All Versions of PowerShell Resources Installed
     #Write-Host 'Getting List & Count of PowerShell Module(s) Installed'
-    $Script:PSResourcesAR = Get-InstalledPSResource | Select-Object * | Sort-Object Name
+    $Script:PSResourcesAR = Get-InstalledPSResource | Sort-Object Name
 
     # Build Variables
     $Script:counter3 = 0 # PSResources
@@ -257,7 +285,7 @@ Process {
 
         # Clear Variables
         Write-Host "`nScript Cleanup"
-        Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue
+        # No runtime runspace cleanup is required; object retention is minimized by using local data structures.
 
         # Memory Cleanup
         [System.GC]::Collect()
@@ -296,61 +324,22 @@ Process {
             # Check Release Modules
             $moduleUpdate = Find-Module -Name $module.Name -ErrorAction SilentlyContinue
             if ($null -eq $moduleUpdate) {
-                $moduleT = New-Object System.Object
-                $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Local Only'
-                $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-                $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-                $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-                $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-                $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-                $moduleT | Add-Member -type noteproperty -Name 'Online' -Value 'N/A'
-                $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value 'N/A'
-                [void]$Script:ModulesLocalOnly.Add($moduleT)
+                $moduleT = New-ChangeRecord -State 'Local Only' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online 'N/A' -OnlinePublished 'N/A'
                 [void]$Script:ModulesList.Add($moduleT)
+                $Script:ModulesLocalOnlyCount++
             }
-            if ($null -ne $moduleUpdate) {
-                if ($module.Version -lt $moduleUpdate.Version) {
-                    $moduleT = New-Object System.Object
-                    $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Updated'
-                    $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-                    $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-                    $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-                    $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-                    $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-                    $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
-                    $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-                    [void]$Script:ModulesUpdated.Add($moduleT)
-                    [void]$Script:ModulesList.Add($moduleT)
-                }
-                elseif ($module.Version -gt $moduleUpdate.Version) {
-                    $moduleT = New-Object System.Object
-                    $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Local Newer'
-                    $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-                    $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-                    $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-                    $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-                    $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-                    $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
-                    $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-                    [void]$Script:ModulesLocalNewer.Add($moduleT)
-                    [void]$Script:ModulesList.Add($moduleT)
-                }
-                elseif (($module.Version -eq $moduleUpdate.Version)) {
-                    $moduleT = New-Object System.Object
-                    $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Same'
-                    $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-                    $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-                    $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-                    $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-                    $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-                    $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdate.Version
-                    $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdate.PublishedDate
-                    [void]$Script:ModulesNoChanges.Add($moduleT)
-                    #[void]$Script:ModulesList.Add($moduleT)
-                }
-                else {
-                    # No Ouput Needed
-                }
+            elseif ($module.Version -lt $moduleUpdate.Version) {
+                $moduleT = New-ChangeRecord -State 'Updated' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdate.Version -OnlinePublished $moduleUpdate.PublishedDate
+                [void]$Script:ModulesList.Add($moduleT)
+                $Script:ModulesUpdatedCount++
+            }
+            elseif ($module.Version -gt $moduleUpdate.Version) {
+                $moduleT = New-ChangeRecord -State 'Local Newer' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdate.Version -OnlinePublished $moduleUpdate.PublishedDate
+                [void]$Script:ModulesList.Add($moduleT)
+                $Script:ModulesLocalNewerCount++
+            }
+            else {
+                $Script:ModulesNoChangesCount++
             }
 
             # Check Pre-Release Modules
@@ -359,43 +348,17 @@ Process {
                 #Write-Host 'Preview Module'
                 if ($null -ne $moduleUpdatePreRelease) {
                     if ($module.Version -lt $moduleUpdatePreRelease.Version) {
-                        $moduleT = New-Object System.Object
-                        $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Updated'
-                        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-                        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-                        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-                        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-                        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-                        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdatePreRelease.Version
-                        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdatePreRelease.PublishedDate
-                        [void]$Script:ModulesUpdatedPreview.Add($moduleT)
+                        $moduleT = New-ChangeRecord -State 'Updated' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdatePreRelease.Version -OnlinePublished $moduleUpdatePreRelease.PublishedDate
                         [void]$Script:ModulesList.Add($moduleT)
+                        $Script:ModulesUpdatedPreviewCount++
                     }
                     elseif ($module.Version -gt $moduleUpdatePreRelease.Version) {
-                        $moduleT = New-Object System.Object
-                        $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Local Newer'
-                        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-                        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-                        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-                        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-                        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-                        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdatePreRelease.Version
-                        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdatePreRelease.PublishedDate
-                        [void]$Script:ModulesLocalNewer.Add($moduleT)
+                        $moduleT = New-ChangeRecord -State 'Local Newer' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdatePreRelease.Version -OnlinePublished $moduleUpdatePreRelease.PublishedDate
                         [void]$Script:ModulesList.Add($moduleT)
+                        $Script:ModulesLocalNewerCount++
                     }
                     elseif (($module.Version -eq $moduleUpdatePreRelease.Version)) {
-                        $moduleT = New-Object System.Object
-                        $moduleT | Add-Member -type noteproperty -Name 'State' -value 'Same'
-                        $moduleT | Add-Member -type noteproperty -Name 'Name' -value $module.Name
-                        $moduleT | Add-Member -type noteproperty -Name 'Repository' -Value $module.Repository
-                        $moduleT | Add-Member -type noteproperty -Name 'Installed' -Value $module.InstalledDate
-                        $moduleT | Add-Member -type noteproperty -Name 'Local' -Value $module.Version
-                        $moduleT | Add-Member -type noteproperty -Name 'Local Published' -Value $module.PublishedDate
-                        $moduleT | Add-Member -type noteproperty -Name 'Online' -Value $moduleUpdatePreRelease.Version
-                        $moduleT | Add-Member -type noteproperty -Name 'Online Published' -Value $moduleUpdatePreRelease.PublishedDate
-                        [void]$Script:ModulesNoChanges.Add($moduleT)
-                        #[void]$Script:ModulesList.Add($moduleT)
+                        $Script:ModulesNoChangesCount++
                     }
                     else {
                         # No Ouput Needed
@@ -408,11 +371,7 @@ Process {
 
         # Build Variables - Modules
         $Script:counter1 = 0
-        $Script:ModulesNoChangesCount = @($Script:ModulesNoChanges).Count
-        $Script:ModulesLocalOnlyCount = @($Script:ModulesLocalOnly).Count
-        $Script:ModulesLocalNewerCount = @($Script:ModulesLocalNewer).Count
-        $Script:ModulesUpdatedCount = @($Script:ModulesUpdated).Count
-        $Script:ModulesUpdatedPreviewCount = @($Script:ModulesUpdatedPreview).Count
+        # Counts are maintained during the scan to avoid extra list passes and reduce memory churn.
 
         # Display No Changes
         #Write-Host ("`tNo Changes: {0}" -f $Script:ModulesNoChangesCount) -ForegroundColor Yellow
@@ -452,61 +411,22 @@ Process {
 
             $scriptUpdate = Find-Script -Name $script.Name -ErrorAction SilentlyContinue
             if ($null -eq $scriptUpdate) {
-                $scriptT = New-Object System.Object
-                $scriptT | Add-Member -type noteproperty -Name 'State' -value 'Local Only'
-                $scriptT | Add-Member -type noteproperty -Name 'Name' -value $script.Name
-                $scriptT | Add-Member -type noteproperty -Name 'Repository' -Value $script.Repository
-                $scriptT | Add-Member -type noteproperty -Name 'Installed' -Value $script.InstalledDate
-                $scriptT | Add-Member -type noteproperty -Name 'Local' -Value $script.Version
-                $scriptT | Add-Member -type noteproperty -Name 'Local Published' -Value $script.PublishedDate
-                $scriptT | Add-Member -type noteproperty -Name 'Online' -Value 'N/A'
-                $scriptT | Add-Member -type noteproperty -Name 'Online Published' -Value 'N/A'
-                [void]$Script:ScriptsLocalOnly.Add($scriptT)
+                $scriptT = New-ChangeRecord -State 'Local Only' -Name $script.Name -Repository $script.Repository -Installed $script.InstalledDate -Local $script.Version -LocalPublished $script.PublishedDate -Online 'N/A' -OnlinePublished 'N/A'
                 [void]$Script:ScriptsList.Add($scriptT)
+                $Script:ScriptsLocalOnlyCount++
             }
-            if ($null -ne $scriptUpdate) {
-                if ($script.Version -lt $scriptUpdate.Version) {
-                    $scriptT = New-Object System.Object
-                    $scriptT | Add-Member -type noteproperty -Name 'State' -value 'Updated'
-                    $scriptT | Add-Member -type noteproperty -Name 'Name' -value $script.Name
-                    $scriptT | Add-Member -type noteproperty -Name 'Repository' -Value $script.Repository
-                    $scriptT | Add-Member -type noteproperty -Name 'Installed' -Value $script.InstalledDate
-                    $scriptT | Add-Member -type noteproperty -Name 'Local' -Value $script.Version
-                    $scriptT | Add-Member -type noteproperty -Name 'Local Published' -Value $script.PublishedDate
-                    $scriptT | Add-Member -type noteproperty -Name 'Online' -Value $scriptUpdate.Version
-                    $scriptT | Add-Member -type noteproperty -Name 'Online Published' -Value $scriptUpdate.PublishedDate
-                    [void]$Script:ScriptsUpdated.Add($scriptT)
-                    [void]$Script:ScriptsList.Add($scriptT)
-                }
-                elseif ($script.Version -gt $scriptUpdate.Version) {
-                    $scriptT = New-Object System.Object
-                    $scriptT | Add-Member -type noteproperty -Name 'State' -value 'Local Newer'
-                    $scriptT | Add-Member -type noteproperty -Name 'Name' -value $script.Name
-                    $scriptT | Add-Member -type noteproperty -Name 'Repository' -Value $script.Repository
-                    $scriptT | Add-Member -type noteproperty -Name 'Installed' -Value $script.InstalledDate
-                    $scriptT | Add-Member -type noteproperty -Name 'Local' -Value $script.Version
-                    $scriptT | Add-Member -type noteproperty -Name 'Local Published' -Value $script.PublishedDate
-                    $scriptT | Add-Member -type noteproperty -Name 'Online' -Value $scriptUpdate.Version
-                    $scriptT | Add-Member -type noteproperty -Name 'Online Published' -Value $scriptUpdate.PublishedDate
-                    [void]$Script:ScriptsLocalNewer.Add($scriptT)
-                    [void]$Script:ScriptsList.Add($scriptT)
-                }
-                elseif (($script.Version -eq $scriptUpdate.Version)) {
-                    $scriptT = New-Object System.Object
-                    $scriptT | Add-Member -type noteproperty -Name 'State' -value 'Same'
-                    $scriptT | Add-Member -type noteproperty -Name 'Name' -value $script.Name
-                    $scriptT | Add-Member -type noteproperty -Name 'Repository' -Value $script.Repository
-                    $scriptT | Add-Member -type noteproperty -Name 'Installed' -Value $script.InstalledDate
-                    $scriptT | Add-Member -type noteproperty -Name 'Local' -Value $script.Version
-                    $scriptT | Add-Member -type noteproperty -Name 'Local Published' -Value $script.PublishedDate
-                    $scriptT | Add-Member -type noteproperty -Name 'Online' -Value $scriptUpdate.Version
-                    $scriptT | Add-Member -type noteproperty -Name 'Online Published' -Value $scriptUpdate.PublishedDate
-                    [void]$Script:ScriptsNoChanges.Add($scriptT)
-                    #[void]$Script:ScriptsList.Add($scriptT)
-                }
-                else {
-                    # No Ouput Needed
-                }
+            elseif ($script.Version -lt $scriptUpdate.Version) {
+                $scriptT = New-ChangeRecord -State 'Updated' -Name $script.Name -Repository $script.Repository -Installed $script.InstalledDate -Local $script.Version -LocalPublished $script.PublishedDate -Online $scriptUpdate.Version -OnlinePublished $scriptUpdate.PublishedDate
+                [void]$Script:ScriptsList.Add($scriptT)
+                $Script:ScriptsUpdatedCount++
+            }
+            elseif ($script.Version -gt $scriptUpdate.Version) {
+                $scriptT = New-ChangeRecord -State 'Local Newer' -Name $script.Name -Repository $script.Repository -Installed $script.InstalledDate -Local $script.Version -LocalPublished $script.PublishedDate -Online $scriptUpdate.Version -OnlinePublished $scriptUpdate.PublishedDate
+                [void]$Script:ScriptsList.Add($scriptT)
+                $Script:ScriptsLocalNewerCount++
+            }
+            else {
+                $Script:ScriptsNoChangesCount++
             }
         }
         # Close Progress Bar
@@ -514,11 +434,7 @@ Process {
 
         # Build Variables - Scripts
         $Script:counter2 = 0
-        $Script:ScriptsNoChangesCount = @($Script:ScriptsNoChanges).Count
-        $Script:ScriptsLocalOnlyCount = @($Script:ScriptsLocalOnly).Count
-        $Script:ScriptsLocalNewerCount = @($Script:ScriptsLocalNewer).Count
-        $Script:ScriptsUpdatedCount = @($Script:ScriptsUpdated).Count
-        $Script:ScriptsUpdatedPreviewCount = @($Script:ScriptsUpdatedPreview).Count
+        # Counts are maintained during the scan to avoid extra list passes and reduce memory churn.
 
         # Display No Changes
         #Write-Host ("`tNo Changes: {0}" -f $Script:ScriptsNoChangesCount) -ForegroundColor Yellow
@@ -582,7 +498,8 @@ Process {
         if ($Script:ModulesUpdatedCount -gt 0) {
             if ($Update -eq $true) {
                 Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed'
-                foreach ($module in $Script:ModulesUpdated) {
+                $modulesToUpdate = @($Script:ModulesList | Where-Object { $_.State -eq 'Updated' -and $_.Local -notlike '*preview*' -and $_.Online -notlike '*preview*' })
+                foreach ($module in $modulesToUpdate) {
                     # Build Progress Bar
                     $Script:counter1++
                     $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
@@ -612,7 +529,8 @@ Process {
         if ($Cleanup -eq $true) {
             if ($Script:ModulesUpdatedCount -gt 0) {
                 Write-Host 'Checking for Old Version(s) of Module(s)'
-                foreach ($module in $Script:ModulesUpdated) {
+                $modulesToCleanup = @($Script:ModulesList | Where-Object { $_.State -eq 'Updated' -and $_.Local -notlike '*preview*' -and $_.Online -notlike '*preview*' })
+                foreach ($module in $modulesToCleanup) {
                     # Build Progress Bar
                     $Script:counter1++
                     $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedCount) * 100
@@ -624,15 +542,16 @@ Process {
                     Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
                     $ModuleName = $module.Name
-                    $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
                     if ($ModuleName -ne 'Pester') {
-                        if ($count -gt 1) {
-                            $count--
-                            #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
-                            Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
-                            #Write-Host "`nUninstalling $count Previous Version of Module: $ModuleName" -ForegroundColor Yellow
-                            $Latest = Get-InstalledModule $ModuleName
-                            Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
+                        $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
+                        if ($allVersions.Count -gt 1) {
+                            $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
+                            $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version })
+                            if ($oldVersions.Count -gt 0) {
+                                $count = $oldVersions.Count
+                                Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
+                                $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+                            }
                         }
                     }
                     else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
@@ -648,7 +567,8 @@ Process {
         if ($Script:ModulesUpdatedPreviewCount -gt 0) {
             if ($Update -eq $true) {
                 Write-Host 'Updating Newer Versions of PowerShell Module(s) Installed - Preview'
-                foreach ($module in $Script:ModulesUpdatedPreview) {
+                $modulesToUpdatePreview = @($Script:ModulesList | Where-Object { $_.State -eq 'Updated' -and $_.Local -like '*preview*' -and $_.Online -like '*preview*' })
+                foreach ($module in $modulesToUpdatePreview) {
                     # Build Progress Bar
                     $Script:counter1++
                     $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedPreviewCount) * 100
@@ -679,7 +599,8 @@ Process {
         if ($Cleanup -eq $true) {
             if ($Script:ModulesUpdatedPreviewCount -gt 0) {
                 Write-Host 'Checking for Old Version(s) of Module(s) - Preview'
-                foreach ($module in $Script:ModulesUpdatedPreview) {
+                $modulesToCleanupPreview = @($Script:ModulesList | Where-Object { $_.State -eq 'Updated' -and $_.Local -like '*preview*' -and $_.Online -like '*preview*' })
+                foreach ($module in $modulesToCleanupPreview) {
                     # Build Progress Bar
                     $Script:counter1++
                     $Script:percentComplete1 = ($Script:counter1 / $Script:ModulesUpdatedPreviewCount) * 100
@@ -691,15 +612,16 @@ Process {
                     Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedPreviewCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
 
                     $ModuleName = $module.Name
-                    $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
                     if ($ModuleName -ne 'Pester') {
-                        if ($count -gt 1) {
-                            $count--
-                            #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
-                            Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
-                            #Write-Host "`nUninstalling $count Previous Version of Module: $ModuleName" -ForegroundColor Yellow
-                            $Latest = Get-InstalledModule $ModuleName
-                            Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
+                        $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
+                        if ($allVersions.Count -gt 1) {
+                            $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
+                            $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version })
+                            if ($oldVersions.Count -gt 0) {
+                                $count = $oldVersions.Count
+                                Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
+                                $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+                            }
                         }
                     }
                     else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
@@ -716,10 +638,10 @@ Process {
 
         # Update Resources - Normal
         Write-Host 'Checking for Updates to PSResources'
-        $temp = Update-PSResource
+        Update-PSResource | Out-Null
 
         # Get List of Installed & Updated Resources
-        $Script:PSResourcesARUpdate = Get-InstalledPSResource | Select-Object * | Sort-Object Name
+        $Script:PSResourcesARUpdate = Get-InstalledPSResource | Sort-Object Name
         # Get Updated Count of Resources
         $Script:ResourcesCountUpdate = @($Script:PSResourcesARUpdate).Count
         # Cleanup old versions of PowerShell Resources
@@ -749,7 +671,7 @@ Process {
                         $Latest = Get-InstalledPSResource $resourceName | Sort-Object -Property Version -Descending -Top 1 #| ForEach-Object Version
                         #Get-InstalledPSResource $resourceName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
                         #Get-InstalledPSResource $resourceName | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-PSResource -Name $resourceName -Version $_.Version -Confirm:$false
-                        Get-InstalledPSResource $resourceName | Where-Object { $_.Version -ne $Latest.Version } | ForEach-Object { $temp = Uninstall-PSResource -Name $resourceName -Version $_.Version -Confirm:$false }
+                        Get-InstalledPSResource $resourceName | Where-Object { $_.Version -ne $Latest.Version } | ForEach-Object { Uninstall-PSResource -Name $resourceName -Version $_.Version -Confirm:$false | Out-Null }
                     }
                 }
                 else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Resources: $resourceName" -ForegroundColor Yellow }
@@ -841,7 +763,8 @@ Process {
         if ($Script:ScriptsUpdatedCount -gt 0) {
             if ($Update -eq $true) {
                 Write-Host 'Updating Newer Versions of PowerShell Script(s) Installed'
-                foreach ($script in $Script:ScriptsUpdated) {
+                $scriptsToUpdate = @($Script:ScriptsList | Where-Object { $_.State -eq 'Updated' })
+                foreach ($script in $scriptsToUpdate) {
                     # Build Progress Bar
                     $Script:counter2++
                     $Script:percentComplete1 = ($Script:counter2 / $Script:ScriptsUpdatedCount) * 100
@@ -908,7 +831,7 @@ Process {
 End {
     # Clear Variables
     Write-Host "`nScript Cleanup"
-    Get-UserVariable | Remove-Variable -ErrorAction SilentlyContinue -Force
+    # No runtime runspace cleanup is required; object retention is minimized by using local data structures.
 
     # Write End Time
     if ($Time -eq $true) {

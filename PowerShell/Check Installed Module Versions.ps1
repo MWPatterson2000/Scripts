@@ -70,7 +70,7 @@ Process {
     # Get All Versions of PowerShell Modules Installed
     #Write-Host "Getting All Versions of PowerShell Module(s) Installed"
     Write-Host "Getting List & Count of PowerShell Module(s) Installed - $(Get-Date)"
-    $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
+    $Script:ModulesAR = @(Get-InstalledModule -ErrorAction SilentlyContinue | Sort-Object Name)
 
     # Build Variables
     #$Script:ModulesAR

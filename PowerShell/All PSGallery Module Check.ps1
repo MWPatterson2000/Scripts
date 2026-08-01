@@ -129,7 +129,7 @@ Begin {
     $Script:ModuleReportC = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Modules.csv"
     $Script:objTemp = New-Object System.Object
     #Get-InstalledModule | Select-Object Name,Repository,Version | Format-Table -AutoSize
-    $tempAR = Find-Module | Sort-Object Name
+    $tempAR = @(Find-Module -ErrorAction SilentlyContinue | Sort-Object Name)
     @($tempAR) | Export-Csv -path $Script:ModuleReportC -NoTypeInformation -Encoding UTF8
     #@($tempAR) | Select-Object Version,Name,Repository | ConvertTo-Json | Out-File $Script:ModuleReportJ -Append
     @($tempAR) | Select-Object Name, Repository, Version | ConvertTo-Json | Out-File $Script:ModuleReportJ -Append

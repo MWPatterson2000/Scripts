@@ -150,7 +150,7 @@ Process {
     $Script:ScriptReportS = "$path\$(Get-Date -Format yyyy-MM-dd-HH-mm) - Scripts Names.csv"
     $Script:objTemp = New-Object System.Object
     #Get-InstalledScript | Select-Object Name,Repository,Version | Format-Table -AutoSize
-    $tempAR = Get-InstalledScript | Sort-Object Name
+    $tempAR = @(Get-InstalledScript -ErrorAction SilentlyContinue | Sort-Object Name)
     @($tempAR) | Export-Csv -path $Script:ScriptReportC -NoTypeInformation -Encoding UTF8
     #@($tempAR) | Select-Object Version,Name,Repository | ConvertTo-Json | Out-File $Script:ScriptReportJ -Append
     @($tempAR) | Select-Object Name, Repository, Version | ConvertTo-Json | Out-File $Script:ScriptReportJ -Append

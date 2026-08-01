@@ -59,7 +59,7 @@ Process {
     # Get All Versions of PowerShell Modules Installed
     #Write-Host "Getting All Versions of PowerShell Module(s) Installed"
     Write-Host "Getting List & Count of PowerShell Module(s) Installed - $(Get-Date)"
-    $Script:ModulesAR = Get-InstalledModule | Select-Object * | Sort-Object Name
+    $Script:ModulesAR = @(Get-InstalledModule -ErrorAction SilentlyContinue | Sort-Object Name)
 
     # Build Variables
     #$Script:ModulesAR
@@ -105,17 +105,16 @@ Process {
         #$CounterLength = $Counter.Length
         #Write-Host $module.Name
         $ModuleName = $module.Name
-        #$count = (Get-Module $ModuleName -ListAvailable).Count # Faster Option
-        $count = @(Get-InstalledModule $ModuleName -AllVersions).Count # Slower Option
         if ($ModuleName -ne 'Pester') {
-            if ($count -gt 1) {
-                $count--
-                #Write-Host "`tCleaning Up $count Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow
-                Write-Host ("`t{0} Uninstalling {1} Previous Version of Module: {2}" -f $Counter1, $count, $ModuleName) -ForegroundColor Yellow
-                $Latest = Get-InstalledModule $ModuleName
-                #Get-InstalledModule $ModuleName -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module #-WhatIf
-                #Get-InstalledModule $ModuleName -AllVersions | Where-Object {$_.Version -ne $Latest.Version} | Uninstall-Module -Force -ErrorAction Stop
-                Get-InstalledModule $ModuleName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
+            $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
+            if ($allVersions.Count -gt 1) {
+                $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
+                $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version })
+                if ($oldVersions.Count -gt 0) {
+                    $count = $oldVersions.Count
+                    Write-Host ("`t{0} Uninstalling {1} Previous Version of Module: {2}" -f $Script:counter1, $count, $ModuleName) -ForegroundColor Yellow
+                    $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+                }
             }
         }
         else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
