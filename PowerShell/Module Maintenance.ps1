@@ -92,8 +92,9 @@
     2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together, Output
     2024-10-17      1.24.1017       Mike Patterson      Added Checks for Preview Updates & Update Logic
     2026-07-31      1.26.0731       Mike Patterson      Optimized memory usage by reducing duplicate in-memory object tracking
+    2026-08-04      1.26.0804       Mike Patterson      Fixed version comparison to use [version] cast to prevent string/lexicographic ordering
     
-    VERSION 1.26.0731
+    VERSION 1.26.0804
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -362,12 +363,12 @@ Process {
                 [void]$Script:ModulesList.Add($moduleT)
                 $Script:ModulesLocalOnlyCount++
             }
-            elseif ($module.Version -lt $moduleUpdate.Version) {
+            elseif ([version]$module.Version -lt [version]$moduleUpdate.Version) {
                 $moduleT = New-ChangeRecord -State 'Updated' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdate.Version -OnlinePublished $moduleUpdate.PublishedDate
                 [void]$Script:ModulesList.Add($moduleT)
                 $Script:ModulesUpdatedCount++
             }
-            elseif ($module.Version -gt $moduleUpdate.Version) {
+            elseif ([version]$module.Version -gt [version]$moduleUpdate.Version) {
                 $moduleT = New-ChangeRecord -State 'Local Newer' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdate.Version -OnlinePublished $moduleUpdate.PublishedDate
                 [void]$Script:ModulesList.Add($moduleT)
                 $Script:ModulesLocalNewerCount++
@@ -380,12 +381,12 @@ Process {
             if ($module.Version -like '*preview*') {
                 $moduleUpdatePreRelease = Find-Module -Name $module.Name -AllowPrerelease -ErrorAction SilentlyContinue
                 if ($null -ne $moduleUpdatePreRelease) {
-                    if ($module.Version -lt $moduleUpdatePreRelease.Version) {
+                    if ([version]$module.Version -lt [version]$moduleUpdatePreRelease.Version) {
                         $moduleT = New-ChangeRecord -State 'Updated' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdatePreRelease.Version -OnlinePublished $moduleUpdatePreRelease.PublishedDate
                         [void]$Script:ModulesList.Add($moduleT)
                         $Script:ModulesUpdatedPreviewCount++
                     }
-                    elseif ($module.Version -gt $moduleUpdatePreRelease.Version) {
+                    elseif ([version]$module.Version -gt [version]$moduleUpdatePreRelease.Version) {
                         $moduleT = New-ChangeRecord -State 'Local Newer' -Name $module.Name -Repository $module.Repository -Installed $module.InstalledDate -Local $module.Version -LocalPublished $module.PublishedDate -Online $moduleUpdatePreRelease.Version -OnlinePublished $moduleUpdatePreRelease.PublishedDate
                         [void]$Script:ModulesList.Add($moduleT)
                         $Script:ModulesLocalNewerCount++
@@ -445,12 +446,12 @@ Process {
                 [void]$Script:ScriptsList.Add($scriptT)
                 $Script:ScriptsLocalOnlyCount++
             }
-            elseif ($script.Version -lt $scriptUpdate.Version) {
+            elseif ([version]$script.Version -lt [version]$scriptUpdate.Version) {
                 $scriptT = New-ChangeRecord -State 'Updated' -Name $script.Name -Repository $script.Repository -Installed $script.InstalledDate -Local $script.Version -LocalPublished $script.PublishedDate -Online $scriptUpdate.Version -OnlinePublished $scriptUpdate.PublishedDate
                 [void]$Script:ScriptsList.Add($scriptT)
                 $Script:ScriptsUpdatedCount++
             }
-            elseif ($script.Version -gt $scriptUpdate.Version) {
+            elseif ([version]$script.Version -gt [version]$scriptUpdate.Version) {
                 $scriptT = New-ChangeRecord -State 'Local Newer' -Name $script.Name -Repository $script.Repository -Installed $script.InstalledDate -Local $script.Version -LocalPublished $script.PublishedDate -Online $scriptUpdate.Version -OnlinePublished $scriptUpdate.PublishedDate
                 [void]$Script:ScriptsList.Add($scriptT)
                 $Script:ScriptsLocalNewerCount++
