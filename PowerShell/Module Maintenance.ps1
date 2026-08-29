@@ -92,9 +92,10 @@
     2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together, Output
     2024-10-17      1.24.1017       Mike Patterson      Added Checks for Preview Updates & Update Logic
     2026-07-31      1.26.0731       Mike Patterson      Optimized memory usage by reducing duplicate in-memory object tracking
-    2026-08-04      1.26.0804       Mike Patterson      Fixed version comparison to use [version] cast to prevent string/lexicographic ordering
+    2026-08-04      1.26.0804       Mike Patterson      Fixed version comparison to use [version] cast to prevent string/lexicographic ordering for Updating
+    2026-08-28      1.26.0828       Mike Patterson      Fixed version comparison to use [version] cast to prevent string/lexicographic ordering for Cleanup
     
-    VERSION 1.26.0804
+    VERSION 1.26.0828
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -574,6 +575,7 @@ Process {
 
                     $ModuleName = $module.Name
                     if ($ModuleName -ne 'Pester') {
+                        <#
                         $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
                         if ($allVersions.Count -gt 1) {
                             $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
@@ -582,6 +584,37 @@ Process {
                                 $count = $oldVersions.Count
                                 Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
                                 $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+                            }
+                        }
+                        #>
+                        $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
+
+                        if ($allVersions.Count -gt 1) {
+
+                            # Sort versions numerically, not as strings
+                            $latest = $allVersions |
+                            Sort-Object { [version]$_.Version } -Descending |
+                            Select-Object -First 1
+
+                            $oldVersions = @(
+                                $allVersions |
+                                Where-Object { [version]$_.Version -lt [version]$latest.Version }
+                            )
+
+                            if ($oldVersions.Count -gt 0) {
+                                $count = $oldVersions.Count
+
+                                Write-Host ("`tLatest Version: {0}" -f $latest.Version) -ForegroundColor Green
+                                Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
+
+                                foreach ($oldVersion in $oldVersions) {
+                                    Write-Host ("`t`tRemoving Version: {0}" -f $oldVersion.Version) -ForegroundColor Yellow
+
+                                    Uninstall-Module -Name $ModuleName `
+                                        -RequiredVersion $oldVersion.Version `
+                                        -Force `
+                                        -ErrorAction Continue
+                                }
                             }
                         }
                     }
@@ -644,6 +677,7 @@ Process {
 
                     $ModuleName = $module.Name
                     if ($ModuleName -ne 'Pester') {
+                        <#
                         $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
                         if ($allVersions.Count -gt 1) {
                             $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
@@ -652,6 +686,37 @@ Process {
                                 $count = $oldVersions.Count
                                 Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
                                 $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+                            }
+                        }
+                        #>
+                        $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
+
+                        if ($allVersions.Count -gt 1) {
+
+                            # Sort versions numerically, not as strings
+                            $latest = $allVersions |
+                            Sort-Object { [version]$_.Version } -Descending |
+                            Select-Object -First 1
+
+                            $oldVersions = @(
+                                $allVersions |
+                                Where-Object { [version]$_.Version -lt [version]$latest.Version }
+                            )
+
+                            if ($oldVersions.Count -gt 0) {
+                                $count = $oldVersions.Count
+
+                                Write-Host ("`tLatest Version: {0}" -f $latest.Version) -ForegroundColor Green
+                                Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
+
+                                foreach ($oldVersion in $oldVersions) {
+                                    Write-Host ("`t`tRemoving Version: {0}" -f $oldVersion.Version) -ForegroundColor Yellow
+
+                                    Uninstall-Module -Name $ModuleName `
+                                        -RequiredVersion $oldVersion.Version `
+                                        -Force `
+                                        -ErrorAction Continue
+                                }
                             }
                         }
                     }
