@@ -11,6 +11,7 @@ Revision History
     2023-11-19 - Converted to Advanced Script
     2023-12-02 - Added Progress Bar
     2026-07-31 - Streamlined cleanup logic to gather installed versions once and reduce duplicate processing
+    2026-09-03 - Updated cleanup logic to sort versions numerically and remove older versions explicitly
 
 #>
 
@@ -108,13 +109,33 @@ Process {
         $ModuleName = $module.Name
         if ($ModuleName -ne 'Pester') {
             $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
+
             if ($allVersions.Count -gt 1) {
-                $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
-                $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version })
+
+                # Sort versions numerically, not as strings
+                $latest = $allVersions |
+                Sort-Object { [version]$_.Version } -Descending |
+                Select-Object -First 1
+
+                $oldVersions = @(
+                    $allVersions |
+                    Where-Object { [version]$_.Version -lt [version]$latest.Version }
+                )
+
                 if ($oldVersions.Count -gt 0) {
                     $count = $oldVersions.Count
-                    Write-Host ("`t{0} Uninstalling {1} Previous Version of Module: {2}" -f $Script:counter1, $count, $ModuleName) -ForegroundColor Yellow
-                    $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+
+                    Write-Host ("`tLatest Version: {0}" -f $latest.Version) -ForegroundColor Green
+                    Write-Host ("`t{0} Uninstalling {1} Previous Version(s) of Module: {2}" -f $Script:counter1, $count, $ModuleName) -ForegroundColor Yellow
+
+                    foreach ($oldVersion in $oldVersions) {
+                        Write-Host ("`t`tRemoving Version: {0}" -f $oldVersion.Version) -ForegroundColor Yellow
+
+                        Uninstall-Module -Name $ModuleName `
+                            -RequiredVersion $oldVersion.Version `
+                            -Force `
+                            -ErrorAction Continue
+                    }
                 }
             }
         }
