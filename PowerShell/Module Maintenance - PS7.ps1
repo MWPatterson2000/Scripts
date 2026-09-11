@@ -92,8 +92,9 @@
     2024-04-16      1.24.0416       Mike Patterson      Reorganized to Show all changes together, Output
     2024-10-17      1.24.1017       Mike Patterson      Added Checks for Preview Updates & Update Logic
     2026-07-31      1.26.0731       Mike Patterson      Optimized memory usage by reducing duplicate in-memory object tracking
+    2026-09-10      1.26.0910       Mike Patterson      Reduced cleanup memory usage, isolated module uninstalls, respected Update switch for PSResources, and suppressed package errors
     
-    VERSION 1.26.0731
+    VERSION 1.26.0910
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -209,6 +210,31 @@ Begin {
             'Local Published'  = $LocalPublished
             Online             = $Online
             'Online Published' = $OnlinePublished
+        }
+    }
+
+    function Invoke-IsolatedModuleUninstall {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory)]
+            [string]$Name,
+
+            [Parameter(Mandatory)]
+            [string]$Version
+        )
+
+        try {
+            Uninstall-Module -Name $Name -RequiredVersion $Version -Force -ErrorAction Stop | Out-Null
+            return 0
+        }
+        catch {
+            Write-Verbose ('Failed to uninstall {0} {1}: {2}' -f $Name, $Version, $_.Exception.Message)
+            return 1
+        }
+        finally {
+            [System.GC]::Collect()
+            [System.GC]::WaitForPendingFinalizers()
+            [System.GC]::Collect()
         }
     }
 
@@ -546,18 +572,26 @@ Process {
                         $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
                         if ($allVersions.Count -gt 1) {
                             $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
-                            $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version })
+                            $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version } | Sort-Object Version)
                             if ($oldVersions.Count -gt 0) {
                                 $count = $oldVersions.Count
                                 Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
-                                $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+                                foreach ($oldVersion in $oldVersions) {
+                                    $null = Invoke-IsolatedModuleUninstall -Name $ModuleName -Version ([string]$oldVersion.Version)
+                                }
                             }
                         }
+                        $oldVersions = $null
+                        $allVersions = $null
+                        $latest = $null
+                        [System.GC]::Collect()
+                        [System.GC]::WaitForPendingFinalizers()
                     }
                     else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
                 }
                 # Close Progress Bar
                 Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
+                $modulesToCleanup = $null
             }
         }
 
@@ -616,18 +650,26 @@ Process {
                         $allVersions = @(Get-InstalledModule -Name $ModuleName -AllVersions -ErrorAction SilentlyContinue)
                         if ($allVersions.Count -gt 1) {
                             $latest = $allVersions | Sort-Object Version -Descending | Select-Object -First 1
-                            $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version })
+                            $oldVersions = @($allVersions | Where-Object { $_.Version -ne $latest.Version } | Sort-Object Version)
                             if ($oldVersions.Count -gt 0) {
                                 $count = $oldVersions.Count
                                 Write-Host ("`tUninstalling {0} Previous Version(s) of Module: {1}" -f $count, $ModuleName) -ForegroundColor Yellow
-                                $oldVersions | Uninstall-Module -Force -ErrorAction Continue
+                                foreach ($oldVersion in $oldVersions) {
+                                    $null = Invoke-IsolatedModuleUninstall -Name $ModuleName -Version ([string]$oldVersion.Version)
+                                }
                             }
                         }
+                        $oldVersions = $null
+                        $allVersions = $null
+                        $latest = $null
+                        [System.GC]::Collect()
+                        [System.GC]::WaitForPendingFinalizers()
                     }
                     else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Module: $ModuleName" -ForegroundColor Yellow }
                 }
                 # Close Progress Bar
                 Write-Progress -Id 1 -Activity 'Cleanup Module' -Status "Module # $Script:counter1 of $Script:ModulesCount" -Completed
+                $modulesToCleanupPreview = $null
             }
         }
     }
@@ -637,19 +679,26 @@ Process {
     if ($Script:ResourcesCount -gt 0) {
 
         # Update Resources - Normal
-        Write-Host 'Checking for Updates to PSResources'
-        Update-PSResource | Out-Null
+        if ($Update -eq $true) {
+            Write-Host 'Checking for Updates to PSResources'
+            Update-PSResource -ErrorAction SilentlyContinue | Out-Null
 
-        # Get List of Installed & Updated Resources
-        $Script:PSResourcesARUpdate = Get-InstalledPSResource | Sort-Object Name
-        # Get Updated Count of Resources
-        $Script:ResourcesCountUpdate = @($Script:PSResourcesARUpdate).Count
+            # Get List of Installed & Updated Resources
+            $Script:PSResourcesARUpdate = Get-InstalledPSResource | Sort-Object Name
+            # Get Updated Count of Resources
+            $Script:ResourcesCountUpdate = @($Script:PSResourcesARUpdate).Count
+            $Script:PSResourcesARUpdate = $null
+        }
+        else {
+            $Script:ResourcesCountUpdate = $Script:ResourcesCount
+        }
         # Cleanup old versions of PowerShell Resources
         # Build Variables
         $Script:counter1 = 0
         if ($Cleanup -eq $true) {
             Write-Host 'Checking for Old Version(s) of Module(s)'
-            foreach ($resource in $Script:PSResourcesAR) {
+            $resourceNames = @($Script:PSResourcesAR | Select-Object -ExpandProperty Name -Unique)
+            foreach ($resourceName in $resourceNames) {
                 # Build Progress Bar
                 $Script:counter1++
                 $Script:percentComplete1 = ($Script:counter1 / $Script:ResourcesCountUpdate) * 100
@@ -658,38 +707,32 @@ Process {
                     $Script:percentComplete1 = 1
                 }
                 # Write Progress Bar
-                Write-Progress -Id 1 -Activity 'Cleanup Resources' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ResourcesCountUpdate - Module: $($resource.Name)" -PercentComplete $Script:percentComplete1
+                Write-Progress -Id 1 -Activity 'Cleanup Resources' -Status "$Script:percentComplete1d% - $Script:counter1 of $($resourceNames.Count) - Module: $resourceName" -PercentComplete $Script:percentComplete1
 
-                $resourceName = $resource.Name
-                $count = @(Get-InstalledPSResource $resourceName).Count # Slower Option
+                $resourceVersions = @(Get-InstalledPSResource -Name $resourceName)
+                $count = $resourceVersions.Count
                 if ($resourceName -ne 'Pester') {
                     if ($count -gt 1) {
                         $count--
-                        #Write-Host ('{0} Uninstalling {1} Previous Version of Module: {2}' -f $Counter1, $count, $resourceName) -ForegroundColor Yellow
                         Write-Host ("`tUninstalling {0} Previous Version(s) of Resources: {1}" -f $count, $resourceName) -ForegroundColor Yellow
-                        #Write-Host "`nUninstalling $count Previous Version of Module: $resourceName" -ForegroundColor Yellow
-                        $Latest = Get-InstalledPSResource $resourceName | Sort-Object -Property Version -Descending -Top 1 #| ForEach-Object Version
-                        #Get-InstalledPSResource $resourceName -AllVersions | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-Module -Force -ErrorAction Continue
-                        #Get-InstalledPSResource $resourceName | Where-Object { $_.Version -ne $Latest.Version } | Uninstall-PSResource -Name $resourceName -Version $_.Version -Confirm:$false
-                        Get-InstalledPSResource $resourceName | Where-Object { $_.Version -ne $Latest.Version } | ForEach-Object { Uninstall-PSResource -Name $resourceName -Version $_.Version -Confirm:$false | Out-Null }
+                        $Latest = $resourceVersions | Sort-Object -Property Version -Descending | Select-Object -First 1
+                        foreach ($resourceVersion in ($resourceVersions | Where-Object { $_.Version -ne $Latest.Version })) {
+                            Uninstall-PSResource -Name $resourceName -Version $resourceVersion.Version -Confirm:$false -ProgressAction SilentlyContinue -ErrorAction SilentlyContinue | Out-Null
+                        }
                     }
                 }
                 else { Write-Host "`tSkipping Cleaning Up Old Version(s) of Resources: $resourceName" -ForegroundColor Yellow }
-                
-                # Resource Path
-                $resourcePath = "$($resource.InstalledLocation)\$($resource.Name)\$($resource.Version)"
-                # Check for Empty Folder for Resource Path
-                if (Get-ChildItem -Path $resourcePath -File) {
-                    #Write-Output 'The folder contains files.'
-                }
-                else { 
-                    #Write-Output 'The folder does not contain any files.'
-                    Remove-Item -Path $resourcePath -Recurse -Force
-                }
+
+                $resourceVersions = $null
+                $Latest = $null
+                [System.GC]::Collect()
+                [System.GC]::WaitForPendingFinalizers()
 
                 # Close Progress Bar
-                Write-Progress -Id 1 -Activity 'Cleanup Resources' -Status "Resource # $Script:counter1 of $Script:ModulesCount" -Completed
+                Write-Progress -Id 1 -Activity 'Cleanup Resources' -Status "Resource # $Script:counter1 of $($resourceNames.Count)" -Completed
             }
+            $resourceNames = $null
+            $Script:PSResourcesAR = $null
         }
     }
     #>

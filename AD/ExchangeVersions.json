@@ -1,4 +1,13 @@
 {
+    "15.3.1750.23": {
+        "Name": "Exchange Server SE CU1 Sep26SU",
+        "ReleaseDate": "2026-09-08",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5121608",
+        "SupportStatus": "Current",
+        "Description": "September 2026 Security Update"
+    },
     "15.3.1750.22": {
         "Name": "Exchange Server SE CU1 Aug26SU",
         "ReleaseDate": "2026-08-12",
@@ -111,6 +120,16 @@
         "KB": "N/A",
         "SupportStatus": "Current",
         "Description": "Initial Release"
+    },
+    "15.2.1258.42": {
+        "Name": "Exchange Server 2019 CU15 Sep26SU",
+        "ReleaseDate": "2026-09-08",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5121609",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "September 2026 Security Update (Post-EOS)"
     },
     "15.2.1258.41": {
         "Name": "Exchange Server 2019 CU15 Aug26SU",
@@ -372,6 +391,16 @@
         "UpdateType": "RTM",
         "KB": "N/A",
         "SupportStatus": "Out of Support"
+    },
+    "15.1.2507.53": {
+        "Name": "Exchange Server 2016 CU23 Sep26SU",
+        "ReleaseDate": "2026-09-08",
+        "SecurityRelease": true,
+        "UpdateType": "Security Update",
+        "KB": "KB5121611",
+        "SupportStatus": "Extended Support",
+        "EndOfSupport": "2025-10-14",
+        "Description": "September 2026 Security Update (Post-EOS)"
     },
     "15.1.2507.52": {
         "Name": "Exchange Server 2016 CU23 Aug26SU",

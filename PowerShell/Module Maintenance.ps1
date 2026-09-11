@@ -94,8 +94,9 @@
     2026-07-31      1.26.0731       Mike Patterson      Optimized memory usage by reducing duplicate in-memory object tracking
     2026-08-04      1.26.0804       Mike Patterson      Fixed version comparison to use [version] cast to prevent string/lexicographic ordering for Updating
     2026-08-28      1.26.0828       Mike Patterson      Fixed version comparison to use [version] cast to prevent string/lexicographic ordering for Cleanup
+    2026-09-10      1.26.0910       Mike Patterson      Display target version during module and script updates
     
-    VERSION 1.26.0828
+    VERSION 1.26.0910
     GUID 965d056a-eb41-4fb8-a9e3-8811b910e656
     AUTHOR Michael Patterson
     CONTACT scripts@mwpatterson.com
@@ -546,7 +547,7 @@ Process {
                         #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
                         # Write Progress Bar
                         Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
-                        Write-Host ("`tUpdating Module: {0}" -f $module.Name) -ForegroundColor Yellow
+                        Write-Host ("`tUpdating Module: {0} to version {1}" -f $module.Name, $module.Online) -ForegroundColor Yellow
                         Update-Module -Name $module.Name
                     }
                 }
@@ -647,7 +648,7 @@ Process {
                         #Write-Host "`tUpdating Module: $($module.Name)" -ForegroundColor Yellow
                         # Write Progress Bar
                         Write-Progress -Id 1 -Activity 'Updating Module' -Status "$Script:percentComplete1d% - $Script:counter1 of $Script:ModulesUpdatedPreviewCount - Module: $($module.Name)" -PercentComplete $Script:percentComplete1
-                        Write-Host ("`tUpdating Module: {0}" -f $module.Name) -ForegroundColor Yellow
+                        Write-Host ("`tUpdating Module: {0} to version {1}" -f $module.Name, $module.Online) -ForegroundColor Yellow
                         #Update-Module -Name $module.Name
                         Install-Module -Name $module.Name -AllowPrerelease -Force
                     }
@@ -753,7 +754,7 @@ Process {
                         #Write-Host "`tUpdating Script: $($script.Name)" -ForegroundColor Yellow
                         # Write Progress Bar
                         Write-Progress -Id 1 -Activity 'Updating Script' -Status "$Script:percentComplete1d% - $Script:counter2 of $Script:ScriptsUpdatedCount - Script: $($script.Name)" -PercentComplete $Script:percentComplete1
-                        Write-Host ("`tUpdating Script: {0}" -f $script.Name) -ForegroundColor Yellow
+                        Write-Host ("`tUpdating Script: {0} to version {1}" -f $script.Name, $script.Online) -ForegroundColor Yellow
                         Update-Script -Name $script.Name
                     }
                 }
