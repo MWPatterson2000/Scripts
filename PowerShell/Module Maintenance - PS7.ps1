@@ -238,6 +238,26 @@ Begin {
         }
     }
 
+    function Invoke-IsolatedPSResourceUninstall {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory)]
+            [string]$Name,
+
+            [Parameter(Mandatory)]
+            [string]$Version
+        )
+
+        $escapedName = $Name.Replace("'", "''")
+        $escapedVersion = $Version.Replace("'", "''")
+        $command = "Import-Module Microsoft.PowerShell.PSResourceGet; Uninstall-PSResource -Name '$escapedName' -Version '$escapedVersion' -Confirm:`$false -ProgressAction SilentlyContinue -ErrorAction Stop | Out-Null"
+        $encodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+        $process = Start-Process -FilePath (Join-Path $PSHOME 'pwsh.exe') -ArgumentList @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encodedCommand) -WindowStyle Hidden -Wait -PassThru
+        $exitCode = $process.ExitCode
+        $process.Dispose()
+        return $exitCode
+    }
+
     # Build result arrays and counters
     $Script:ModulesUpdatedCount = 0
     $Script:ModulesLocalNewerCount = 0
@@ -717,7 +737,7 @@ Process {
                         Write-Host ("`tUninstalling {0} Previous Version(s) of Resources: {1}" -f $count, $resourceName) -ForegroundColor Yellow
                         $Latest = $resourceVersions | Sort-Object -Property Version -Descending | Select-Object -First 1
                         foreach ($resourceVersion in ($resourceVersions | Where-Object { $_.Version -ne $Latest.Version })) {
-                            Uninstall-PSResource -Name $resourceName -Version $resourceVersion.Version -Confirm:$false -ProgressAction SilentlyContinue -ErrorAction SilentlyContinue | Out-Null
+                            $null = Invoke-IsolatedPSResourceUninstall -Name $resourceName -Version ([string]$resourceVersion.Version)
                         }
                     }
                 }
@@ -883,6 +903,25 @@ End {
 
     # Memory Cleanup - Aggressive collection for PS7 memory release
     Write-Host "`tCleaning up memory..." -ForegroundColor Cyan
+    $Script:ModulesAR = $null
+    $Script:ScriptsAR = $null
+    $Script:PSResourcesAR = $null
+    $Script:PSResourcesARUpdate = $null
+    $Script:ModulesList = $null
+    $Script:ScriptsList = $null
+    $Script:PSResourcesList = $null
+    $Script:PSResourcesUpdated = $null
+    $Script:PSResourcesLocalNewer = $null
+    $Script:PSResourcesLocalOnly = $null
+    $Script:PSResourcesNoChanges = $null
+    $modulesToUpdate = $null
+    $modulesToCleanup = $null
+    $modulesToUpdatePreview = $null
+    $modulesToCleanupPreview = $null
+    $resourceNames = $null
+    $allVersions = $null
+    $oldVersions = $null
+    $resourceVersions = $null
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
     [System.GC]::Collect()
