@@ -814,9 +814,9 @@ function Get-ExchangeReleaseVersion {
             # Support Lifecycle Summary
             Write-Host "`n`nSupport Lifecycle Summary" -ForegroundColor Magenta
             Write-Host '=========================' -ForegroundColor Magenta
-            Write-Host 'Exchange SE: Subscription Based - Always Current (Latest: Jan26SU - 15.3.1750.15)'
-            Write-Host 'Exchange 2019: End of Support October 14, 2025 (Latest: Jan26SU - 15.2.1258.34)'
-            Write-Host 'Exchange 2016: End of Support October 14, 2025 (Latest: Jan26SU - 15.1.2507.47)'
+            Write-Host 'Exchange SE: Subscription Based - Always Current (Latest: Oct26SU - 15.3.1750.24)'
+            Write-Host 'Exchange 2019: End of Support October 14, 2025 (Latest: Oct26SU - 15.2.1258.43)'
+            Write-Host 'Exchange 2016: End of Support October 14, 2025 (Latest: Oct26SU - 15.1.2507.54)'
             Write-Host 'Exchange 2013: End of Support April 11, 2023'
             Write-Host 'Exchange 2010: End of Support October 13, 2020'
             Write-Host 'Exchange 2007: End of Support April 11, 2017'

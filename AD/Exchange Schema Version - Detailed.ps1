@@ -12,11 +12,11 @@ function Get-ExchangeVersion {
 
     # Create version mapping hashtables
     $SchemaVersions = @{
-        # Exchange Server SE (Subscription Edition) - Latest: Jun26SU (15.3.1750.20)
+        # Exchange Server SE (Subscription Edition) - Latest: Oct26SU (15.3.1750.24)
         15342 = 'Exchange Server SE CU1'
         15341 = 'Exchange Server SE RTM'
         
-        # Exchange Server 2019 - Latest: Jun26SU (15.2.1258.39)
+        # Exchange Server 2019 - Latest: Oct26SU (15.2.1258.43)
         15139 = 'Exchange Server 2019 CU15'
         15138 = 'Exchange Server 2019 CU14'
         15137 = 'Exchange Server 2019 CU13'
@@ -34,7 +34,7 @@ function Get-ExchangeVersion {
         15123 = 'Exchange Server 2019 CU1'
         15122 = 'Exchange Server 2019 RTM'
         
-        # Exchange Server 2016 - Latest: Jun26SU (15.1.2507.51)
+        # Exchange Server 2016 - Latest: Oct26SU (15.1.2507.54)
         15334 = 'Exchange Server 2016 CU23'
         15333 = 'Exchange Server 2016 CU22'
         15332 = 'Exchange Server 2016 CU21'
@@ -62,11 +62,11 @@ function Get-ExchangeVersion {
     }
 
     $DomainVersions = @{
-        # Exchange Server SE - Latest: Jun26SU (15.3.1750.20)
+        # Exchange Server SE - Latest: Oct26SU (15.3.1750.24)
         13242 = 'Exchange Server SE CU1 or later'
         13241 = 'Exchange Server SE RTM'
         
-        # Exchange Server 2016/2019 - Latest: Jun26SU
+        # Exchange Server 2016/2019 - Latest: Oct26SU
         13240 = 'Exchange Server 2016 CU3 or later'
         13237 = 'Exchange Server 2016 CU2'
         13236 = 'Exchange Server 2016 CU1'
